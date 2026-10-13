@@ -1,0 +1,1083 @@
+extends Node
+
+signal xp_changed(current_xp: int, max_xp: int, level: int)
+signal level_up(new_level: int, choices: Array)
+signal chest_reward(choices: Array)
+signal kills_changed(kills: int)
+signal time_changed(seconds: float)
+signal game_over_triggered(time_survived: float, kills: int, level: int)
+signal mission_updated(mission: Dictionary)
+signal mission_completed(mission: Dictionary)
+signal gas_changed(current_gas: int)
+signal base_resources_changed(minerals: int, gas: int)
+signal suit_equipped_changed(equipped: bool)
+
+# Estado de la Run y Campaña
+var selected_hero: String = "marine"
+var has_suit_equipped: bool = false
+var current_mission_idx: int = 0
+var mission_kills: int = 0
+var mission_gas: int = 0
+var mission_bosses: int = 0
+var is_mission_completed: bool = false
+
+# Mejoras permanentes de inicio compradas en la Academia
+var barracks_upgrades: Dictionary = {
+	"damage": 0,
+	"multishot": 0,
+	"speed": 0,
+	"armor": 0,
+	"stim": 0,
+	"regen": 0,
+	"magnet": 0,
+	"mineral_efficiency": 0,
+	"vespene_doubler": 0
+}
+
+const BARRACKS_UPGRADES_DEF = {
+	"damage": {
+		"name": "Armamento de Infantería (Daño Global)",
+		"desc": "+5% Daño a todas las armas por nivel",
+		"max_lvl": 10,
+		"cost_min": [15, 30, 60, 120, 240, 480, 960, 1920, 3840, 7680],
+		"cost_gas": [0, 0, 0, 5, 10, 20, 40, 80, 160, 320],
+		"prereq": "",
+		"is_weapon": false,
+		"icon_idx": 3
+	},
+	"multishot": {
+		"name": "Saturación Balística (Disparo Adicional)",
+		"desc": "+1 Proyectil/disparo adicional a todas las armas por nivel",
+		"max_lvl": 3,
+		"cost_min": [250, 500, 1000],
+		"cost_gas": [0, 25, 75],
+		"prereq": "",
+		"is_weapon": false,
+		"icon_idx": 6
+	},
+	"speed": {
+		"name": "Servomotores CMC (Velocidad)",
+		"desc": "+5% Velocidad de movimiento inicial por nivel",
+		"max_lvl": 10,
+		"cost_min": [12, 25, 50, 85, 130, 190, 270, 380, 520, 700],
+		"cost_gas": [0, 0, 0, 4, 8, 14, 22, 32, 45, 60],
+		"prereq": "",
+		"is_weapon": false,
+		"icon_idx": 4
+	},
+	"armor": {
+		"name": "Blindaje CMC (Vida y Armadura)",
+		"desc": "+15 Vida Máxima y +1 Armadura base por nivel",
+		"max_lvl": 10,
+		"cost_min": [15, 30, 60, 100, 150, 220, 310, 430, 580, 780],
+		"cost_gas": [0, 0, 0, 5, 10, 16, 25, 36, 50, 70],
+		"prereq": "",
+		"is_weapon": false,
+		"icon_idx": 2
+	},
+	"stim": {
+		"name": "Estimulantes Sintéticos (Stimpack)",
+		"desc": "Desbloquea [T] Stimpack e incrementa su duración y recarga",
+		"max_lvl": 5,
+		"cost_min": [25, 50, 100, 200, 400],
+		"cost_gas": [0, 5, 15, 30, 60],
+		"prereq": "",
+		"is_weapon": false,
+		"icon_idx": 1
+	},
+	"regen": {
+		"name": "Botiquín Nanomédico (Regen)",
+		"desc": "+0.8 Regeneración de vida/s inicial por nivel",
+		"max_lvl": 10,
+		"cost_min": [18, 35, 70, 120, 180, 260, 360, 490, 650, 850],
+		"cost_gas": [0, 2, 5, 10, 16, 24, 35, 48, 65, 85],
+		"prereq": "",
+		"is_weapon": false,
+		"icon_idx": 7
+	},
+	"magnet": {
+		"name": "Condensador de Flujo (Imán)",
+		"desc": "+18% Radio de atracción de minerales de inicio",
+		"max_lvl": 10,
+		"cost_min": [10, 20, 40, 70, 110, 160, 230, 320, 440, 600],
+		"cost_gas": [0, 0, 0, 2, 5, 10, 16, 24, 35, 50],
+		"prereq": "",
+		"is_weapon": false,
+		"icon_idx": 0
+	},
+	"mineral_efficiency": {
+		"name": "Excavación de Plasma (Minerales Extra)",
+		"desc": "+25% Minerales adicionales obtenidos por cristal por nivel",
+		"max_lvl": 5,
+		"cost_min": [100, 250, 600, 1400, 3000],
+		"cost_gas": [0, 10, 25, 60, 120],
+		"prereq": "",
+		"is_weapon": false,
+		"icon_idx": 0
+	},
+	"vespene_doubler": {
+		"name": "Condensador de Vespeno (Gas x2)",
+		"desc": "Duplica la extracción de Gas Vespeno por cada tanque recolectado",
+		"max_lvl": 1,
+		"cost_min": [500],
+		"cost_gas": [50],
+		"prereq": "",
+		"is_weapon": false,
+		"icon_idx": 5
+	}
+}
+
+const MISSIONS_DEF = [
+	{
+		"id": 1,
+		"title": "Misión 1: Reconocimiento y Purga",
+		"desc": "Sal al sector exterior y elimina 100 Zerglings.",
+		"type": "kills",
+		"target_count": 100,
+		"reward_minerals": 0,
+		"reward_gas": 0,
+		"briefing": "¡Soldado! Sensores perimetrales detectan enjambres hostiles fuera de la base. Sube a la nave en el Puerto Estelar, aterriza en el sector exterior y elimina a 100 Zerglings antes de que se acerquen.",
+		"complete_dialog": "¡Excelente barrido táctico! El perímetro exterior está asegurado. Reabastécete en el Cuartel con los minerales acumulados antes de tu próxima misión."
+	},
+	{
+		"id": 2,
+		"title": "Misión 2: Suministro de Gas Vespeno",
+		"desc": "Recolecta 10 tanques de Gas Vespeno usando las balizas direccionales.",
+		"type": "gas",
+		"target_count": 10,
+		"reward_minerals": 0,
+		"reward_gas": 0,
+		"briefing": "Nuestras naves y generadores de energía necesitan combustible de Vespeno de alta pureza. En el exterior hay tanques abandonados. Sigue las flechas verdes en tu radar y tráenos 10 tanques.",
+		"complete_dialog": "¡Depósitos de combustible restablecidos! Excelente trabajo rastreando el Vespeno en territorio hostil."
+	},
+	{
+		"id": 3,
+		"title": "Misión 3: El Titán del Enjambre",
+		"desc": "Elimina a 200 enemigos y abate a la gigantesca bestia Ultralisco.",
+		"type": "boss",
+		"target_count": 1,
+		"kills_req": 200,
+		"reward_minerals": 0,
+		"reward_gas": 0,
+		"briefing": "¡Alerta máxima! Una monstruosidad gigante de clase Ultralisco acecha en el exterior. Erradica la vanguardia y aniquila al Ultralisco con todo tu arsenal.",
+		"complete_dialog": "¡El Ultralisco ha sido pulverizado! ¡Eres un auténtico héroe de las Fuerzas Confederadas Terran!"
+	},
+	{
+		"id": 4,
+		"title": "Misión 4: Extracción y Supervivencia",
+		"desc": "Recolecta 20 tanques de Gas Vespeno y elimina a 300 enemigos.",
+		"type": "combined",
+		"target_count": 20,
+		"kills_req": 300,
+		"reward_minerals": 0,
+		"reward_gas": 0,
+		"briefing": "La infestación zerg ha alcanzado masa crítica. Extrae todo el combustible que puedas y resiste antes de llamar a la nave de evacuación.",
+		"complete_dialog": "¡Operación completada con distinción de honor! Dominas el campo de batalla como nadie."
+	}
+]
+
+var game_time: float = 0.0
+var kills_count: int = 0
+var current_level: int = 1
+var current_xp: int = 0
+var xp_needed: int = 40
+var is_game_over: bool = false
+var is_leveling_up: bool = false
+var has_shown_max_upgrades_notice: bool = false
+var session_minerals: int = 0
+var mineral_accumulator: float = 0.0
+var last_lull_announced_wave: int = -1
+
+# Spawning de enemigos
+var spawn_timer: float = 0.0
+var base_spawn_interval: float = 1.2
+var zergling_scene: PackedScene = null
+var hydralisk_scene: PackedScene = null
+var mutalisk_scene: PackedScene = null
+var ultralisk_scene: PackedScene = null
+var drone_scene: PackedScene = null
+var nydus_scene: PackedScene = null
+
+# Mini-jefes cada 5 minutos (300 segundos) y Clímax a los 30 minutos (1800s)
+var next_ultralisk_time: float = 300.0
+var has_triggered_30min_climax: bool = false
+
+# Eventos de Estructuras del Enjambre (Minutos 10, 20 y 25)
+var event_zergling_pool_spawned: bool = false
+var event_hydralisk_den_spawned: bool = false
+var event_mutalisk_spire_spawned: bool = false
+
+# Pool de Armas (Max 3)
+const WEAPONS_DEF = [
+	{
+		"id": "c14_rifle",
+		"type": "weapon",
+		"name": "Rifle Gauss C-14",
+		"desc": "+1 Bala adicional por disparo\nMayor saturación de fuego",
+		"weapon_idx": 0
+	},
+	{
+		"id": "firebat_flame",
+		"type": "weapon",
+		"name": "Lanza-llamas Firebat",
+		"desc": "Arma adicional: Dispara conos de fuego\n+1 Llamarada en abanico y +28% AoE",
+		"weapon_idx": 1
+	},
+	{
+		"id": "spider_mine",
+		"type": "weapon",
+		"name": "Minas Araña del Vulture",
+		"desc": "Arma adicional: Siembra minas móviles\n+1 Mina robótica por ciclo y daño masivo",
+		"weapon_idx": 2
+	},
+	{
+		"id": "ghost_sniper",
+		"type": "weapon",
+		"name": "Rifle Francotirador Ghost C-10",
+		"desc": "Arma adicional: Proyectiles balísticos de 25mm\nque atraviesan enemigos a gran distancia",
+		"weapon_idx": 3
+	},
+	{
+		"id": "mutalisk_glave",
+		"type": "weapon",
+		"name": "Glave Wurm Mutalisco",
+		"desc": "Bio-arma Zerg: Proyectiles voraces que rebotan\nentre múltiples objetivos (+2 rebotes por nivel)",
+		"weapon_idx": 4
+	}
+]
+
+# Pool de Mejoras Pasivas (Max 6 distintas, niveles infinitos)
+const PASSIVES_DEF = [
+	{
+		"id": "u238_shells",
+		"type": "passive",
+		"name": "U-238 Shells",
+		"desc": "+15% Daño a TODAS las armas\n+1 Penetración balística (atraviesa enemigos)",
+		"icon_idx": 3
+	},
+	{
+		"id": "combat_shield",
+		"type": "passive",
+		"name": "Combat Shield",
+		"desc": "+25% Vida Máxima total\nCura el 25% de la salud inmediatamente",
+		"icon_idx": 2
+	},
+	{
+		"id": "cadence",
+		"type": "passive",
+		"name": "Cadencia Gauss",
+		"desc": "+20% Velocidad de ataque a\nTODAS las armas activas",
+		"icon_idx": 4
+	},
+	{
+		"id": "multishot",
+		"type": "passive",
+		"name": "Disparo Múltiple",
+		"desc": "+1 Proyectil a TODAS las armas\n(Balas, llamaradas, minas y francotirador)",
+		"icon_idx": 6
+	},
+	{
+		"id": "stimpack_upgrade",
+		"type": "passive",
+		"name": "Infusión de Stimpack",
+		"desc": "+12% Velocidad de movimiento base\n+1s Duración del Stimpack [T]",
+		"icon_idx": 1
+	},
+	{
+		"id": "explosive_rounds",
+		"type": "passive",
+		"name": "Balas Explosivas",
+		"desc": "+25% Tamaño y radio AoE de armas\nExplosiones en área al impactar",
+		"icon_idx": 5
+	},
+	{
+		"id": "magnetic_field",
+		"type": "passive",
+		"name": "Campo Magnético",
+		"desc": "+30% Radio de recolección\nde cristales de mineral",
+		"icon_idx": 0
+	},
+	{
+		"id": "medikit",
+		"type": "passive",
+		"name": "Regeneración Médica",
+		"desc": "+3% Regeneración de vida/segundo\nCura 20% de salud inmediata",
+		"icon_idx": 7
+	}
+]
+
+func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	zergling_scene = load("res://scenes/zergling.tscn")
+	hydralisk_scene = load("res://scenes/hydralisk.tscn")
+	mutalisk_scene = load("res://scenes/mutalisk.tscn")
+	ultralisk_scene = load("res://scenes/ultralisk.tscn")
+	drone_scene = load("res://scenes/drone.tscn")
+	nydus_scene = load("res://scenes/nydus_canal.tscn")
+	sync_barracks_upgrades()
+	reset_game()
+
+func sync_barracks_upgrades() -> void:
+	if not has_node("/root/SaveManager"):
+		return
+	for k in BARRACKS_UPGRADES_DEF.keys():
+		barracks_upgrades[k] = SaveManager.get_academy_upgrade_level(k)
+	if barracks_upgrades.get("damage", 0) == 0:
+		var legacy_dmg = SaveManager.get_academy_upgrade_level("c14_damage")
+		if legacy_dmg > 0:
+			barracks_upgrades["damage"] = legacy_dmg
+	if barracks_upgrades.get("multishot", 0) == 0:
+		var legacy_ms = SaveManager.get_academy_upgrade_level("c14_multishot")
+		if legacy_ms > 0:
+			var m_lvl = 1
+			if legacy_ms >= 8: m_lvl = 3
+			elif legacy_ms >= 4: m_lvl = 2
+			barracks_upgrades["multishot"] = m_lvl
+
+func start_new_run(hero: String = "marine") -> void:
+	selected_hero = hero
+	current_mission_idx = 0
+	mission_kills = 0
+	mission_gas = 0
+	mission_bosses = 0
+	is_mission_completed = false
+	sync_barracks_upgrades()
+	emit_signal("base_resources_changed", get_total_minerals(), get_total_gas())
+	emit_signal("mission_updated", get_current_mission())
+
+func reset_game() -> void:
+	sync_barracks_upgrades()
+	game_time = 0.0
+	kills_count = 0
+	current_level = 1
+	current_xp = 0
+	xp_needed = 40
+	session_minerals = 0
+	mineral_accumulator = 0.0
+	last_lull_announced_wave = -1
+	next_ultralisk_time = 300.0
+	has_triggered_30min_climax = false
+	event_zergling_pool_spawned = false
+	event_hydralisk_den_spawned = false
+	event_mutalisk_spire_spawned = false
+	is_game_over = false
+	is_leveling_up = false
+	has_shown_max_upgrades_notice = false
+	get_tree().paused = false
+	AudioManager.play_music("terran2", true, true)
+
+func get_total_minerals() -> int:
+	if has_node("/root/SaveManager"):
+		return SaveManager.total_minerals
+	return 0
+
+func get_total_gas() -> int:
+	if has_node("/root/SaveManager"):
+		return SaveManager.total_gas
+	return 0
+
+func get_current_mission() -> Dictionary:
+	if has_node("/root/StoryManager"):
+		var m_id = StoryManager.get_current_mission_id()
+		var s_m = StoryManager.get_mission_data(m_id)
+		if not s_m.is_empty():
+			return s_m
+	if current_mission_idx >= 0 and current_mission_idx < MISSIONS_DEF.size():
+		return MISSIONS_DEF[current_mission_idx]
+	return MISSIONS_DEF[MISSIONS_DEF.size() - 1]
+
+func get_mission_progress_str() -> String:
+	var m = get_current_mission()
+	match m.get("type", ""):
+		"minerals":
+			var tgt = m.get("target", 20)
+			return "%d / %d Minerales" % [mini(session_minerals, tgt), tgt]
+		"kills":
+			var tgt = m.get("target", m.get("target_count", 100))
+			return "%d / %d Zerglings" % [mini(mission_kills, tgt), tgt]
+		"gas":
+			var tgt = m.get("target", m.get("target_count", 10))
+			return "%d / %d Gas Vespeno" % [mini(mission_gas, tgt), tgt]
+		"ultralisks", "boss":
+			var tgt = m.get("target", m.get("target_count", 1))
+			var boss_str = "Jefe Abatido" if mission_bosses >= 1 else "Eliminar Ultralisco"
+			return "%d / %d Kills | %s" % [mini(mission_kills, m.get("kills_req", 200)), m.get("kills_req", 200), boss_str]
+		"survival":
+			var tgt = m.get("target", 1800)
+			var cur_s = int(game_time)
+			return "%02d:%02d / %02d:%02d" % [cur_s / 60, cur_s % 60, tgt / 60, tgt % 60]
+		"combined":
+			return "%d / %d Gas | %d / %d Kills" % [mini(mission_gas, m.get("target_count", 20)), m.get("target_count", 20), mini(mission_kills, m.get("kills_req", 300)), m.get("kills_req", 300)]
+	return ""
+
+func _check_mission_progress() -> void:
+	if is_mission_completed:
+		return
+	var m = get_current_mission()
+	var complete: bool = false
+	match m.get("type", ""):
+		"minerals":
+			var tgt = m.get("target", 20)
+			if session_minerals >= tgt or get_total_minerals() >= tgt:
+				complete = true
+		"kills":
+			var tgt = m.get("target", m.get("target_count", 100))
+			if mission_kills >= tgt:
+				complete = true
+		"gas":
+			var tgt = m.get("target", m.get("target_count", 10))
+			if mission_gas >= tgt:
+				complete = true
+		"ultralisks", "boss":
+			var tgt = m.get("target", m.get("target_count", 1))
+			if mission_bosses >= tgt and mission_kills >= m.get("kills_req", 1):
+				complete = true
+		"survival":
+			var tgt = m.get("target", 1800)
+			if game_time >= tgt or has_triggered_30min_climax:
+				complete = true
+		"combined":
+			if mission_gas >= m.get("target_count", 20) and mission_kills >= m.get("kills_req", 300):
+				complete = true
+	
+	if complete:
+		is_mission_completed = true
+		AudioManager.play_sfx("upgrade")
+		emit_signal("mission_completed", m)
+	else:
+		emit_signal("mission_updated", m)
+
+func claim_mission_reward() -> bool:
+	if not is_mission_completed:
+		return false
+	var m = get_current_mission()
+	var r_min = m.get("reward_minerals", 0)
+	var r_gas = m.get("reward_gas", 0)
+	if has_node("/root/SaveManager"):
+		SaveManager.add_minerals(r_min)
+		SaveManager.add_gas(r_gas)
+	
+	if current_mission_idx < MISSIONS_DEF.size() - 1:
+		current_mission_idx += 1
+	mission_kills = 0
+	mission_gas = 0
+	mission_bosses = 0
+	is_mission_completed = false
+	emit_signal("mission_updated", get_current_mission())
+	emit_signal("base_resources_changed", get_total_minerals(), get_total_gas())
+	return true
+
+func buy_barracks_upgrade(upgrade_id: String) -> bool:
+	sync_barracks_upgrades()
+	if not BARRACKS_UPGRADES_DEF.has(upgrade_id):
+		return false
+	var def = BARRACKS_UPGRADES_DEF[upgrade_id]
+	var prereq = def.get("prereq", "")
+	if prereq != "" and barracks_upgrades.get(prereq, 0) == 0:
+		return false
+	var current_lvl = barracks_upgrades.get(upgrade_id, 0)
+	if current_lvl >= def["max_lvl"]:
+		return false
+	var cost_m = def["cost_min"][current_lvl]
+	var cost_g = def["cost_gas"][current_lvl]
+	
+	if has_node("/root/SaveManager"):
+		if SaveManager.spend_resources(cost_m, cost_g):
+			barracks_upgrades[upgrade_id] = current_lvl + 1
+			SaveManager.set_academy_upgrade_level(upgrade_id, current_lvl + 1)
+			if upgrade_id == "stim":
+				SaveManager.unlock_stimpack()
+			SaveManager.save_data()
+			AudioManager.play_sfx("upgrade")
+			emit_signal("base_resources_changed", get_total_minerals(), get_total_gas())
+			return true
+	return false
+
+func get_barracks_bonus(stat_name: String) -> float:
+	match stat_name:
+		"armor": return barracks_upgrades.get("armor", 0) * 1.0
+		"max_hp": return barracks_upgrades.get("armor", 0) * 15.0
+		"damage":
+			var lvl = barracks_upgrades.get("damage", 0)
+			if lvl == 0 and barracks_upgrades.has("c14_damage"):
+				lvl = barracks_upgrades.get("c14_damage", 0)
+			return lvl * 0.05
+		"multishot":
+			var lvl = barracks_upgrades.get("multishot", 0)
+			if lvl == 0 and barracks_upgrades.has("c14_multishot"):
+				var legacy = barracks_upgrades.get("c14_multishot", 0)
+				if legacy >= 8: lvl = 3
+				elif legacy >= 4: lvl = 2
+				elif legacy >= 1: lvl = 1
+			return float(lvl)
+		"speed": return barracks_upgrades.get("speed", 0) * 0.05
+		"cadence": return 0.0
+		"regen": return barracks_upgrades.get("regen", 0) * 0.8
+		"magnet": return barracks_upgrades.get("magnet", 0) * 0.18
+		"stim_dur": return barracks_upgrades.get("stim", 0) * 0.5
+		"stim_cd": return barracks_upgrades.get("stim", 0) * 0.3
+		"mineral_efficiency": return barracks_upgrades.get("mineral_efficiency", 0) * 0.25
+		"vespene_doubler": return float(barracks_upgrades.get("vespene_doubler", 0))
+	return 0.0
+
+func deploy_to_mission() -> void:
+	reset_game()
+	get_tree().change_scene_to_file("res://scenes/main.tscn")
+
+func evacuate_to_base() -> void:
+	get_tree().paused = false
+	get_tree().change_scene_to_file("res://scenes/terran_base.tscn")
+
+func _process(delta: float) -> void:
+	if is_game_over or is_leveling_up or get_tree().paused:
+		return
+	
+	var cur_scene = get_tree().current_scene
+	if cur_scene == null or cur_scene.name != "Main":
+		return
+	
+	var player = get_tree().get_first_node_in_group("player")
+	if player and ("is_in_base" in player) and player.is_in_base:
+		return
+	
+	game_time += delta * 2.0
+	emit_signal("time_changed", game_time)
+	
+	if has_node("/root/SaveManager"):
+		SaveManager.check_realtime_achievements(game_time)
+	
+	_handle_world_events()
+	
+	if game_time >= 1800.0 and not has_triggered_30min_climax:
+		_trigger_30min_climax()
+	
+	_handle_spawning(delta)
+	_handle_boss_spawning()
+
+func _handle_world_events() -> void:
+	if game_time >= 600.0 and not event_zergling_pool_spawned:
+		event_zergling_pool_spawned = true
+		_spawn_spawner_structure("zergling_pool")
+	if game_time >= 1200.0 and not event_hydralisk_den_spawned:
+		event_hydralisk_den_spawned = true
+		_spawn_spawner_structure("hydralisk_den")
+	if game_time >= 1500.0 and not event_mutalisk_spire_spawned:
+		event_mutalisk_spire_spawned = true
+		_spawn_spawner_structure("mutalisk_spire")
+
+func _spawn_spawner_structure(type: String) -> void:
+	var player = get_tree().get_first_node_in_group("player")
+	if not player or not is_instance_valid(player):
+		return
+	
+	var spawner_scene = load("res://scenes/zerg_spawner_structure.tscn")
+	if not spawner_scene:
+		return
+	
+	var angle = randf() * TAU
+	var dist = randf_range(480.0, 560.0)
+	var spawn_pos = player.global_position + Vector2(cos(angle), sin(angle)) * dist
+	
+	var spawner = spawner_scene.instantiate()
+	spawner.structure_type = type
+	spawner.global_position = spawn_pos
+	
+	var main_scene = get_tree().current_scene
+	if main_scene:
+		main_scene.add_child(spawner)
+	
+	var msg = ""
+	match type:
+		"zergling_pool":
+			msg = "«¡ALERTA TÁCTICA! Detectamos un Pozo de Desove Zerg activo en el sector. ¡Destrúyelo para detener el torrente de Zerglings!»"
+		"hydralisk_den":
+			msg = "«¡EMERGENCIA BIOLÓGICA! Ha brotado una Guarida de Hidraliscos masiva. ¡Elimina la estructura y frena las ráfagas de espinas!»"
+		"mutalisk_spire":
+			msg = "«¡CÓDIGO ROJO! Una Espira de Mutaliscos domina el cielo. ¡Derríbala para cortar el asalto aéreo del enjambre!»"
+	
+	for hud in get_tree().get_nodes_in_group("hud"):
+		if hud and hud.has_method("show_transmission"):
+			hud.show_transmission(
+				"CAPITÁN HOLLIS VOSS",
+				load("res://assets/skins/sd/portrait/civilian_portrait.png"),
+				msg,
+				5.5
+			)
+
+func _trigger_30min_climax() -> void:
+	has_triggered_30min_climax = true
+	
+	# 1. Limpiar todos los enemigos del mapa
+	var enemies = get_tree().get_nodes_in_group("enemies")
+	for e in enemies:
+		if is_instance_valid(e):
+			e.queue_free()
+	
+	# 2. Emerger Canal Nydus colosal en frente del jugador
+	var player = get_tree().get_first_node_in_group("player")
+	if player and nydus_scene:
+		var nydus = nydus_scene.instantiate()
+		nydus.global_position = player.global_position + Vector2(0, -90)
+		var cur_scene = get_tree().current_scene
+		if cur_scene:
+			cur_scene.add_child(nydus)
+	
+	AudioManager.play_sfx("nydus_emerge", 0.0, 5.0)
+	
+	# 3. Transmisión del Capitán Voss
+	for hud in get_tree().get_nodes_in_group("hud"):
+		if hud and hud.has_method("show_transmission"):
+			hud.show_transmission(
+				"CAPITÁN HOLLIS VOSS",
+				load("res://assets/skins/sd/portrait/civilian_portrait.png"),
+				"«¡SUPERVIVENCIA DE 30 MINUTOS COMPLETADA! ¡UN CANAL NYDUS COLOSAL HA EMERGIDO! ¡PREPÁRATE PARA LA BATALLA DEFINITIVA!»",
+				6.0
+			)
+	
+	_check_mission_progress()
+
+func _handle_spawning(delta: float) -> void:
+	if has_triggered_30min_climax:
+		return
+	
+	# Descanzo táctico de 10 segundos al final de cada ciclo de 2 minutos (entre seg 110 y 120)
+	var wave_cycle_time = fmod(game_time, 120.0)
+	var is_in_lull = (game_time >= 60.0 and wave_cycle_time >= 110.0)
+	if is_in_lull:
+		var current_wave_idx = int(game_time / 120.0)
+		if last_lull_announced_wave != current_wave_idx:
+			last_lull_announced_wave = current_wave_idx
+			var player = get_tree().get_first_node_in_group("player")
+			if player and player.has_method("show_bubble"):
+				player.show_bubble("Calma táctica: 10s para reagruparse", 2.2)
+		return
+	
+	spawn_timer += delta
+	var current_interval = clamp(1.2 - (game_time / 1200.0) * 0.7, 0.45, 1.2)
+	
+	if spawn_timer >= current_interval:
+		spawn_timer = 0.0
+		# Mantener un límite estricto de 95 entidades activas para garantizar 60 FPS fijos sin congelamientos
+		var current_enemies = get_tree().get_nodes_in_group("enemies").size()
+		if current_enemies >= 95:
+			return
+		
+		var spawn_batch = clamp(1 + int(game_time / 300.0), 1, 3)
+		for i in range(spawn_batch):
+			_spawn_enemy()
+
+func _handle_boss_spawning() -> void:
+	if game_time >= next_ultralisk_time and game_time < 1800.0:
+		var cycle = int(next_ultralisk_time / 300.0)
+		next_ultralisk_time += 300.0
+		_spawn_ultralisk(cycle)
+
+func _spawn_ultralisk(cycle: int = 1) -> void:
+	var player = get_tree().get_first_node_in_group("player")
+	if player == null or not is_instance_valid(player):
+		return
+	
+	var angle = randf() * TAU
+	var spawn_pos = player.global_position + Vector2(cos(angle), sin(angle)) * 480.0
+	
+	if ultralisk_scene:
+		var boss = ultralisk_scene.instantiate()
+		boss.global_position = spawn_pos
+		
+		var scale_val = clampf(1.0 + (cycle - 1) * 0.12, 1.0, 1.55)
+		var hp_val = 600.0 + (cycle - 1) * 450.0
+		var dmg_val = 22.0 + (cycle - 1) * 6.0
+		if boss.has_method("set_mini_boss_scale"):
+			boss.set_mini_boss_scale(scale_val, hp_val, dmg_val)
+		else:
+			boss.scale = Vector2(scale_val, scale_val)
+			boss.base_health = hp_val
+			boss.current_health = hp_val
+		
+		var main_scene = get_tree().current_scene
+		if main_scene:
+			main_scene.add_child(boss)
+
+func _spawn_enemy() -> void:
+	if has_triggered_30min_climax:
+		return
+	
+	var player = get_tree().get_first_node_in_group("player")
+	if player == null or not is_instance_valid(player):
+		return
+	
+	var angle = randf() * TAU
+	var dist = randf_range(360.0, 450.0)
+	var spawn_pos = player.global_position + Vector2(cos(angle), sin(angle)) * dist
+	
+	var roll = randf()
+	var enemy_scene: PackedScene = null
+	var zerg_tier: int = 1
+	var wave_cycle: int = int(game_time / 120.0)
+	
+	match wave_cycle:
+		0: # Min 0 - 2: Oleada Inicial (Drones y Zerglings Básicos)
+			if roll < 0.50:
+				enemy_scene = drone_scene
+				zerg_tier = 1
+			else:
+				enemy_scene = zergling_scene
+				zerg_tier = 1
+		1: # Min 2 - 4: Llegan los primeros Hidraliscos y Zerglings Bronce
+			if roll < 0.20:
+				enemy_scene = hydralisk_scene
+				zerg_tier = 1
+			elif roll < 0.35:
+				enemy_scene = drone_scene
+				zerg_tier = 1
+			elif roll < 0.75:
+				enemy_scene = zergling_scene
+				zerg_tier = 2
+			else:
+				enemy_scene = zergling_scene
+				zerg_tier = 1
+		2: # Min 4 - 6: Enjambre Aéreo (Mutaliscos) y Zerglings Cazadores
+			if roll < 0.22:
+				enemy_scene = mutalisk_scene
+				zerg_tier = 1
+			elif roll < 0.45:
+				enemy_scene = hydralisk_scene
+				zerg_tier = 1
+			elif roll < 0.80:
+				enemy_scene = zergling_scene
+				zerg_tier = 3
+			else:
+				enemy_scene = zergling_scene
+				zerg_tier = 2
+		3: # Min 6 - 8: Oleada Carmesí (Zerglings Carmesí, Mutas y Hidras Cazadores)
+			if roll < 0.25:
+				enemy_scene = mutalisk_scene
+				zerg_tier = 2
+			elif roll < 0.50:
+				enemy_scene = hydralisk_scene
+				zerg_tier = 2
+			elif roll < 0.85:
+				enemy_scene = zergling_scene
+				zerg_tier = 4
+			else:
+				enemy_scene = zergling_scene
+				zerg_tier = 3
+		4: # Min 8 - 10: Vanguardia de Tormenta (Zerglings Azules HP 480 / Armadura 7)
+			if roll < 0.30:
+				enemy_scene = mutalisk_scene
+				zerg_tier = 2
+			elif roll < 0.60:
+				enemy_scene = hydralisk_scene
+				zerg_tier = 2
+			else:
+				enemy_scene = zergling_scene
+				zerg_tier = 5
+		5: # Min 10 - 12: Mutación Tóxica (Zerglings Ámbar HP 950 / Armadura 11, Hidras Carmesí, Mutas Azules)
+			if roll < 0.32:
+				enemy_scene = mutalisk_scene
+				zerg_tier = 3
+			elif roll < 0.64:
+				enemy_scene = hydralisk_scene
+				zerg_tier = 3
+			else:
+				enemy_scene = zergling_scene
+				zerg_tier = 6
+		6: # Min 12 - 14: Fuerza Titánica (Zerglings Esmeralda HP 1800 / Armadura 16, Hidras y Mutas Ámbar)
+			if roll < 0.35:
+				enemy_scene = mutalisk_scene
+				zerg_tier = 4
+			elif roll < 0.70:
+				enemy_scene = hydralisk_scene
+				zerg_tier = 4
+			else:
+				enemy_scene = zergling_scene
+				zerg_tier = 7
+		_: # Min 14+: Masa Crítica del Enjambre (Tiers Máximos con Alta Armadura y Resistencia)
+			var extra_tier = clamp(wave_cycle - 6, 0, 5)
+			if roll < 0.35:
+				enemy_scene = mutalisk_scene
+				zerg_tier = 5 + extra_tier
+			elif roll < 0.70:
+				enemy_scene = hydralisk_scene
+				zerg_tier = 5 + extra_tier
+			else:
+				enemy_scene = zergling_scene
+				zerg_tier = 7 + extra_tier
+	
+	if enemy_scene:
+		var enemy = enemy_scene.instantiate()
+		enemy.global_position = spawn_pos
+		if enemy.has_method("set_tier"):
+			enemy.set_tier(zerg_tier)
+		var main_scene = get_tree().current_scene
+		if main_scene:
+			main_scene.add_child(enemy)
+
+func _spawn_zergling() -> void:
+	_spawn_enemy()
+
+func add_zergling_kill() -> void:
+	if has_node("/root/SaveManager"):
+		SaveManager.add_zergling_kill()
+
+func add_kill() -> void:
+	kills_count += 1
+	mission_kills += 1
+	if has_node("/root/SaveManager"):
+		SaveManager.add_session_kills(1)
+	emit_signal("kills_changed", kills_count)
+	_check_mission_progress()
+
+func add_boss_kill() -> void:
+	mission_bosses += 1
+	_check_mission_progress()
+
+func add_gas(amount: int = 1) -> void:
+	mission_gas += amount
+	if has_node("/root/SaveManager"):
+		SaveManager.add_gas(amount)
+	emit_signal("gas_changed", get_total_gas())
+	emit_signal("base_resources_changed", get_total_minerals(), get_total_gas())
+	_check_mission_progress()
+
+func add_xp(amount: int, minerals: int = 1) -> void:
+	if is_game_over:
+		return
+	var player = get_tree().get_first_node_in_group("player")
+	if player and (player.is_dead or player.current_health <= 0.0):
+		return
+	current_xp += amount
+	
+	var gained_minerals = minerals
+	if minerals > 0:
+		var bonus_mult = 1.0 + get_barracks_bonus("mineral_efficiency")
+		mineral_accumulator += float(minerals) * bonus_mult
+		gained_minerals = int(mineral_accumulator)
+		mineral_accumulator -= float(gained_minerals)
+	
+	session_minerals += gained_minerals
+	if has_node("/root/SaveManager") and gained_minerals > 0:
+		SaveManager.add_minerals(gained_minerals)
+		emit_signal("base_resources_changed", get_total_minerals(), get_total_gas())
+	if current_xp >= xp_needed:
+		_trigger_level_up()
+	emit_signal("xp_changed", current_xp, xp_needed, current_level)
+
+func _trigger_level_up() -> void:
+	var player = get_tree().get_first_node_in_group("player")
+	if is_game_over or (player and (player.is_dead or player.current_health <= 0.0)):
+		return
+	current_xp -= xp_needed
+	current_level += 1
+	xp_needed = int(xp_needed * 1.35) + 15
+	
+	var choices = _get_available_upgrade_choices()
+	if choices.is_empty():
+		# Sin mejoras o alcanzado el máximo investigado: no pausar ni congelar el juego
+		is_leveling_up = false
+		get_tree().paused = false
+		# Solo mostrar el mensaje si la academia ya está construida, a partir de nivel 2 y una sola vez
+		if StoryManager.is_academy_built() and current_level >= 2 and not has_shown_max_upgrades_notice:
+			has_shown_max_upgrades_notice = true
+			if player and player.has_method("show_bubble"):
+				player.show_bubble("Mejoras al máximo de investigación", 2.2)
+		emit_signal("xp_changed", current_xp, xp_needed, current_level)
+		return
+	
+	is_leveling_up = true
+	get_tree().paused = true
+	AudioManager.play_sfx("upgrade")
+	emit_signal("level_up", current_level, choices)
+
+func trigger_chest_reward() -> void:
+	var player = get_tree().get_first_node_in_group("player")
+	if is_game_over or (player and (player.is_dead or player.current_health <= 0.0)):
+		return
+	
+	var choices = _get_available_upgrade_choices()
+	if choices.is_empty():
+		# Recompensa directa si no hay mejoras disponibles
+		add_xp(0, 50)
+		if player and player.has_method("show_bubble"):
+			player.show_bubble("Cofre táctico: +50 Minerales", 2.0)
+		return
+	
+	is_leveling_up = true
+	get_tree().paused = true
+	AudioManager.play_sfx("upgrade")
+	emit_signal("chest_reward", choices)
+
+func _get_available_upgrade_choices() -> Array:
+	# Antes de construir la Academia, no hay ninguna mejora disponible
+	if not StoryManager.is_academy_built():
+		return []
+	
+	var player = get_tree().get_first_node_in_group("player")
+	var player_weapons = player.weapons if player else {}
+	var player_passives = player.passives if player else {}
+	
+	var weapon_pool: Array = []
+	var passive_pool: Array = []
+	
+	# 1. Armas
+	if player_weapons.has("c14_rifle"):
+		var lvl = player_weapons["c14_rifle"] + 1
+		weapon_pool.append({
+			"id": "c14_rifle",
+			"type": "weapon",
+			"name": "Rifle Gauss C-14 (Nv. %d)" % lvl,
+			"desc": "+1 Bala adicional por disparo\nMayor saturación balística",
+			"weapon_idx": 0
+		})
+	
+	var sec_count = 0
+	for w in player_weapons.keys():
+		if w != "c14_rifle":
+			sec_count += 1
+	
+	# 1. Firebat (Disponible desde el inicio en las runs)
+	if player_weapons.has("firebat_flame"):
+		var pow_lvl = player.firebat_power_lvl if player else 1
+		var str_lvl = player.firebat_streams if player else 1
+		if pow_lvl < 6:
+			weapon_pool.append({
+				"id": "firebat_power",
+				"type": "weapon",
+				"name": "Potencia de Llamarada (Nv. %d)" % (pow_lvl + 1),
+				"desc": "+15% Daño a cada llamarada\nIncremento térmico concentrado (+10% AoE)",
+				"weapon_idx": 1
+			})
+		if str_lvl < 4:
+			weapon_pool.append({
+				"id": "firebat_streams",
+				"type": "weapon",
+				"name": "Inyectores Múltiples (Nv. %d)" % (str_lvl + 1),
+				"desc": "+1 Llamarada de fuego adicional\nDisparo simultáneo en abanico",
+				"weapon_idx": 1
+			})
+	elif sec_count < 3 and SaveManager.is_weapon_unlocked("firebat_flame"):
+		weapon_pool.append({
+			"id": "firebat_flame",
+			"type": "weapon",
+			"name": "NUEVA ARMA: Lanza-llamas Firebat",
+			"desc": "Dispara conos de napalm ardiente\nque calcinan a grupos enteros de zerg",
+			"weapon_idx": 1
+		})
+	
+	# 2. Minas Araña Vulture (Disponible desde el inicio en las runs)
+	if player_weapons.has("spider_mine"):
+		var lvl = player_weapons["spider_mine"] + 1
+		if lvl <= 6:
+			weapon_pool.append({
+				"id": "spider_mine",
+				"type": "weapon",
+				"name": "Minas Araña (Nv. %d)" % lvl,
+				"desc": "+1 Mina desplegada por ciclo\n+25 Daño de detonación masivo",
+				"weapon_idx": 2
+			})
+	elif sec_count < 3:
+		weapon_pool.append({
+			"id": "spider_mine",
+			"type": "weapon",
+			"name": "NUEVA ARMA: Minas Araña",
+			"desc": "Siembra minas móviles robóticas\nque persiguen y destruyen al enjambre",
+			"weapon_idx": 2
+		})
+	
+	# 3. Francotirador Ghost C-10 (Sobrevivir 20 minutos)
+	var sniper_unlocked = SaveManager.is_weapon_unlocked("ghost_sniper", game_time) if has_node("/root/SaveManager") else false
+	if sniper_unlocked:
+		if player_weapons.has("ghost_sniper"):
+			var lvl = player_weapons["ghost_sniper"] + 1
+			if lvl <= 6:
+				weapon_pool.append({
+					"id": "ghost_sniper",
+					"type": "weapon",
+					"name": "Francotirador Ghost C-10 (Nv. %d)" % lvl,
+					"desc": "+25 Daño balístico perforante\n+1 Enemigo penetrado por bala",
+					"weapon_idx": 3
+				})
+		elif sec_count < 3:
+			weapon_pool.append({
+				"id": "ghost_sniper",
+				"type": "weapon",
+				"name": "NUEVA ARMA: Francotirador Ghost C-10",
+				"desc": "Desbloqueada: Disparo de alta precisión\nque atraviesa hordas enteras de zerg",
+				"weapon_idx": 3
+			})
+	
+	# 4. Glave Wurm Mutalisco (Rebotes en cadena y multishot)
+	var mutalisk_unlocked = SaveManager.is_weapon_unlocked("mutalisk_glave", game_time) if has_node("/root/SaveManager") else true
+	if mutalisk_unlocked:
+		if player_weapons.has("mutalisk_glave"):
+			var lvl = player_weapons["mutalisk_glave"] + 1
+			if lvl <= 6:
+				weapon_pool.append({
+					"id": "mutalisk_glave",
+					"type": "weapon",
+					"name": "Glave Wurm (Nv. %d)" % lvl,
+					"desc": "+2 Rebotes de ricochet | +6 Daño\n+35 Velocidad de vuelo del proyectil",
+					"weapon_idx": 4
+				})
+		elif sec_count < 3:
+			weapon_pool.append({
+				"id": "mutalisk_glave",
+				"type": "weapon",
+				"name": "NUEVA ARMA: Glave Wurm Mutalisco",
+				"desc": "Proyectil biológico zerg con rebote en cadena\n(Daño y velocidad aumentan con mejoras)",
+				"weapon_idx": 4
+			})
+	
+	# 2. Pasivas (sin límites de investigación durante la run, progresión libre hasta Nv 5)
+	for p in PASSIVES_DEF:
+		var p_id = p["id"]
+		var allowed_max = 5
+		if p_id == "stimpack_upgrade":
+			var can_stim = (has_node("/root/SaveManager") and SaveManager.is_stimpack_unlocked()) or barracks_upgrades.get("stim", 0) > 0
+			if not can_stim:
+				continue
+		
+		var cur_p_lvl = player_passives.get(p_id, 0)
+		if cur_p_lvl < allowed_max:
+			if cur_p_lvl > 0:
+				var item = p.duplicate()
+				item["name"] = p["name"] + " (Nv. %d)" % (cur_p_lvl + 1)
+				passive_pool.append(item)
+			elif player_passives.size() < 6:
+				passive_pool.append(p.duplicate())
+	
+	weapon_pool.shuffle()
+	passive_pool.shuffle()
+	
+	var choices: Array = []
+	if not weapon_pool.is_empty():
+		choices.append(weapon_pool.pop_back())
+	if not weapon_pool.is_empty() and randf() > 0.35:
+		choices.append(weapon_pool.pop_back())
+	
+	while choices.size() < 3 and not passive_pool.is_empty():
+		choices.append(passive_pool.pop_back())
+	
+	while choices.size() < 3 and not weapon_pool.is_empty():
+		choices.append(weapon_pool.pop_back())
+	
+	choices.shuffle()
+	return choices
+
+func select_upgrade(upgrade_id: String) -> void:
+	is_leveling_up = false
+	var player = get_tree().get_first_node_in_group("player")
+	if player and is_instance_valid(player) and not player.is_dead and player.current_health > 0.0:
+		player.apply_upgrade(upgrade_id)
+	
+	get_tree().paused = false
+	emit_signal("xp_changed", current_xp, xp_needed, current_level)
+
+func game_over() -> void:
+	if is_game_over:
+		return
+	is_game_over = true
+	if has_node("/root/SaveManager"):
+		SaveManager.record_run_end(game_time, 0, 0)
+	AudioManager.stop_music()
+	emit_signal("game_over_triggered", game_time, kills_count, current_level)

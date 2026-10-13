@@ -1,0 +1,613 @@
+[gd_scene load_steps=20 format=3]
+
+[ext_resource type="Script" path="res://scripts/character_select.gd" id="1_script"]
+[ext_resource type="FontFile" path="res://assets/skins/sd/fonts/eurostile.ttf" id="2_font"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/ui/briefing.png" id="3_bg"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/portrait/marine_portrait.png" id="4_marine"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/portrait/firebat_portrait.png" id="5_firebat"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/portrait/ghost_portrait.png" id="6_ghost"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/portrait/goliath_portrait.png" id="7_goliath"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/ui/tframe1.png" id="8_tframe1"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/ui/tframe2.png" id="9_tframe2"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/ui/tframe3.png" id="10_tframe3"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/ui/tframe4.png" id="11_tframe4"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/ui/tframeh1.png" id="12_tframeh1"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/ui/tframeh2.png" id="13_tframeh2"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/ui/tframeh3.png" id="14_tframeh3"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/ui/tframeh4.png" id="15_tframeh4"]
+[ext_resource type="Script" path="res://scripts/sc_portrait.gd" id="16_portrait"]
+
+[sub_resource type="Theme" id="Theme_sc"]
+default_font = ExtResource("2_font")
+default_font_size = 11
+
+[sub_resource type="StyleBoxEmpty" id="StyleBox_empty"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_btn_start"]
+bg_color = Color(0.03, 0.08, 0.04, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.2, 0.85, 0.35, 0.95)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_btn_cancel"]
+bg_color = Color(0.08, 0.03, 0.03, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.85, 0.2, 0.2, 0.95)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[node name="CharacterSelect" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="TextureRect" parent="."]
+texture_filter = 0
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_bg")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Monitors" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="MarineMonitor" type="Control" parent="Monitors"]
+layout_mode = 0
+offset_left = 33.0
+offset_top = 98.0
+offset_right = 161.0
+offset_bottom = 216.0
+
+[node name="Portrait" type="Control" parent="Monitors/MarineMonitor"]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 7.0
+offset_right = 122.0
+offset_bottom = 111.0
+script = ExtResource("16_portrait")
+portrait_texture = ExtResource("4_marine")
+auto_scale_to_fill = true
+enable_click_to_talk = false
+
+[node name="Chassis" type="TextureRect" parent="Monitors/MarineMonitor"]
+texture_filter = 0
+layout_mode = 0
+offset_right = 128.0
+offset_bottom = 118.0
+mouse_filter = 2
+texture = ExtResource("8_tframe1")
+
+[node name="Highlight" type="TextureRect" parent="Monitors/MarineMonitor"]
+texture_filter = 0
+layout_mode = 0
+offset_right = 128.0
+offset_bottom = 118.0
+mouse_filter = 2
+texture = ExtResource("12_tframeh1")
+
+[node name="Badge" type="Label" parent="Monitors/MarineMonitor"]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 91.0
+offset_right = 116.0
+offset_bottom = 107.0
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(0.2, 1, 0.35, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_font_sizes/font_size = 9
+text = "LISTO"
+horizontal_alignment = 1
+
+[node name="Button" type="Button" parent="Monitors/MarineMonitor"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+flat = true
+
+[node name="FirebatMonitor" type="Control" parent="Monitors"]
+layout_mode = 0
+offset_left = 183.0
+offset_top = 26.0
+offset_right = 311.0
+offset_bottom = 144.0
+
+[node name="Portrait" type="Control" parent="Monitors/FirebatMonitor"]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 7.0
+offset_right = 122.0
+offset_bottom = 111.0
+script = ExtResource("16_portrait")
+portrait_texture = ExtResource("5_firebat")
+auto_scale_to_fill = true
+enable_click_to_talk = false
+
+[node name="LockOverlay" type="ColorRect" parent="Monitors/FirebatMonitor"]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 7.0
+offset_right = 122.0
+offset_bottom = 111.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.25)
+
+[node name="Chassis" type="TextureRect" parent="Monitors/FirebatMonitor"]
+texture_filter = 0
+layout_mode = 0
+offset_right = 128.0
+offset_bottom = 118.0
+mouse_filter = 2
+texture = ExtResource("9_tframe2")
+
+[node name="Highlight" type="TextureRect" parent="Monitors/FirebatMonitor"]
+visible = false
+texture_filter = 0
+layout_mode = 0
+offset_right = 128.0
+offset_bottom = 118.0
+mouse_filter = 2
+texture = ExtResource("13_tframeh2")
+
+[node name="Badge" type="Label" parent="Monitors/FirebatMonitor"]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 91.0
+offset_right = 116.0
+offset_bottom = 107.0
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(1, 0.8, 0.2, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_font_sizes/font_size = 9
+text = "BLOQUEADO"
+horizontal_alignment = 1
+
+[node name="Button" type="Button" parent="Monitors/FirebatMonitor"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+flat = true
+
+[node name="GhostMonitor" type="Control" parent="Monitors"]
+layout_mode = 0
+offset_left = 338.0
+offset_top = 26.0
+offset_right = 466.0
+offset_bottom = 144.0
+
+[node name="Portrait" type="Control" parent="Monitors/GhostMonitor"]
+layout_mode = 0
+offset_left = 6.0
+offset_top = 7.0
+offset_right = 120.0
+offset_bottom = 111.0
+script = ExtResource("16_portrait")
+portrait_texture = ExtResource("6_ghost")
+auto_scale_to_fill = true
+enable_click_to_talk = false
+
+[node name="LockOverlay" type="ColorRect" parent="Monitors/GhostMonitor"]
+layout_mode = 0
+offset_left = 6.0
+offset_top = 7.0
+offset_right = 120.0
+offset_bottom = 111.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.25)
+
+[node name="Chassis" type="TextureRect" parent="Monitors/GhostMonitor"]
+texture_filter = 0
+layout_mode = 0
+offset_right = 128.0
+offset_bottom = 118.0
+mouse_filter = 2
+texture = ExtResource("10_tframe3")
+
+[node name="Highlight" type="TextureRect" parent="Monitors/GhostMonitor"]
+visible = false
+texture_filter = 0
+layout_mode = 0
+offset_right = 128.0
+offset_bottom = 118.0
+mouse_filter = 2
+texture = ExtResource("14_tframeh3")
+
+[node name="Badge" type="Label" parent="Monitors/GhostMonitor"]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 91.0
+offset_right = 116.0
+offset_bottom = 107.0
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(1, 0.8, 0.2, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_font_sizes/font_size = 9
+text = "BLOQUEADO"
+horizontal_alignment = 1
+
+[node name="Button" type="Button" parent="Monitors/GhostMonitor"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+flat = true
+
+[node name="GoliathMonitor" type="Control" parent="Monitors"]
+layout_mode = 0
+offset_left = 479.0
+offset_top = 98.0
+offset_right = 607.0
+offset_bottom = 216.0
+
+[node name="Portrait" type="Control" parent="Monitors/GoliathMonitor"]
+layout_mode = 0
+offset_left = 6.0
+offset_top = 7.0
+offset_right = 120.0
+offset_bottom = 111.0
+script = ExtResource("16_portrait")
+portrait_texture = ExtResource("7_goliath")
+auto_scale_to_fill = true
+enable_click_to_talk = false
+
+[node name="LockOverlay" type="ColorRect" parent="Monitors/GoliathMonitor"]
+layout_mode = 0
+offset_left = 6.0
+offset_top = 7.0
+offset_right = 120.0
+offset_bottom = 111.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.25)
+
+[node name="Chassis" type="TextureRect" parent="Monitors/GoliathMonitor"]
+texture_filter = 0
+layout_mode = 0
+offset_right = 128.0
+offset_bottom = 118.0
+mouse_filter = 2
+texture = ExtResource("11_tframe4")
+
+[node name="Highlight" type="TextureRect" parent="Monitors/GoliathMonitor"]
+visible = false
+texture_filter = 0
+layout_mode = 0
+offset_right = 128.0
+offset_bottom = 118.0
+mouse_filter = 2
+texture = ExtResource("15_tframeh4")
+
+[node name="Badge" type="Label" parent="Monitors/GoliathMonitor"]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 91.0
+offset_right = 116.0
+offset_bottom = 107.0
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(1, 0.8, 0.2, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_font_sizes/font_size = 9
+text = "BLOQUEADO"
+horizontal_alignment = 1
+
+[node name="Button" type="Button" parent="Monitors/GoliathMonitor"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+flat = true
+
+[node name="CenterPanel" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 194.0
+offset_top = 174.0
+offset_right = 458.0
+offset_bottom = 376.0
+theme_override_styles/panel = SubResource("StyleBox_empty")
+
+[node name="VBox" type="VBoxContainer" parent="CenterPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 2
+
+[node name="UnitNameLabel" type="Label" parent="CenterPanel/VBox"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_font_sizes/font_size = 12
+text = "MARINE TERRAN"
+
+[node name="UnitRoleLabel" type="Label" parent="CenterPanel/VBox"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(0.7, 0.85, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 1
+theme_override_font_sizes/font_size = 9
+text = "Infantería Ligera de Asalto (Armadura CMC-300)"
+
+[node name="HSeparator" type="HSeparator" parent="CenterPanel/VBox"]
+layout_mode = 2
+
+[node name="StatsGrid" type="GridContainer" parent="CenterPanel/VBox"]
+layout_mode = 2
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 1
+columns = 3
+
+[node name="HpLabel" type="Label" parent="CenterPanel/VBox/StatsGrid"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(0.25, 1, 0.35, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 9
+text = "Vida: 40 PS"
+
+[node name="ArmorLabel" type="Label" parent="CenterPanel/VBox/StatsGrid"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 9
+text = "Armadura: 1"
+
+[node name="SpeedLabel" type="Label" parent="CenterPanel/VBox/StatsGrid"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(0.85, 0.9, 0.95, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 9
+text = "Velocidad: 120 px/s"
+
+[node name="WeaponLabel" type="Label" parent="CenterPanel/VBox/StatsGrid"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(1, 0.8, 0.3, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 9
+text = "Arma: Rifle C-14"
+
+[node name="DamageLabel" type="Label" parent="CenterPanel/VBox/StatsGrid"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(1, 0.45, 0.45, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 9
+text = "Daño: 14 dmg"
+
+[node name="RateLabel" type="Label" parent="CenterPanel/VBox/StatsGrid"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 9
+text = "Cadencia: 2.4/s"
+
+[node name="SkillLabel" type="Label" parent="CenterPanel/VBox"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(0.3, 1, 0.6, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 1
+theme_override_font_sizes/font_size = 9
+text = "💉 HABILIDAD: Estimulantes [T] (+50% vel/cad x 5s, -10 PS)"
+autowrap_mode = 2
+
+[node name="LoreLabel" type="Label" parent="CenterPanel/VBox"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(0.75, 0.8, 0.85, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 9
+text = "Soldado confederado curtido en combate. Versátil y letal ante enjambres masivos."
+autowrap_mode = 2
+
+[node name="StatusBadge" type="Label" parent="CenterPanel/VBox"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(0.25, 1, 0.35, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_font_sizes/font_size = 9
+text = "[ DESPLEGADO Y LISTO PARA COMBATE ]"
+horizontal_alignment = 1
+
+[node name="ObjHeaderLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 44.0
+offset_top = 308.0
+offset_right = 265.0
+offset_bottom = 326.0
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_font_sizes/font_size = 9
+text = "EXPEDIENTE TÁCTICO"
+vertical_alignment = 1
+
+[node name="ObjectivesPanel" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 56.0
+offset_top = 342.0
+offset_right = 266.0
+offset_bottom = 452.0
+theme_override_styles/panel = SubResource("StyleBox_empty")
+
+[node name="VBox" type="VBoxContainer" parent="ObjectivesPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 4
+
+[node name="Obj1" type="Label" parent="ObjectivesPanel/VBox"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(0.9, 0.95, 0.9, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/line_spacing = 2
+theme_override_font_sizes/font_size = 9
+text = "• Infantería básica asignada a la expedición."
+autowrap_mode = 3
+
+[node name="Obj2" type="Label" parent="ObjectivesPanel/VBox"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(0.9, 0.95, 0.9, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/line_spacing = 2
+theme_override_font_sizes/font_size = 9
+text = "• Asistencia de tiro automática en armadura CMC-300."
+autowrap_mode = 3
+
+[node name="Obj3" type="Label" parent="ObjectivesPanel/VBox"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(0.9, 0.95, 0.9, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/line_spacing = 2
+theme_override_font_sizes/font_size = 9
+text = "• Extraer mediante nave para conservar minerales."
+autowrap_mode = 3
+
+[node name="Obj4" type="Label" parent="ObjectivesPanel/VBox"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(0.9, 0.95, 0.9, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/line_spacing = 2
+theme_override_font_sizes/font_size = 9
+autowrap_mode = 3
+
+[node name="Obj5" type="Label" parent="ObjectivesPanel/VBox"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(0.25, 1, 0.35, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 8
+autowrap_mode = 3
+
+[node name="StartButton" type="Button" parent="."]
+layout_mode = 0
+offset_left = 298.0
+offset_top = 404.0
+offset_right = 448.0
+offset_bottom = 434.0
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(0.3, 1, 0.4, 1)
+theme_override_colors/font_focus_color = Color(0.5, 1, 0.6, 1)
+theme_override_colors/font_hover_color = Color(0.7, 1, 0.8, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBox_btn_start")
+theme_override_styles/hover = SubResource("StyleBox_btn_start")
+text = "INICIAR MISIÓN"
+
+[node name="CancelButton" type="Button" parent="."]
+layout_mode = 0
+offset_left = 472.0
+offset_top = 414.0
+offset_right = 612.0
+offset_bottom = 448.0
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(1, 0.35, 0.35, 1)
+theme_override_colors/font_focus_color = Color(1, 0.5, 0.5, 1)
+theme_override_colors/font_hover_color = Color(1, 0.7, 0.7, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBox_btn_cancel")
+theme_override_styles/hover = SubResource("StyleBox_btn_cancel")
+text = "CANCELAR"

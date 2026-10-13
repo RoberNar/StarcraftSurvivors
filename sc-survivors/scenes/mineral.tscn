@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/mineral.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/sprites/mineral_chunk.png" id="2_mineral"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_1"]
+radius = 8.0
+
+[node name="Mineral" type="Area2D"]
+collision_layer = 4
+collision_mask = 0
+script = ExtResource("1_script")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_1")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 0
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("2_mineral")
+hframes = 8
+vframes = 3
+frame = 0

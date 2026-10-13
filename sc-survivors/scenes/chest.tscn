@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/chest.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/sprites/chest.png" id="2_tex"]
+
+[node name="TreasureChest" type="Node2D"]
+script = ExtResource("1_script")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 0
+scale = Vector2(1.6, 1.6)
+texture = ExtResource("2_tex")
+hframes = 7
+frame = 0

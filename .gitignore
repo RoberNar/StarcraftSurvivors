@@ -1,0 +1,17 @@
+# Godot 4 engine ignore
+.godot/
+*.translation
+
+# Build artifacts & executables
+*.exe
+*.pck
+*.zip
+*.7z
+*.rar
+SC_Survivors_Alpha_v1.0/
+
+# Temporary and OS files
+.DS_Store
+Thumbs.db
+*.tmp
+*.log

@@ -1,0 +1,747 @@
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scripts/hud.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/radar.gd" id="2_radar"]
+[ext_resource type="Script" path="res://scripts/sc_health_bar.gd" id="3_hpbar"]
+[ext_resource type="Script" path="res://scripts/sc_portrait.gd" id="4_portrait"]
+[ext_resource type="FontFile" path="res://assets/skins/sd/fonts/eurostile.ttf" id="5_font"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/ui/tconsole.png" id="6_tconsole"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/ui/icon_mineral.png" id="7_min_icon"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/ui/icon_gas.png" id="8_gas_icon"]
+
+[sub_resource type="Theme" id="Theme_sc"]
+default_font = ExtResource("5_font")
+default_font_size = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_topbar"]
+bg_color = Color(0.04, 0.07, 0.12, 0.95)
+border_width_bottom = 1
+border_color = Color(0.18, 0.45, 0.75, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_xp_fill"]
+bg_color = Color(0.15, 0.75, 1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_xp_bg"]
+bg_color = Color(0.02, 0.04, 0.08, 0.85)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_panel"]
+bg_color = Color(0.04, 0.07, 0.12, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.18, 0.45, 0.75, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_transmission"]
+bg_color = Color(0.03, 0.06, 0.12, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.2, 0.75, 1, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+shadow_color = Color(0, 0, 0, 0.8)
+shadow_size = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_comm_portrait"]
+bg_color = Color(0.01, 0.03, 0.06, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.25, 0.55, 0.85, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_base_weapon"]
+bg_color = Color(0.04, 0.07, 0.12, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.2, 0.38, 0.6, 0.75)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[node name="HUD" type="CanvasLayer"]
+process_mode = 3
+script = ExtResource("1_script")
+
+[node name="TopBar" type="Panel" parent="."]
+custom_minimum_size = Vector2(0, 30)
+offset_right = 640.0
+offset_bottom = 30.0
+theme_override_styles/panel = SubResource("StyleBox_topbar")
+
+[node name="HBox" type="HBoxContainer" parent="TopBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_right = -16.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+
+[node name="MineralHBox" type="HBoxContainer" parent="TopBar/HBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="MineralIcon" type="TextureRect" parent="TopBar/HBox/MineralHBox"]
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("7_min_icon")
+stretch_mode = 5
+
+[node name="MineralsLabel" type="Label" parent="TopBar/HBox/MineralHBox"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(0.3, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "0"
+
+[node name="GasHBox" type="HBoxContainer" parent="TopBar/HBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="GasIcon" type="TextureRect" parent="TopBar/HBox/GasHBox"]
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("8_gas_icon")
+stretch_mode = 5
+
+[node name="GasLabel" type="Label" parent="TopBar/HBox/GasHBox"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(0.3, 1, 0.4, 1)
+theme_override_font_sizes/font_size = 12
+text = "0"
+
+[node name="LevelLabel" type="Label" parent="TopBar/HBox"]
+visible = false
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(1, 0.85, 0.25, 1)
+theme_override_font_sizes/font_size = 12
+text = ""
+
+[node name="Spacer" type="Control" parent="TopBar/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TimeLabel" type="Label" parent="TopBar/HBox"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(0.85, 0.9, 0.95, 1)
+theme_override_font_sizes/font_size = 12
+text = "00:00"
+
+[node name="XpBar" type="ProgressBar" parent="."]
+offset_top = 28.0
+offset_right = 640.0
+offset_bottom = 33.0
+theme_override_styles/background = SubResource("StyleBox_xp_bg")
+theme_override_styles/fill = SubResource("StyleBox_xp_fill")
+show_percentage = false
+
+[node name="ConsoleRect" type="TextureRect" parent="."]
+texture_filter = 0
+offset_top = 292.0
+offset_right = 640.0
+offset_bottom = 480.0
+texture = ExtResource("6_tconsole")
+
+[node name="RadarControl" type="Control" parent="ConsoleRect"]
+layout_mode = 0
+offset_left = 6.0
+offset_top = 56.0
+offset_right = 134.0
+offset_bottom = 184.0
+script = ExtResource("2_radar")
+
+[node name="WireframeRect" type="TextureRect" parent="ConsoleRect"]
+texture_filter = 0
+layout_mode = 0
+offset_left = 166.0
+offset_top = 108.0
+offset_right = 226.0
+offset_bottom = 154.0
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SCHealthBar" type="Control" parent="ConsoleRect"]
+layout_mode = 0
+offset_left = 162.0
+offset_top = 158.0
+offset_right = 230.0
+offset_bottom = 166.0
+script = ExtResource("3_hpbar")
+
+[node name="HpLabel" type="Label" parent="ConsoleRect"]
+layout_mode = 0
+offset_left = 162.0
+offset_top = 168.0
+offset_right = 230.0
+offset_bottom = 182.0
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(0.25, 1, 0.35, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 10
+text = "40 / 40"
+horizontal_alignment = 1
+
+[node name="UnitInfo" type="VBoxContainer" parent="ConsoleRect"]
+layout_mode = 0
+offset_left = 236.0
+offset_top = 106.0
+offset_right = 348.0
+offset_bottom = 184.0
+mouse_filter = 2
+theme_override_constants/separation = 1
+
+[node name="UnitNameLabel" type="Label" parent="ConsoleRect/UnitInfo"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 11
+text = "MARINE TERRAN"
+
+[node name="RankLabel" type="Label" parent="ConsoleRect/UnitInfo"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(0.7, 0.75, 0.8, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 9
+text = "Rango: Soldado"
+
+[node name="WeaponLabel" type="Label" parent="ConsoleRect/UnitInfo"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 9
+text = "Rifle C-14: 14 dmg"
+
+[node name="ArmorLabel" type="Label" parent="ConsoleRect/UnitInfo"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 9
+text = "Armadura: 1"
+
+[node name="KillsUnitLabel" type="Label" parent="ConsoleRect/UnitInfo"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(1, 0.35, 0.35, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 9
+text = "Kills: 0"
+
+[node name="StimStatusLabel" type="Label" parent="ConsoleRect/UnitInfo"]
+visible = false
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(0.55, 0.55, 0.55, 0.8)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 9
+text = "STIM [T]: BLOQUEADO (ACADEMIA)"
+
+[node name="BaseWeaponSlot" type="Panel" parent="ConsoleRect"]
+layout_mode = 0
+offset_left = 348.0
+offset_top = 114.0
+offset_right = 392.0
+offset_bottom = 158.0
+mouse_filter = 0
+theme_override_styles/panel = SubResource("StyleBox_base_weapon")
+
+[node name="IconRect" type="TextureRect" parent="ConsoleRect/BaseWeaponSlot"]
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 2.0
+offset_top = 2.0
+offset_right = -2.0
+offset_bottom = -2.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="BadgeLabel" type="Label" parent="ConsoleRect/BaseWeaponSlot"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -22.0
+offset_top = -14.0
+offset_right = -2.0
+offset_bottom = -1.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(1, 0.85, 0.25, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 9
+text = "L1"
+horizontal_alignment = 2
+vertical_alignment = 2
+
+[node name="PortraitControl" type="Control" parent="ConsoleRect"]
+layout_mode = 0
+offset_left = 413.0
+offset_top = 113.0
+offset_right = 473.0
+offset_bottom = 169.0
+script = ExtResource("4_portrait")
+
+[node name="CommandGrid" type="GridContainer" parent="ConsoleRect"]
+layout_mode = 0
+offset_left = 504.0
+offset_top = 64.0
+offset_right = 636.0
+offset_bottom = 180.0
+theme_override_constants/h_separation = 9
+theme_override_constants/v_separation = 4
+columns = 3
+
+[node name="LevelUpPanel" type="Panel" parent="."]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -290.0
+offset_top = -145.0
+offset_right = 290.0
+offset_bottom = 125.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBox_panel")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="LevelUpPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = 10.0
+offset_right = -12.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="LevelUpPanel/VBoxContainer"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(1, 0.85, 0.25, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 13
+text = "// TRANSMISIÓN MILITAR: MEJORAS TÁCTICAS //"
+horizontal_alignment = 1
+
+[node name="CardsContainer" type="HBoxContainer" parent="LevelUpPanel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="GameOverPanel" type="Panel" parent="."]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -210.0
+offset_top = -120.0
+offset_right = 210.0
+offset_bottom = 90.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBox_panel")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="GameOverPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 12
+
+[node name="FailedLabel" type="Label" parent="GameOverPanel/VBoxContainer"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(1, 0.2, 0.2, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 18
+text = "// ALERTA: MISIÓN FALLIDA //"
+horizontal_alignment = 1
+
+[node name="StatsLabel" type="Label" parent="GameOverPanel/VBoxContainer"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(0.85, 0.88, 0.95, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 11
+text = "> TIEMPO: 00:00
+> ZERGS: 0"
+horizontal_alignment = 1
+
+[node name="RetryButton" type="Button" parent="GameOverPanel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+theme = SubResource("Theme_sc")
+text = "REINTENTAR MISIÓN DE INMEDIATO"
+
+[node name="ReturnBaseButton" type="Button" parent="GameOverPanel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+theme = SubResource("Theme_sc")
+text = "VOLVER AL CAMPAMENTO TERRAN"
+
+[node name="PausePanel" type="Panel" parent="."]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -260.0
+offset_top = -185.0
+offset_right = 260.0
+offset_bottom = 175.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBox_panel")
+
+[node name="MainHBox" type="HBoxContainer" parent="PausePanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 14.0
+offset_top = 10.0
+offset_right = -14.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 14
+
+[node name="VBox" type="VBoxContainer" parent="PausePanel/MainHBox"]
+custom_minimum_size = Vector2(210, 0)
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TitleLabel" type="Label" parent="PausePanel/MainHBox/VBox"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(1, 0.85, 0.25, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 12
+text = "// CENTRO DE COMANDO: PAUSA //"
+horizontal_alignment = 1
+
+[node name="HSeparator1" type="HSeparator" parent="PausePanel/MainHBox/VBox"]
+layout_mode = 2
+
+[node name="MusicLabel" type="Label" parent="PausePanel/MainHBox/VBox"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 10
+text = "Volumen Música: 80%"
+
+[node name="MusicSlider" type="HSlider" parent="PausePanel/MainHBox/VBox"]
+layout_mode = 2
+max_value = 1.0
+step = 0.05
+value = 0.8
+
+[node name="SfxLabel" type="Label" parent="PausePanel/MainHBox/VBox"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 10
+text = "Volumen Efectos: 90%"
+
+[node name="SfxSlider" type="HSlider" parent="PausePanel/MainHBox/VBox"]
+layout_mode = 2
+max_value = 1.0
+step = 0.05
+value = 0.9
+
+[node name="FullscreenCheck" type="CheckButton" parent="PausePanel/MainHBox/VBox"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_font_sizes/font_size = 10
+text = "Pantalla Completa [F11]"
+
+[node name="HSeparator2" type="HSeparator" parent="PausePanel/MainHBox/VBox"]
+layout_mode = 2
+
+[node name="ResumeBtn" type="Button" parent="PausePanel/MainHBox/VBox"]
+custom_minimum_size = Vector2(0, 22)
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_font_sizes/font_size = 11
+text = "REANUDAR MISIÓN [ESC]"
+
+[node name="RestartBtn" type="Button" parent="PausePanel/MainHBox/VBox"]
+custom_minimum_size = Vector2(0, 22)
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_font_sizes/font_size = 11
+text = "REINICIAR PARTIDA"
+
+[node name="MainMenuBtn" type="Button" parent="PausePanel/MainHBox/VBox"]
+custom_minimum_size = Vector2(0, 22)
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_font_sizes/font_size = 11
+text = "MENÚ PRINCIPAL"
+
+[node name="QuitBtn" type="Button" parent="PausePanel/MainHBox/VBox"]
+custom_minimum_size = Vector2(0, 22)
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_font_sizes/font_size = 11
+text = "SALIR AL ESCRITORIO"
+
+[node name="VSep" type="VSeparator" parent="PausePanel/MainHBox"]
+layout_mode = 2
+
+[node name="AchVBox" type="VBoxContainer" parent="PausePanel/MainHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="AchTitle" type="Label" parent="PausePanel/MainHBox/AchVBox"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(1, 0.85, 0.25, 1)
+theme_override_font_sizes/font_size = 12
+text = "// LOGROS Y ARSENAL //"
+horizontal_alignment = 1
+
+[node name="AchSubtitle" type="Label" parent="PausePanel/MainHBox/AchVBox"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(0.5, 0.75, 0.95, 0.85)
+theme_override_font_sizes/font_size = 8
+text = "Supera hitos para desbloquear armamento"
+horizontal_alignment = 1
+
+[node name="AchScroll" type="ScrollContainer" parent="PausePanel/MainHBox/AchVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="AchList" type="VBoxContainer" parent="PausePanel/MainHBox/AchVBox/AchScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="BossBarPanel" type="Panel" parent="."]
+visible = false
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -160.0
+offset_top = 34.0
+offset_right = 160.0
+offset_bottom = 68.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBox_transmission")
+
+[node name="Margin" type="MarginContainer" parent="BossBarPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 4.0
+offset_right = -8.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="BossBarPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="TopRow" type="HBoxContainer" parent="BossBarPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="BossNameLabel" type="Label" parent="BossBarPanel/Margin/VBox/TopRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(1, 0.35, 0.35, 1)
+theme_override_font_sizes/font_size = 9
+text = "POZO DE DESOVE ZERG"
+
+[node name="BossDistanceLabel" type="Label" parent="BossBarPanel/Margin/VBox/TopRow"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(0.3, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 9
+text = "◄ 350m"
+
+[node name="BossHpBar" type="ProgressBar" parent="BossBarPanel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+show_percentage = false
+
+[node name="AchievementToast" type="Panel" parent="."]
+visible = false
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -150.0
+offset_top = -245.0
+offset_right = 150.0
+offset_bottom = -205.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBox_transmission")
+
+[node name="VBox" type="VBoxContainer" parent="AchievementToast"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 4.0
+offset_right = -10.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 1
+
+[node name="ToastHeader" type="Label" parent="AchievementToast/VBox"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(1, 0.85, 0.25, 1)
+theme_override_font_sizes/font_size = 10
+text = "★ ¡LOGRO DESBLOQUEADO! ★"
+horizontal_alignment = 1
+
+[node name="ToastDetail" type="Label" parent="AchievementToast/VBox"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(0.3, 1, 0.5, 1)
+theme_override_font_sizes/font_size = 8
+text = "Nombre del logro - Recompensa"
+horizontal_alignment = 1
+
+[node name="TransmissionPanel" type="Panel" parent="."]
+visible = false
+offset_left = 650.0
+offset_top = 36.0
+offset_right = 930.0
+offset_bottom = 116.0
+theme_override_styles/panel = SubResource("StyleBox_transmission")
+
+[node name="Margin" type="MarginContainer" parent="TransmissionPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 6.0
+offset_top = 6.0
+offset_right = -6.0
+offset_bottom = -6.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HBox" type="HBoxContainer" parent="TransmissionPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="PortraitFrame" type="PanelContainer" parent="TransmissionPanel/Margin/HBox"]
+custom_minimum_size = Vector2(52, 52)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBox_comm_portrait")
+
+[node name="PortraitControl" type="Control" parent="TransmissionPanel/Margin/HBox/PortraitFrame"]
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 2
+script = ExtResource("4_portrait")
+auto_scale_to_fill = true
+enable_click_to_talk = false
+
+[node name="VBox" type="VBoxContainer" parent="TransmissionPanel/Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+
+[node name="HeaderLabel" type="Label" parent="TransmissionPanel/Margin/HBox/VBox"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(1, 0.85, 0.25, 1)
+theme_override_font_sizes/font_size = 10
+text = "CAPITÁN HOLLIS VOSS"
+
+[node name="BodyLabel" type="Label" parent="TransmissionPanel/Margin/HBox/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(0.92, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 9
+text = "Transmisión entrante..."
+autowrap_mode = 2
+
+

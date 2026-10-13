@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/nydus_canal.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/sprites/nydus.png" id="2_nydus"]
+
+[node name="NydusCanal" type="Node2D"]
+script = ExtResource("1_script")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 0
+texture = ExtResource("2_nydus")
+offset = Vector2(0, -20)
+hframes = 1
+vframes = 5
+frame = 0

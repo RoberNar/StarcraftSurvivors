@@ -1,0 +1,939 @@
+[gd_scene load_steps=29 format=3]
+
+[ext_resource type="Script" path="res://scripts/terran_base.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/tiles/terran_base_floor.png" id="2_ground"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/buildings/command_center.png" id="3_cmd"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/buildings/barracks.png" id="4_barracks"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/buildings/starport.png" id="5_starport"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/buildings/dropship.png" id="6_dropship"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/buildings/npc_officer.png" id="7_npc"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/buildings/supply_depot.png" id="8_depot"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/buildings/vespene_geyser.png" id="9_geyser"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/ui/icon_mineral.png" id="10_mineral_icon"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/ui/icon_gas.png" id="11_gas_icon"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/portrait/civilian_portrait.png" id="12_civ_portrait"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/sprites/marine.png" id="13_marine"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/sprites/marine_shadow.png" id="14_marine_shadow"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/buildings/engineering_bay.png" id="15_academy"]
+[ext_resource type="Script" path="res://scripts/sc_portrait.gd" id="16_portrait"]
+[ext_resource type="Script" path="res://scripts/base_minimap.gd" id="17_minimap"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/ui/tconsole.png" id="18_tconsole"]
+[ext_resource type="Script" path="res://scripts/sc_health_bar.gd" id="19_hpbar"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bound_h"]
+size = Vector2(2120, 100)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bound_v"]
+size = Vector2(100, 1352)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_cmd"]
+size = Vector2(136, 104)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bldg"]
+size = Vector2(160, 120)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_npc_body"]
+radius = 16.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_npc_interact"]
+radius = 80.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_armor_interact"]
+radius = 65.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_barracks_interact"]
+radius = 125.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_cmd_interact"]
+radius = 130.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_starport_interact"]
+radius = 105.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_depot"]
+size = Vector2(80, 80)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_npc_bubble"]
+bg_color = Color(0.05, 0.08, 0.14, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.82, 0.2, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.7)
+shadow_size = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_deploy_bubble"]
+bg_color = Color(0.04, 0.08, 0.14, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.25, 1, 0.5, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.7)
+shadow_size = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_barracks_bubble"]
+bg_color = Color(0.04, 0.08, 0.14, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.2, 0.75, 1, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.7)
+shadow_size = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud_bottom"]
+bg_color = Color(0.05, 0.08, 0.12, 0.94)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.25, 0.55, 0.8, 0.9)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+shadow_color = Color(0, 0, 0, 0.8)
+shadow_size = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_fill"]
+bg_color = Color(0, 0.88, 0.15, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_story_dialog"]
+bg_color = Color(0.04, 0.07, 0.13, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.82, 0.25, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.85)
+shadow_size = 6
+
+[node name="TerranBase" type="Node2D"]
+y_sort_enabled = true
+script = ExtResource("1_script")
+
+[node name="Ground" type="Sprite2D" parent="."]
+z_index = -10
+texture_filter = 0
+position = Vector2(960, 576)
+texture = ExtResource("2_ground")
+region_enabled = true
+region_rect = Rect2(0, 0, 1920, 1152)
+
+[node name="Perimeter" type="StaticBody2D" parent="."]
+
+[node name="BoundTop" type="CollisionShape2D" parent="Perimeter"]
+position = Vector2(960, -50)
+shape = SubResource("RectangleShape2D_bound_h")
+
+[node name="BoundBot" type="CollisionShape2D" parent="Perimeter"]
+position = Vector2(960, 1202)
+shape = SubResource("RectangleShape2D_bound_h")
+
+[node name="BoundLeft" type="CollisionShape2D" parent="Perimeter"]
+position = Vector2(-50, 576)
+shape = SubResource("RectangleShape2D_bound_v")
+
+[node name="BoundRight" type="CollisionShape2D" parent="Perimeter"]
+position = Vector2(1970, 576)
+shape = SubResource("RectangleShape2D_bound_v")
+
+[node name="CommandCenter" type="StaticBody2D" parent="."]
+position = Vector2(950, 320)
+
+[node name="Sprite2D" type="Sprite2D" parent="CommandCenter"]
+texture_filter = 0
+texture = ExtResource("3_cmd")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CommandCenter"]
+position = Vector2(0, -2)
+shape = SubResource("RectangleShape2D_cmd")
+
+[node name="Area2D" type="Area2D" parent="CommandCenter"]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CommandCenter/Area2D"]
+position = Vector2(0, 30)
+shape = SubResource("CircleShape2D_cmd_interact")
+
+[node name="HintLabel" type="Label" parent="CommandCenter"]
+visible = false
+offset_left = -140.0
+offset_top = 80.0
+offset_right = 140.0
+offset_bottom = 100.0
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_font_sizes/font_size = 11
+text = "[E] CENTRO DE MANDO: CONSTRUCCIÓN"
+horizontal_alignment = 1
+
+[node name="Barracks" type="StaticBody2D" parent="."]
+position = Vector2(450, 540)
+
+[node name="Sprite2D" type="Sprite2D" parent="Barracks"]
+texture_filter = 0
+texture = ExtResource("4_barracks")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Barracks"]
+shape = SubResource("RectangleShape2D_bldg")
+
+[node name="Area2D" type="Area2D" parent="Barracks"]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Barracks/Area2D"]
+shape = SubResource("CircleShape2D_barracks_interact")
+
+[node name="HintLabel" type="Label" parent="Barracks"]
+offset_left = -90.0
+offset_top = 65.0
+offset_right = 90.0
+offset_bottom = 85.0
+theme_override_colors/font_color = Color(0.3, 0.9, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_font_sizes/font_size = 11
+text = "[E] CUARTEL TERRAN"
+horizontal_alignment = 1
+
+[node name="Academy" type="StaticBody2D" parent="."]
+position = Vector2(1080, 740)
+
+[node name="Sprite2D" type="Sprite2D" parent="Academy"]
+texture_filter = 0
+texture = ExtResource("15_academy")
+vframes = 6
+frame = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Academy"]
+shape = SubResource("RectangleShape2D_bldg")
+
+[node name="Area2D" type="Area2D" parent="Academy"]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Academy/Area2D"]
+shape = SubResource("CircleShape2D_barracks_interact")
+
+[node name="HintLabel" type="Label" parent="Academy"]
+offset_left = -110.0
+offset_top = 70.0
+offset_right = 110.0
+offset_bottom = 90.0
+theme_override_colors/font_color = Color(0.2, 0.9, 0.9, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_font_sizes/font_size = 11
+text = "[E] BAHÍA DE INGENIERÍA"
+horizontal_alignment = 1
+
+[node name="Starport" type="StaticBody2D" parent="."]
+position = Vector2(1560, 840)
+
+[node name="Sprite2D" type="Sprite2D" parent="Starport"]
+texture_filter = 0
+texture = ExtResource("5_starport")
+
+[node name="DropshipSprite" type="Sprite2D" parent="Starport"]
+texture_filter = 0
+position = Vector2(-20, 50)
+scale = Vector2(1.2, 1.2)
+texture = ExtResource("6_dropship")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Starport"]
+shape = SubResource("RectangleShape2D_bldg")
+
+[node name="Area2D" type="Area2D" parent="Starport"]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Starport/Area2D"]
+position = Vector2(-20, 50)
+shape = SubResource("CircleShape2D_starport_interact")
+
+[node name="HintLabel" type="Label" parent="Starport"]
+offset_left = -110.0
+offset_top = 85.0
+offset_right = 90.0
+offset_bottom = 105.0
+theme_override_colors/font_color = Color(0.3, 1, 0.5, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_font_sizes/font_size = 11
+text = "[E / ESPACIO] NAVE DE MISIÓN"
+horizontal_alignment = 1
+
+[node name="DeployBubble" type="Panel" parent="Starport"]
+visible = false
+z_index = 50
+offset_left = -145.0
+offset_top = -80.0
+offset_right = 105.0
+offset_bottom = 35.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_deploy_bubble")
+
+[node name="TailOuter" type="Polygon2D" parent="Starport/DeployBubble"]
+color = Color(0.25, 1, 0.5, 1)
+polygon = PackedVector2Array(116, 115, 134, 115, 125, 127)
+
+[node name="TailInner" type="Polygon2D" parent="Starport/DeployBubble"]
+color = Color(0.04, 0.08, 0.14, 0.96)
+polygon = PackedVector2Array(118, 114, 132, 114, 125, 124)
+
+[node name="VBox" type="VBoxContainer" parent="Starport/DeployBubble"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 8.0
+offset_right = -10.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 6
+
+[node name="Title" type="Label" parent="Starport/DeployBubble/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 1, 0.5, 1)
+theme_override_font_sizes/font_size = 11
+text = "🚀 NAVE DE DESPLIEGUE A MISIÓN"
+horizontal_alignment = 1
+
+[node name="MissionLabel" type="Label" parent="Starport/DeployBubble/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 1)
+theme_override_font_sizes/font_size = 10
+text = "¿Despegar al páramo exterior?"
+autowrap_mode = 2
+horizontal_alignment = 1
+
+[node name="Buttons" type="HBoxContainer" parent="Starport/DeployBubble/VBox"]
+layout_mode = 2
+size_flags_vertical = 10
+theme_override_constants/separation = 8
+
+[node name="DeployBtn" type="Button" parent="Starport/DeployBubble/VBox/Buttons"]
+custom_minimum_size = Vector2(0, 26)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
+text = "DESPEGAR [ENTER]"
+
+[node name="CancelBtn" type="Button" parent="Starport/DeployBubble/VBox/Buttons"]
+custom_minimum_size = Vector2(0, 26)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
+text = "CANCELAR [ESC]"
+
+[node name="NPC" type="StaticBody2D" parent="."]
+position = Vector2(880, 700)
+
+[node name="Sprite2D" type="Sprite2D" parent="NPC"]
+texture_filter = 0
+scale = Vector2(1.3, 1.3)
+texture = ExtResource("7_npc")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="NPC"]
+shape = SubResource("CircleShape2D_npc_body")
+
+[node name="Area2D" type="Area2D" parent="NPC"]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="NPC/Area2D"]
+shape = SubResource("CircleShape2D_npc_interact")
+
+[node name="BadgeLabel" type="Label" parent="NPC"]
+offset_left = -20.0
+offset_top = -42.0
+offset_right = 20.0
+offset_bottom = -22.0
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_font_sizes/font_size = 14
+text = "[ ! ]"
+horizontal_alignment = 1
+
+[node name="HintLabel" type="Label" parent="NPC"]
+offset_left = -80.0
+offset_top = 26.0
+offset_right = 80.0
+offset_bottom = 46.0
+theme_override_colors/font_color = Color(1, 0.9, 0.4, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_font_sizes/font_size = 11
+text = "[E] COMANDANTE"
+horizontal_alignment = 1
+
+[node name="MissionBubble" type="Panel" parent="NPC"]
+visible = false
+z_index = 50
+offset_left = -140.0
+offset_top = -180.0
+offset_right = 140.0
+offset_bottom = -25.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_npc_bubble")
+
+[node name="TailOuter" type="Polygon2D" parent="NPC/MissionBubble"]
+color = Color(1, 0.82, 0.2, 1)
+polygon = PackedVector2Array(131, 155, 149, 155, 140, 167)
+
+[node name="TailInner" type="Polygon2D" parent="NPC/MissionBubble"]
+color = Color(0.05, 0.08, 0.14, 0.96)
+polygon = PackedVector2Array(133, 154, 147, 154, 140, 164)
+
+[node name="VBox" type="VBoxContainer" parent="NPC/MissionBubble"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = 8.0
+offset_right = -12.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 4
+
+[node name="TitleLabel" type="Label" parent="NPC/MissionBubble/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 11
+text = "🎖️ COMANDANTE DE OPERACIONES"
+horizontal_alignment = 1
+
+[node name="DialogLabel" type="Label" parent="NPC/MissionBubble/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.92, 0.92, 0.92, 1)
+theme_override_font_sizes/font_size = 10
+text = "Briefing..."
+autowrap_mode = 2
+
+[node name="ReqLabel" type="Label" parent="NPC/MissionBubble/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 10
+text = "Objetivo: 0 / 100"
+
+[node name="RewardLabel" type="Label" parent="NPC/MissionBubble/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 1, 0.4, 1)
+theme_override_font_sizes/font_size = 10
+text = "Recompensa: +600 Min"
+
+[node name="Buttons" type="HBoxContainer" parent="NPC/MissionBubble/VBox"]
+layout_mode = 2
+size_flags_vertical = 10
+theme_override_constants/separation = 6
+
+[node name="ActionBtn" type="Button" parent="NPC/MissionBubble/VBox/Buttons"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
+text = "ENTENDIDO [ENTER]"
+
+[node name="CloseBtn" type="Button" parent="NPC/MissionBubble/VBox/Buttons"]
+custom_minimum_size = Vector2(65, 24)
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "CERRAR [ESC]"
+
+[node name="Depot1" type="StaticBody2D" parent="."]
+position = Vector2(360, 620)
+
+[node name="Sprite2D" type="Sprite2D" parent="Depot1"]
+texture_filter = 0
+texture = ExtResource("8_depot")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Depot1"]
+shape = SubResource("RectangleShape2D_depot")
+
+[node name="Depot2" type="StaticBody2D" parent="."]
+position = Vector2(1700, 900)
+
+[node name="Sprite2D" type="Sprite2D" parent="Depot2"]
+texture_filter = 0
+texture = ExtResource("8_depot")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Depot2"]
+shape = SubResource("RectangleShape2D_depot")
+
+[node name="Geyser" type="StaticBody2D" parent="."]
+position = Vector2(1250, 220)
+
+[node name="Sprite2D" type="Sprite2D" parent="Geyser"]
+texture_filter = 0
+texture = ExtResource("9_geyser")
+
+[node name="ArmorStand" type="Node2D" parent="."]
+position = Vector2(1080, 700)
+
+[node name="Shadow" type="Sprite2D" parent="ArmorStand"]
+texture_filter = 0
+position = Vector2(0, 4)
+texture = ExtResource("14_marine_shadow")
+hframes = 17
+vframes = 14
+frame = 8
+
+[node name="Sprite2D" type="Sprite2D" parent="ArmorStand"]
+texture_filter = 0
+texture = ExtResource("13_marine")
+hframes = 17
+vframes = 14
+frame = 8
+
+[node name="Area2D" type="Area2D" parent="ArmorStand"]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ArmorStand/Area2D"]
+shape = SubResource("CircleShape2D_armor_interact")
+
+[node name="HintLabel" type="Label" parent="ArmorStand"]
+visible = false
+offset_left = -110.0
+offset_top = 26.0
+offset_right = 110.0
+offset_bottom = 46.0
+theme_override_colors/font_color = Color(0.3, 0.85, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_font_sizes/font_size = 11
+text = "[E] EQUIPAR ARMADURA CMC-300"
+horizontal_alignment = 1
+
+[node name="PlayerSpawn" type="Marker2D" parent="."]
+position = Vector2(760, 760)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="TopBar" type="Panel" parent="CanvasLayer"]
+custom_minimum_size = Vector2(0, 32)
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 32.0
+grow_horizontal = 2
+
+[node name="HBox" type="HBoxContainer" parent="CanvasLayer/TopBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_right = -16.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 24
+
+[node name="MineralHBox" type="HBoxContainer" parent="CanvasLayer/TopBar/HBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="MineralIcon" type="TextureRect" parent="CanvasLayer/TopBar/HBox/MineralHBox"]
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("10_mineral_icon")
+stretch_mode = 5
+
+[node name="MineralsLabel" type="Label" parent="CanvasLayer/TopBar/HBox/MineralHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "0"
+
+[node name="GasHBox" type="HBoxContainer" parent="CanvasLayer/TopBar/HBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="GasIcon" type="TextureRect" parent="CanvasLayer/TopBar/HBox/GasHBox"]
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("11_gas_icon")
+stretch_mode = 5
+
+[node name="GasLabel" type="Label" parent="CanvasLayer/TopBar/HBox/GasHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 1, 0.4, 1)
+theme_override_font_sizes/font_size = 12
+text = "0"
+
+[node name="ConsoleRect" type="TextureRect" parent="CanvasLayer"]
+texture_filter = 0
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -320.0
+offset_top = -188.0
+offset_right = 320.0
+offset_bottom = 0.0
+grow_horizontal = 2
+grow_vertical = 0
+texture = ExtResource("18_tconsole")
+
+[node name="BaseMinimap" type="Control" parent="CanvasLayer/ConsoleRect"]
+layout_mode = 0
+offset_left = 6.0
+offset_top = 56.0
+offset_right = 134.0
+offset_bottom = 184.0
+script = ExtResource("17_minimap")
+
+[node name="WireframeRect" type="TextureRect" parent="CanvasLayer/ConsoleRect"]
+texture_filter = 0
+layout_mode = 0
+offset_left = 166.0
+offset_top = 108.0
+offset_right = 226.0
+offset_bottom = 154.0
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SCHealthBar" type="Control" parent="CanvasLayer/ConsoleRect"]
+layout_mode = 0
+offset_left = 162.0
+offset_top = 158.0
+offset_right = 230.0
+offset_bottom = 166.0
+script = ExtResource("19_hpbar")
+
+[node name="HpLabel" type="Label" parent="CanvasLayer/ConsoleRect"]
+layout_mode = 0
+offset_left = 162.0
+offset_top = 168.0
+offset_right = 230.0
+offset_bottom = 182.0
+theme_override_colors/font_color = Color(0.25, 1, 0.35, 1)
+theme_override_font_sizes/font_size = 10
+text = "80 / 80"
+horizontal_alignment = 1
+
+[node name="UnitInfo" type="VBoxContainer" parent="CanvasLayer/ConsoleRect"]
+layout_mode = 0
+offset_left = 238.0
+offset_top = 106.0
+offset_right = 398.0
+offset_bottom = 184.0
+theme_override_constants/separation = 1
+
+[node name="UnitNameLabel" type="Label" parent="CanvasLayer/ConsoleRect/UnitInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 11
+text = "??????"
+
+[node name="RankLabel" type="Label" parent="CanvasLayer/ConsoleRect/UnitInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.75, 0.8, 1)
+theme_override_font_sizes/font_size = 9
+text = "Rango: Civil"
+
+[node name="WeaponLabel" type="Label" parent="CanvasLayer/ConsoleRect/UnitInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 9
+text = "Sin armamento"
+
+[node name="ArmorLabel" type="Label" parent="CanvasLayer/ConsoleRect/UnitInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 9
+text = "Armadura: 0"
+
+[node name="PortraitControl" type="Control" parent="CanvasLayer/ConsoleRect"]
+layout_mode = 0
+offset_left = 413.0
+offset_top = 113.0
+offset_right = 473.0
+offset_bottom = 169.0
+script = ExtResource("16_portrait")
+auto_scale_to_fill = true
+
+[node name="AcademyPanel" type="Panel" parent="CanvasLayer"]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -285.0
+offset_top = -185.0
+offset_right = 285.0
+offset_bottom = 155.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_story_dialog")
+
+[node name="VBox" type="VBoxContainer" parent="CanvasLayer/AcademyPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = 10.0
+offset_right = -12.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 6
+
+[node name="Title" type="Label" parent="CanvasLayer/AcademyPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.9, 0.9, 1)
+theme_override_font_sizes/font_size = 12
+text = "BAHÍA DE INGENIERÍA TERRAN // MEJORAS BASE DE COMBATE"
+horizontal_alignment = 1
+
+[node name="Scroll" type="ScrollContainer" parent="CanvasLayer/AcademyPanel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="UpgradesContainer" type="GridContainer" parent="CanvasLayer/AcademyPanel/VBox/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+columns = 3
+theme_override_constants/h_separation = 6
+theme_override_constants/v_separation = 6
+
+[node name="CloseBtn" type="Button" parent="CanvasLayer/AcademyPanel/VBox"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "VOLVER A LA BASE [ESC]"
+
+[node name="CommandCenterPanel" type="Panel" parent="CanvasLayer"]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -220.0
+offset_top = -170.0
+offset_right = 220.0
+offset_bottom = 150.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_story_dialog")
+
+[node name="VBox" type="VBoxContainer" parent="CanvasLayer/CommandCenterPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 14.0
+offset_top = 10.0
+offset_right = -14.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="CanvasLayer/CommandCenterPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.25, 1)
+theme_override_font_sizes/font_size = 12
+text = "CENTRO DE MANDO // TERMINAL DE CONSTRUCCIÓN"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="CanvasLayer/CommandCenterPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 9
+text = "Autorización de despliegue de instalaciones tácticas"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="CanvasLayer/CommandCenterPanel/VBox"]
+layout_mode = 2
+
+[node name="Scroll" type="ScrollContainer" parent="CanvasLayer/CommandCenterPanel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="BuildingsContainer" type="VBoxContainer" parent="CanvasLayer/CommandCenterPanel/VBox/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="CloseBtn" type="Button" parent="CanvasLayer/CommandCenterPanel/VBox"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "VOLVER A LA BASE [ESC]"
+
+[node name="PausePanel" type="Panel" parent="CanvasLayer"]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -130.0
+offset_right = 150.0
+offset_bottom = 130.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_story_dialog")
+
+[node name="VBox" type="VBoxContainer" parent="CanvasLayer/PausePanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = 14.0
+offset_right = -16.0
+offset_bottom = -14.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="CanvasLayer/PausePanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.25, 1)
+theme_override_font_sizes/font_size = 12
+text = "// CONFIGURACIÓN //"
+horizontal_alignment = 1
+
+[node name="HSeparator1" type="HSeparator" parent="CanvasLayer/PausePanel/VBox"]
+layout_mode = 2
+
+[node name="MusicLabel" type="Label" parent="CanvasLayer/PausePanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 10
+text = "Volumen Música: 80%"
+
+[node name="MusicSlider" type="HSlider" parent="CanvasLayer/PausePanel/VBox"]
+layout_mode = 2
+max_value = 1.0
+step = 0.05
+value = 0.8
+
+[node name="SfxLabel" type="Label" parent="CanvasLayer/PausePanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 10
+text = "Volumen Efectos: 90%"
+
+[node name="SfxSlider" type="HSlider" parent="CanvasLayer/PausePanel/VBox"]
+layout_mode = 2
+max_value = 1.0
+step = 0.05
+value = 0.9
+
+[node name="FullscreenCheck" type="CheckButton" parent="CanvasLayer/PausePanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "Pantalla Completa [F11]"
+
+[node name="HSeparator2" type="HSeparator" parent="CanvasLayer/PausePanel/VBox"]
+layout_mode = 2
+
+[node name="ResumeBtn" type="Button" parent="CanvasLayer/PausePanel/VBox"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "CONTINUAR [ESC]"
+
+[node name="QuitBtn" type="Button" parent="CanvasLayer/PausePanel/VBox"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "SALIR AL MENÚ PRINCIPAL"
+
+[node name="StoryDialogueModal" type="Panel" parent="CanvasLayer"]
+visible = false
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -280.0
+offset_top = -140.0
+offset_right = 280.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_story_dialog")
+
+[node name="HBox" type="HBoxContainer" parent="CanvasLayer/StoryDialogueModal"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 14.0
+offset_top = 10.0
+offset_right = -14.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 14
+
+[node name="PortraitControl" type="Control" parent="CanvasLayer/StoryDialogueModal/HBox"]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+script = ExtResource("16_portrait")
+auto_scale_to_fill = true
+enable_click_to_talk = false
+
+[node name="TextVBox" type="VBoxContainer" parent="CanvasLayer/StoryDialogueModal/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="SpeakerLabel" type="Label" parent="CanvasLayer/StoryDialogueModal/HBox/TextVBox"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 12
+text = "CAPITÁN HOLLIS VOSS"
+
+[node name="DialogueLabel" type="Label" parent="CanvasLayer/StoryDialogueModal/HBox/TextVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.95, 0.95, 0.95, 1)
+theme_override_font_sizes/font_size = 11
+text = "Bienvenido a casa..."
+autowrap_mode = 2
+
+[node name="PromptLabel" type="Label" parent="CanvasLayer/StoryDialogueModal/HBox/TextVBox"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.4, 0.7, 0.9, 0.8)
+theme_override_font_sizes/font_size = 9
+text = "[ESPACIO / CLIC] Continuar"
+horizontal_alignment = 2
