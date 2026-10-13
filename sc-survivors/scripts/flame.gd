@@ -28,10 +28,7 @@ func _process(delta: float) -> void:
 	if sprite:
 		var frame_idx = int((timer / lifetime) * 13.0)
 		sprite.frame = clampi(frame_idx, 0, 12)
-		
-		# Agrandar cono de fuego con AoE escalado
-		var s = (1.0 + (timer / lifetime) * 0.7) * aoe_mult
-		sprite.scale = Vector2(s, s)
+		sprite.scale = Vector2.ONE
 	
 	if timer >= lifetime:
 		queue_free()

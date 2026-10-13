@@ -703,7 +703,9 @@ func _spawn_enemy() -> void:
 	
 	var picked = WaveConfig.pick_random_enemy(game_time)
 	var enemy_scene: PackedScene = null
-	match picked.type:
+	var enemy_type: String = picked.get("type", "zergling")
+	var enemy_tier: int = picked.get("tier", 1)
+	match enemy_type:
 		"zergling": enemy_scene = zergling_scene
 		"hydralisk": enemy_scene = hydralisk_scene
 		"mutalisk": enemy_scene = mutalisk_scene
@@ -714,7 +716,7 @@ func _spawn_enemy() -> void:
 		var enemy = enemy_scene.instantiate()
 		enemy.global_position = spawn_pos
 		if enemy.has_method("set_tier"):
-			enemy.set_tier(picked.tier)
+			enemy.set_tier(enemy_tier)
 		var main_scene = get_tree().current_scene
 		if main_scene:
 			main_scene.add_child(enemy)

@@ -25,6 +25,9 @@ func set_tier(t: int) -> void:
 	move_speed = base_speed * randf_range(0.92, 1.10)
 	custom_tint = stats.get("tint", Color.WHITE)
 	current_health = base_health
+	_apply_tier_visuals()
+
+func _apply_tier_visuals() -> void:
 	if sprite:
 		sprite.modulate = custom_tint
 
@@ -43,6 +46,7 @@ func _ready() -> void:
 	add_to_group("enemies")
 	current_health = base_health
 	move_speed = base_speed * randf_range(0.9, 1.1)
+	_apply_tier_visuals()
 	angle_jitter = randf_range(-0.4, 0.4)
 	
 	player = get_tree().get_first_node_in_group("player")

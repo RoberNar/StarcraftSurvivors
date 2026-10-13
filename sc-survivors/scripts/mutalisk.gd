@@ -38,6 +38,9 @@ func set_tier(t: int) -> void:
 	custom_scale = stats.get("scale", 1.0)
 	custom_tint = stats.get("tint", Color.WHITE)
 	current_health = base_health
+	_apply_tier_visuals()
+
+func _apply_tier_visuals() -> void:
 	if sprite:
 		sprite.modulate = custom_tint
 		sprite.scale = Vector2(custom_scale, custom_scale)
@@ -52,6 +55,7 @@ func _ready() -> void:
 	
 	player = get_tree().get_first_node_in_group("player")
 	_apply_skin()
+	_apply_tier_visuals()
 	
 	var sm = get_node_or_null("/root/SkinManager")
 	if sm:

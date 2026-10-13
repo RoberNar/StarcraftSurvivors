@@ -349,8 +349,8 @@ func _fire_flame(target: Node2D) -> void:
 	AudioManager.play_sfx("flame_fire", 0.05, 1.0)
 	
 	var flame_scene = load("res://scenes/flame.tscn")
-	var dmg = (20.0 + (firebat_power_lvl - 1) * 2.8) * damage_mult
-	var aoe = 1.0 + (firebat_power_lvl - 1) * 0.10
+	var dmg = (20.0 + (firebat_power_lvl - 1) * 5.0) * damage_mult
+	var aoe = 1.0
 	
 	var total_streams = firebat_streams + (multishot - 1)
 	var angles: Array[float] = [0.0]
@@ -371,8 +371,8 @@ func _fire_flame(target: Node2D) -> void:
 		f.direction = flame_dir
 		f.damage = dmg
 		f.aoe_mult = aoe * aoe_mult
-		f.scale = Vector2(1.0, 1.0) * aoe_mult
-		f.global_position = global_position + flame_dir * 4.0
+		f.scale = Vector2.ONE
+		f.global_position = global_position + flame_dir * 8.0
 		get_parent().add_child(f)
 
 func _deploy_spider_mine() -> void:
