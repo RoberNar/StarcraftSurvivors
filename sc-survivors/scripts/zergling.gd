@@ -46,49 +46,14 @@ var armor: float = 0.0
 
 func set_tier(t: int) -> void:
 	tier = t
-	match t:
-		1: # Café / Marrón clásico (0-2 min)
-			custom_tint = Color(0.90, 0.70, 0.50, 1.0)
-			custom_scale = 0.78
-			base_health = 22.0
-			armor = 0.0
-			damage_per_hit = 5.0
-		2: # Bronce cazador (2-4 min)
-			custom_tint = Color(1.0, 0.85, 0.65, 1.0)
-			custom_scale = 0.92
-			base_health = 50.0
-			armor = 1.0
-			damage_per_hit = 7.0
-		3: # Morado / Púrpura Zerg (4-6 min)
-			custom_tint = Color(1.20, 0.65, 1.35, 1.0)
-			custom_scale = 1.08
-			base_health = 110.0
-			armor = 2.0
-			damage_per_hit = 10.0
-		4: # Carmesí Sangre Salvaje (6-8 min)
-			custom_tint = Color(1.40, 0.45, 0.45, 1.0)
-			custom_scale = 1.22
-			base_health = 240.0
-			armor = 4.0
-			damage_per_hit = 13.0
-		5: # Azul Tormenta Enjambre Oscuro (8-10 min)
-			custom_tint = Color(0.45, 0.75, 1.45, 1.0)
-			custom_scale = 1.35
-			base_health = 480.0
-			armor = 7.0
-			damage_per_hit = 16.0
-		6: # Ámbar Dorado Mutante Élite (10-12 min)
-			custom_tint = Color(1.45, 1.15, 0.35, 1.0)
-			custom_scale = 1.45
-			base_health = 950.0
-			armor = 11.0
-			damage_per_hit = 20.0
-		_: # Esmeralda Tóxico Noxious (12+ min)
-			custom_tint = Color(0.35, 1.45, 0.55, 1.0)
-			custom_scale = 1.55
-			base_health = 1800.0 + (t - 7) * 400.0
-			armor = 16.0 + (t - 7) * 3.0
-			damage_per_hit = 25.0
+	var stats = WaveConfig.get_enemy_stats("zergling", t)
+	base_health = stats.get("health", 18.0)
+	armor = stats.get("armor", 0.0)
+	damage_per_hit = stats.get("damage", 5.0)
+	base_speed = stats.get("speed", 102.0)
+	move_speed = base_speed * randf_range(0.92, 1.15)
+	custom_scale = stats.get("scale", 0.80)
+	custom_tint = stats.get("tint", Color.WHITE)
 	current_health = base_health
 	_apply_tier_visuals()
 

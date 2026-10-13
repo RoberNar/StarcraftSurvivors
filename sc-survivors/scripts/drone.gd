@@ -17,23 +17,13 @@ var custom_tint: Color = Color.WHITE
 
 func set_tier(t: int) -> void:
 	tier = t
-	match t:
-		1:
-			base_health = 16.0
-			armor = 0.0
-			custom_tint = Color.WHITE
-		2:
-			base_health = 35.0
-			armor = 1.0
-			custom_tint = Color(1.0, 0.85, 0.7)
-		3:
-			base_health = 80.0
-			armor = 3.0
-			custom_tint = Color(0.85, 0.6, 1.0)
-		_:
-			base_health = 160.0 + (t - 4) * 80.0
-			armor = 5.0 + (t - 4) * 2.0
-			custom_tint = Color(1.0, 0.4, 0.4)
+	var stats = WaveConfig.get_enemy_stats("drone", t)
+	base_health = stats.get("health", 14.0)
+	armor = stats.get("armor", 0.0)
+	damage_per_hit = stats.get("damage", 4.0)
+	base_speed = stats.get("speed", 72.0)
+	move_speed = base_speed * randf_range(0.92, 1.10)
+	custom_tint = stats.get("tint", Color.WHITE)
 	current_health = base_health
 	if sprite:
 		sprite.modulate = custom_tint

@@ -186,7 +186,6 @@ var is_leveling_up: bool = false
 var has_shown_max_upgrades_notice: bool = false
 var session_minerals: int = 0
 var mineral_accumulator: float = 0.0
-var last_lull_announced_wave: int = -1
 
 # Spawning de enemigos
 var spawn_timer: float = 0.0
@@ -354,7 +353,6 @@ func reset_game() -> void:
 	xp_needed = 40
 	session_minerals = 0
 	mineral_accumulator = 0.0
-	last_lull_announced_wave = -1
 	next_ultralisk_time = 300.0
 	has_triggered_30min_climax = false
 	event_zergling_pool_spawned = false
@@ -640,30 +638,23 @@ func _handle_spawning(delta: float) -> void:
 	if has_triggered_30min_climax:
 		return
 	
-	# Descanzo táctico de 10 segundos al final de cada ciclo de 2 minutos (entre seg 110 y 120)
-	var wave_cycle_time = fmod(game_time, 120.0)
-	var is_in_lull = (game_time >= 60.0 and wave_cycle_time >= 110.0)
-	if is_in_lull:
-		var current_wave_idx = int(game_time / 120.0)
-		if last_lull_announced_wave != current_wave_idx:
-			last_lull_announced_wave = current_wave_idx
-			var player = get_tree().get_first_node_in_group("player")
-			if player and player.has_method("show_bubble"):
-				player.show_bubble("Calma táctica: 10s para reagruparse", 2.2)
+	# Descanzo táctico de 10 segundos al final de cada ciclo de 2 minutos (sin mensaje)
+	if WaveConfig.is_in_lull(game_time):
 		return
 	
-	spawn_timer += delta
-	var current_interval = clamp(1.2 - (game_time / 1200.0) * 0.7, 0.45, 1.2)
+	var wave = WaveConfig.get_current_wave(game_time)
+	var interval = wave.get("spawn_interval", 0.35)
+	var batch = wave.get("batch_size", 3)
+	var max_active = wave.get("max_enemies", 120)
 	
-	if spawn_timer >= current_interval:
+	spawn_timer += delta
+	if spawn_timer >= interval:
 		spawn_timer = 0.0
-		# Mantener un límite estricto de 95 entidades activas para garantizar 60 FPS fijos sin congelamientos
 		var current_enemies = get_tree().get_nodes_in_group("enemies").size()
-		if current_enemies >= 95:
+		if current_enemies >= max_active:
 			return
 		
-		var spawn_batch = clamp(1 + int(game_time / 300.0), 1, 3)
-		for i in range(spawn_batch):
+		for i in range(batch):
 			_spawn_enemy()
 
 func _handle_boss_spawning() -> void:
@@ -710,105 +701,20 @@ func _spawn_enemy() -> void:
 	var dist = randf_range(360.0, 450.0)
 	var spawn_pos = player.global_position + Vector2(cos(angle), sin(angle)) * dist
 	
-	var roll = randf()
+	var picked = WaveConfig.pick_random_enemy(game_time)
 	var enemy_scene: PackedScene = null
-	var zerg_tier: int = 1
-	var wave_cycle: int = int(game_time / 120.0)
-	
-	match wave_cycle:
-		0: # Min 0 - 2: Oleada Inicial (Drones y Zerglings Básicos)
-			if roll < 0.50:
-				enemy_scene = drone_scene
-				zerg_tier = 1
-			else:
-				enemy_scene = zergling_scene
-				zerg_tier = 1
-		1: # Min 2 - 4: Llegan los primeros Hidraliscos y Zerglings Bronce
-			if roll < 0.20:
-				enemy_scene = hydralisk_scene
-				zerg_tier = 1
-			elif roll < 0.35:
-				enemy_scene = drone_scene
-				zerg_tier = 1
-			elif roll < 0.75:
-				enemy_scene = zergling_scene
-				zerg_tier = 2
-			else:
-				enemy_scene = zergling_scene
-				zerg_tier = 1
-		2: # Min 4 - 6: Enjambre Aéreo (Mutaliscos) y Zerglings Cazadores
-			if roll < 0.22:
-				enemy_scene = mutalisk_scene
-				zerg_tier = 1
-			elif roll < 0.45:
-				enemy_scene = hydralisk_scene
-				zerg_tier = 1
-			elif roll < 0.80:
-				enemy_scene = zergling_scene
-				zerg_tier = 3
-			else:
-				enemy_scene = zergling_scene
-				zerg_tier = 2
-		3: # Min 6 - 8: Oleada Carmesí (Zerglings Carmesí, Mutas y Hidras Cazadores)
-			if roll < 0.25:
-				enemy_scene = mutalisk_scene
-				zerg_tier = 2
-			elif roll < 0.50:
-				enemy_scene = hydralisk_scene
-				zerg_tier = 2
-			elif roll < 0.85:
-				enemy_scene = zergling_scene
-				zerg_tier = 4
-			else:
-				enemy_scene = zergling_scene
-				zerg_tier = 3
-		4: # Min 8 - 10: Vanguardia de Tormenta (Zerglings Azules HP 480 / Armadura 7)
-			if roll < 0.30:
-				enemy_scene = mutalisk_scene
-				zerg_tier = 2
-			elif roll < 0.60:
-				enemy_scene = hydralisk_scene
-				zerg_tier = 2
-			else:
-				enemy_scene = zergling_scene
-				zerg_tier = 5
-		5: # Min 10 - 12: Mutación Tóxica (Zerglings Ámbar HP 950 / Armadura 11, Hidras Carmesí, Mutas Azules)
-			if roll < 0.32:
-				enemy_scene = mutalisk_scene
-				zerg_tier = 3
-			elif roll < 0.64:
-				enemy_scene = hydralisk_scene
-				zerg_tier = 3
-			else:
-				enemy_scene = zergling_scene
-				zerg_tier = 6
-		6: # Min 12 - 14: Fuerza Titánica (Zerglings Esmeralda HP 1800 / Armadura 16, Hidras y Mutas Ámbar)
-			if roll < 0.35:
-				enemy_scene = mutalisk_scene
-				zerg_tier = 4
-			elif roll < 0.70:
-				enemy_scene = hydralisk_scene
-				zerg_tier = 4
-			else:
-				enemy_scene = zergling_scene
-				zerg_tier = 7
-		_: # Min 14+: Masa Crítica del Enjambre (Tiers Máximos con Alta Armadura y Resistencia)
-			var extra_tier = clamp(wave_cycle - 6, 0, 5)
-			if roll < 0.35:
-				enemy_scene = mutalisk_scene
-				zerg_tier = 5 + extra_tier
-			elif roll < 0.70:
-				enemy_scene = hydralisk_scene
-				zerg_tier = 5 + extra_tier
-			else:
-				enemy_scene = zergling_scene
-				zerg_tier = 7 + extra_tier
+	match picked.type:
+		"zergling": enemy_scene = zergling_scene
+		"hydralisk": enemy_scene = hydralisk_scene
+		"mutalisk": enemy_scene = mutalisk_scene
+		"drone": enemy_scene = drone_scene
+		_: enemy_scene = zergling_scene
 	
 	if enemy_scene:
 		var enemy = enemy_scene.instantiate()
 		enemy.global_position = spawn_pos
 		if enemy.has_method("set_tier"):
-			enemy.set_tier(zerg_tier)
+			enemy.set_tier(picked.tier)
 		var main_scene = get_tree().current_scene
 		if main_scene:
 			main_scene.add_child(enemy)

@@ -74,23 +74,23 @@ Cada 2 minutos (`game_time / 120.0`), la biología Zerg muta a un nuevo escalón
 | **12:00 - 14:00** | 6 | 35% Mutas T4, 35% Hidras T4, Zerglings T7 | Tier 7 (Esmeralda Nocivo / Titán) | Zergling HP 1800 / Arm 16, Hidra HP 1400 / Arm 15, Muta HP 1100 / Arm 14 |
 | **14:00+** | 7+ | Enjambre Titánico de Alta Resistencia | Tier 8+ (Masa Crítica) | HP 2500+ / Armadura 20+ |
 
-### B. Pausas Tácticas de 10 Segundos (Wave Lulls)
-- Al final de cada ciclo de 2 minutos (entre el segundo 110 y 120 de cada bloque de 120s), el desove de enemigos se **pausa completamente**.
-- Muestra el aviso: `«Calma táctica: 10s para reagruparse»`.
-- Permite al jugador limpiar los rezagados, recolectar los cristales en el suelo, reposicionarse y respirar antes de la siguiente oleada.
+### B. Archivo de Configuración Central (`scripts/wave_config.gd`)
+Todas las variables de spawn y estadísticas Zerg están centralizadas en `WaveConfig` para fácil edición manual:
+- **`WAVE_SCHEDULE`**: Array editable con cada franja de minutos, `spawn_interval` (frecuencia), `batch_size` (cantidad por tanda), `max_enemies` (tope en pantalla) y la lista de `spawns` con sus pesos (`weight`) y `tier`.
+  - **Minuto 0 a 6 (Fase Inicial Intensa)**: Mayor densidad y velocidad de desove (`spawn_interval` de 0.28s a 0.35s, lotes de 3-4 enemigos y tope de hasta 145 en pantalla) para que la partida arranque con una gran masa de Zerglings y Drones que se eliminan rápidamente.
+  - **Minuto 10+ (Fase Estratégica)**: Frecuencia de 0.45s a 0.50s, lotes de 2 y tope de 95 enemigos con armaduras elevadas para proteger el rendimiento a 60 FPS.
+- **`ZERG_STATS`**: Diccionario editable con `health`, `armor`, `damage`, `speed`, `scale` y `tint` de cada tier para Zerglings, Hidraliscos, Mutaliscos y Drones.
 
-### C. Límite de Entidades y Rendimiento (60 FPS Fijos)
-1. **Límite de Enemigos en Pantalla**: Reducido de 320 a **máximo 95 entidades activas simultáneas**. Menos enemigos, pero mucho más resistentes, con armadura real que requiere daño penetrante.
-2. **Generación por Lotes Suave**: Grupos de 1 a 3 unidades espaciadas cada 0.45s - 1.2s en lugar de avalanchas de 16 enemigos de golpe.
-3. **Optimización de Guardado (SaveManager)**:
-   - Se eliminó el guardado síncrono a disco por cada mineral recogido.
-   - Ahora se usa un flag `is_dirty` con guardado automático periódico throttled (cada 12 segundos) en `_process(delta)`.
-   - Las operaciones críticas (muerte, compra en academia, cambio de misión) guardan inmediatamente.
-4. **Cristal Mineral Arcoíris (Efecto Aspiradora)**:
-   - Probabilidad 1/1000 de caída.
-   - Al recogerse, absorbe instantáneamente los cristales fuera de pantalla (>380px) en un único cálculo matemático y anima solo los cristales cercanos, apagando capas de colisión física durante el vuelo. Cero tirones de framerate.
-5. **Throttling de Sonido (AudioManager / Mineral)**:
-   - El audio de recolección de cristales tiene un limitador de frecuencia (55ms) para no saturar las 16 voces del mixer de Godot.
+### C. Pausas Tácticas de 10 Segundos Silenciosas (Wave Lulls)
+- Al final de cada ciclo de 2 minutos (entre el segundo 110 y 120 de cada bloque de 120s), el desove de enemigos se **pausa silenciosamente** (sin carteles ni burbujas de texto en pantalla).
+- Permite limpiar a los rezagados, recolectar recursos en el suelo y prepararse para la siguiente mutación del enjambre.
+
+### D. Rendimiento y Optimización (60 FPS Fijos)
+1. **Límite de Entidades Dinámico**: Controlado por `max_enemies` en `WaveConfig` (130-145 en el early game de baja carga y 90-95 en el endgame de alta carga).
+2. **Generación por Lotes Suave**: Grupos controlados por `batch_size` en `WaveConfig` en lugar de oleadas síncronas masivas.
+3. **Optimización de Guardado (SaveManager)**: Flag `is_dirty` con guardado automático periódico (cada 12 segundos) en lugar de accesos síncronos a disco por cada cristal.
+4. **Cristal Mineral Arcoíris (Efecto Aspiradora)**: Absorción matemática instantánea de cristales fuera de pantalla (>380px) y vuelo directo sin cálculo de colisiones.
+5. **Throttling de Sonido (AudioManager / Mineral)**: Limitador de frecuencia a 55ms para evitar saturación de canales de audio.
 
 ---
 

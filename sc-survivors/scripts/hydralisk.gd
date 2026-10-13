@@ -31,37 +31,14 @@ var custom_scale: float = 1.0
 
 func set_tier(t: int) -> void:
 	tier = t
-	match t:
-		1: # Clásico beige / marrón
-			custom_tint = Color(1.0, 0.95, 0.90, 1.0)
-			custom_scale = 1.0
-			base_health = 110.0
-			armor = 2.0
-			damage_per_hit = 12.0
-		2: # Púrpura Cazador
-			custom_tint = Color(1.20, 0.65, 1.35, 1.0)
-			custom_scale = 1.15
-			base_health = 280.0
-			armor = 5.0
-			damage_per_hit = 16.0
-		3: # Carmesí Devorador
-			custom_tint = Color(1.40, 0.45, 0.45, 1.0)
-			custom_scale = 1.30
-			base_health = 680.0
-			armor = 10.0
-			damage_per_hit = 22.0
-		4: # Ámbar Dorado
-			custom_tint = Color(1.45, 1.15, 0.35, 1.0)
-			custom_scale = 1.45
-			base_health = 1400.0
-			armor = 15.0
-			damage_per_hit = 28.0
-		_: # Esmeralda Noxious
-			custom_tint = Color(0.35, 1.45, 0.55, 1.0)
-			custom_scale = 1.60
-			base_health = 2600.0 + (t - 5) * 500.0
-			armor = 20.0 + (t - 5) * 4.0
-			damage_per_hit = 35.0
+	var stats = WaveConfig.get_enemy_stats("hydralisk", t)
+	base_health = stats.get("health", 110.0)
+	armor = stats.get("armor", 2.0)
+	damage_per_hit = stats.get("damage", 12.0)
+	base_speed = stats.get("speed", 80.0)
+	move_speed = base_speed * randf_range(0.92, 1.10)
+	custom_scale = stats.get("scale", 1.0)
+	custom_tint = stats.get("tint", Color.WHITE)
 	current_health = base_health
 	if sprite:
 		sprite.modulate = custom_tint

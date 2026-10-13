@@ -28,6 +28,7 @@ SkinManager="*res://scripts/skin_manager.gd"
 AudioManager="*res://scripts/audio_manager.gd"
 SaveManager="*res://scripts/save_manager.gd"
 StoryManager="*res://scripts/story_manager.gd"
+WaveConfig="*res://scripts/wave_config.gd"
 GameManager="*res://scripts/game_manager.gd"
 ScreenFade="*res://scripts/screen_fade.gd"
 
