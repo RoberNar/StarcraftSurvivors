@@ -14,7 +14,7 @@ var radio_text: Label = null
 
 # HUD inferior de salud y estado táctico
 @onready var bottom_hud: Panel = $CanvasLayer/BottomHUD
-@onready var hp_bar: ProgressBar = $CanvasLayer/BottomHUD/HBox/InfoVBox/HealthBar
+@onready var hp_bar: SCHealthBar = $CanvasLayer/BottomHUD/HBox/InfoVBox/SCHealthBar
 @onready var hp_label: Label = $CanvasLayer/BottomHUD/HBox/InfoVBox/HealthLabel
 
 var prologue_step: int = 0
@@ -88,28 +88,17 @@ func _on_player_health_changed(cur_hp: float, max_hp: float) -> void:
 	_update_hp_display(cur_hp, max_hp)
 
 func _update_hp_display(cur_hp: float, max_hp: float) -> void:
-	var pct = clamp(cur_hp / max_hp, 0.0, 1.0)
-	hp_bar.value = pct * 100.0
+	if hp_bar:
+		hp_bar.set_health(cur_hp, max_hp)
 	hp_label.text = "VIDA: %d / %d" % [int(max(cur_hp, 0.0)), int(max_hp)]
 	
-	# Estilo y color según el porcentaje de salud
-	var fill_style = StyleBoxFlat.new()
-	fill_style.corner_radius_top_left = 3
-	fill_style.corner_radius_top_right = 3
-	fill_style.corner_radius_bottom_right = 3
-	fill_style.corner_radius_bottom_left = 3
-	
+	var pct = clamp(cur_hp / max_hp, 0.0, 1.0)
 	if pct > 0.5:
-		fill_style.bg_color = Color(0, 0.88, 0.15, 1.0) # Verde saludable
 		hp_label.add_theme_color_override("font_color", Color(0.2, 1.0, 0.4, 1.0))
 	elif pct > 0.25:
-		fill_style.bg_color = Color(0.95, 0.8, 0.1, 1.0) # Amarillo advertencia
 		hp_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2, 1.0))
 	else:
-		fill_style.bg_color = Color(1.0, 0.2, 0.2, 1.0) # Rojo peligro crítico
 		hp_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3, 1.0))
-	
-	hp_bar.add_theme_stylebox_override("fill", fill_style)
 
 func _on_player_moved_first_time() -> void:
 	if zerg_spawned:

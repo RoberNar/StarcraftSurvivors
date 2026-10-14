@@ -64,7 +64,7 @@ func _show_evac_dialog() -> void:
 	var state_text = "¡OBJETIVO COMPLETADO! (Listo para cobrar recompensas)" if GameManager.is_mission_completed else "En progreso (%s)" % GameManager.get_mission_progress_str()
 	
 	mission_status_label.text = "🎯 Misión: %s\nEstado: %s" % [m.get("title", ""), state_text]
-	resources_label.text = "Minerales en posesión: %d\nGas Vespeno recolectado: %d" % [GameManager.get_total_minerals(), GameManager.get_total_gas()]
+	resources_label.text = "Gas Vespeno recolectado: %d\nCristales de EXP obtenidos: %d" % [GameManager.mission_gas, GameManager.session_minerals]
 	if prompt_label:
 		prompt_label.text = "¿Estás seguro de que deseas salir de la misión y regresar a la base militar?\n(Tus recursos recolectados serán guardados)."
 	

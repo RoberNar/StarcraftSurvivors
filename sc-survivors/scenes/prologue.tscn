@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" path="res://assets/skins/sd/buildings/dropship.png" id="4_dropship"]
 [ext_resource type="Texture2D" path="res://assets/skins/sd/sprites/wire_civilian.png" id="5_civ_wire"]
 [ext_resource type="PackedScene" path="res://scenes/transmission_comm.tscn" id="6_trans_comm"]
+[ext_resource type="Script" path="res://scripts/sc_health_bar.gd" id="7_hpbar"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bound_h"]
 size = Vector2(3400, 100)
@@ -172,12 +173,14 @@ theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
 theme_override_font_sizes/font_size = 11
 text = "??????"
 
-[node name="HealthBar" type="ProgressBar" parent="CanvasLayer/BottomHUD/HBox/InfoVBox"]
-custom_minimum_size = Vector2(0, 14)
+[node name="SCHealthBar" type="Control" parent="CanvasLayer/BottomHUD/HBox/InfoVBox"]
+custom_minimum_size = Vector2(0, 12)
 layout_mode = 2
-theme_override_styles/fill = SubResource("StyleBoxFlat_hp_fill")
-value = 100.0
-show_percentage = false
+size_flags_horizontal = 3
+script = ExtResource("7_hpbar")
+max_health = 80.0
+current_health = 80.0
+segment_count = 14
 
 [node name="HealthLabel" type="Label" parent="CanvasLayer/BottomHUD/HBox/InfoVBox"]
 layout_mode = 2

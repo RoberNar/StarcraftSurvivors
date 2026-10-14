@@ -39,8 +39,8 @@ const BARRACKS_UPGRADES_DEF = {
 		"name": "Armamento de Infantería (Daño Global)",
 		"desc": "+5% Daño a todas las armas por nivel",
 		"max_lvl": 10,
-		"cost_min": [15, 30, 60, 120, 240, 480, 960, 1920, 3840, 7680],
-		"cost_gas": [0, 0, 0, 5, 10, 20, 40, 80, 160, 320],
+		"cost_min": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		"cost_gas": [2, 4, 7, 11, 16, 22, 30, 40, 52, 68],
 		"prereq": "",
 		"is_weapon": false,
 		"icon_idx": 3
@@ -49,8 +49,8 @@ const BARRACKS_UPGRADES_DEF = {
 		"name": "Saturación Balística (Disparo Adicional)",
 		"desc": "+1 Proyectil/disparo adicional a todas las armas por nivel",
 		"max_lvl": 3,
-		"cost_min": [250, 500, 1000],
-		"cost_gas": [0, 25, 75],
+		"cost_min": [0, 0, 0],
+		"cost_gas": [8, 20, 45],
 		"prereq": "",
 		"is_weapon": false,
 		"icon_idx": 6
@@ -59,8 +59,8 @@ const BARRACKS_UPGRADES_DEF = {
 		"name": "Servomotores CMC (Velocidad)",
 		"desc": "+5% Velocidad de movimiento inicial por nivel",
 		"max_lvl": 10,
-		"cost_min": [12, 25, 50, 85, 130, 190, 270, 380, 520, 700],
-		"cost_gas": [0, 0, 0, 4, 8, 14, 22, 32, 45, 60],
+		"cost_min": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		"cost_gas": [1, 2, 4, 7, 11, 16, 22, 29, 38, 50],
 		"prereq": "",
 		"is_weapon": false,
 		"icon_idx": 4
@@ -69,8 +69,8 @@ const BARRACKS_UPGRADES_DEF = {
 		"name": "Blindaje CMC (Vida y Armadura)",
 		"desc": "+15 Vida Máxima y +1 Armadura base por nivel",
 		"max_lvl": 10,
-		"cost_min": [15, 30, 60, 100, 150, 220, 310, 430, 580, 780],
-		"cost_gas": [0, 0, 0, 5, 10, 16, 25, 36, 50, 70],
+		"cost_min": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		"cost_gas": [1, 3, 5, 8, 12, 17, 24, 32, 42, 55],
 		"prereq": "",
 		"is_weapon": false,
 		"icon_idx": 2
@@ -79,8 +79,8 @@ const BARRACKS_UPGRADES_DEF = {
 		"name": "Estimulantes Sintéticos (Stimpack)",
 		"desc": "Desbloquea [T] Stimpack e incrementa su duración y recarga",
 		"max_lvl": 5,
-		"cost_min": [25, 50, 100, 200, 400],
-		"cost_gas": [0, 5, 15, 30, 60],
+		"cost_min": [0, 0, 0, 0, 0],
+		"cost_gas": [2, 5, 10, 18, 30],
 		"prereq": "",
 		"is_weapon": false,
 		"icon_idx": 1
@@ -89,8 +89,8 @@ const BARRACKS_UPGRADES_DEF = {
 		"name": "Botiquín Nanomédico (Regen)",
 		"desc": "+0.8 Regeneración de vida/s inicial por nivel",
 		"max_lvl": 10,
-		"cost_min": [18, 35, 70, 120, 180, 260, 360, 490, 650, 850],
-		"cost_gas": [0, 2, 5, 10, 16, 24, 35, 48, 65, 85],
+		"cost_min": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		"cost_gas": [2, 4, 7, 11, 16, 22, 30, 40, 52, 68],
 		"prereq": "",
 		"is_weapon": false,
 		"icon_idx": 7
@@ -99,18 +99,18 @@ const BARRACKS_UPGRADES_DEF = {
 		"name": "Condensador de Flujo (Imán)",
 		"desc": "+18% Radio de atracción de minerales de inicio",
 		"max_lvl": 10,
-		"cost_min": [10, 20, 40, 70, 110, 160, 230, 320, 440, 600],
-		"cost_gas": [0, 0, 0, 2, 5, 10, 16, 24, 35, 50],
+		"cost_min": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		"cost_gas": [1, 2, 4, 7, 11, 16, 22, 29, 38, 50],
 		"prereq": "",
 		"is_weapon": false,
 		"icon_idx": 0
 	},
 	"mineral_efficiency": {
-		"name": "Excavación de Plasma (Minerales Extra)",
-		"desc": "+25% Minerales adicionales obtenidos por cristal por nivel",
-		"max_lvl": 5,
-		"cost_min": [100, 250, 600, 1400, 3000],
-		"cost_gas": [0, 10, 25, 60, 120],
+		"name": "Excavación de Plasma (+EXP)",
+		"desc": "+exp 5% por nivel",
+		"max_lvl": 10,
+		"cost_min": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		"cost_gas": [2, 4, 7, 11, 16, 22, 30, 40, 52, 68],
 		"prereq": "",
 		"is_weapon": false,
 		"icon_idx": 0
@@ -119,8 +119,8 @@ const BARRACKS_UPGRADES_DEF = {
 		"name": "Condensador de Vespeno (Gas x2)",
 		"desc": "Duplica la extracción de Gas Vespeno por cada tanque recolectado",
 		"max_lvl": 1,
-		"cost_min": [500],
-		"cost_gas": [50],
+		"cost_min": [0],
+		"cost_gas": [25],
 		"prereq": "",
 		"is_weapon": false,
 		"icon_idx": 5
@@ -137,7 +137,7 @@ const MISSIONS_DEF = [
 		"reward_minerals": 0,
 		"reward_gas": 0,
 		"briefing": "¡Soldado! Sensores perimetrales detectan enjambres hostiles fuera de la base. Sube a la nave en el Puerto Estelar, aterriza en el sector exterior y elimina a 100 Zerglings antes de que se acerquen.",
-		"complete_dialog": "¡Excelente barrido táctico! El perímetro exterior está asegurado. Reabastécete en el Cuartel con los minerales acumulados antes de tu próxima misión."
+		"complete_dialog": "¡Excelente barrido táctico! El perímetro exterior está asegurado. Reabastécete en la Bahía de Ingeniería con el Gas Vespeno acumulado antes de tu próxima misión."
 	},
 	{
 		"id": 2,
@@ -489,11 +489,10 @@ func buy_barracks_upgrade(upgrade_id: String) -> bool:
 	var current_lvl = barracks_upgrades.get(upgrade_id, 0)
 	if current_lvl >= def["max_lvl"]:
 		return false
-	var cost_m = def["cost_min"][current_lvl]
 	var cost_g = def["cost_gas"][current_lvl]
 	
 	if has_node("/root/SaveManager"):
-		if SaveManager.spend_resources(cost_m, cost_g):
+		if SaveManager.spend_resources(0, cost_g):
 			barracks_upgrades[upgrade_id] = current_lvl + 1
 			SaveManager.set_academy_upgrade_level(upgrade_id, current_lvl + 1)
 			if upgrade_id == "stim":
@@ -527,7 +526,7 @@ func get_barracks_bonus(stat_name: String) -> float:
 		"magnet": return barracks_upgrades.get("magnet", 0) * 0.18
 		"stim_dur": return barracks_upgrades.get("stim", 0) * 0.5
 		"stim_cd": return barracks_upgrades.get("stim", 0) * 0.3
-		"mineral_efficiency": return barracks_upgrades.get("mineral_efficiency", 0) * 0.25
+		"mineral_efficiency": return barracks_upgrades.get("mineral_efficiency", 0) * 0.05
 		"vespene_doubler": return float(barracks_upgrades.get("vespene_doubler", 0))
 	return 0.0
 
@@ -861,19 +860,14 @@ func add_xp(amount: int, minerals: int = 1) -> void:
 	var player = get_tree().get_first_node_in_group("player")
 	if player and (player.is_dead or player.current_health <= 0.0):
 		return
-	current_xp += amount
 	
-	var gained_minerals = minerals
-	if minerals > 0:
-		var bonus_mult = 1.0 + get_barracks_bonus("mineral_efficiency")
-		mineral_accumulator += float(minerals) * bonus_mult
-		gained_minerals = int(mineral_accumulator)
-		mineral_accumulator -= float(gained_minerals)
+	# Bono de mejora permanente: +5% de experiencia por nivel de Excavación de Plasma
+	var bonus_mult = 1.0 + get_barracks_bonus("mineral_efficiency")
+	var final_xp = int(round(float(amount) * bonus_mult))
+	current_xp += max(1, final_xp) if amount > 0 else 0
 	
-	session_minerals += gained_minerals
-	if has_node("/root/SaveManager") and gained_minerals > 0:
-		SaveManager.add_minerals(gained_minerals)
-		emit_signal("base_resources_changed", get_total_minerals(), get_total_gas())
+	# Los minerales representan la experiencia en mapa y recurso de la run activa
+	session_minerals += minerals
 	if current_xp >= xp_needed:
 		_trigger_level_up()
 	emit_signal("xp_changed", current_xp, xp_needed, current_level)

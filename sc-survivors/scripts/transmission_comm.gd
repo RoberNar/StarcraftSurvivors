@@ -18,6 +18,7 @@ signal transmission_finished
 var current_tween: Tween = null
 var queue: Array[Dictionary] = []
 var on_finished_callback: Callable = Callable()
+var current_on_finish: Callable = Callable()
 var is_active: bool = false
 
 # Posición fuera de pantalla y posición en pantalla
@@ -33,6 +34,7 @@ func _ready() -> void:
 
 func show_transmission(speaker: String, portrait_tex: Texture2D, message: String, duration: float = 4.5, on_finish: Callable = Callable()) -> void:
 	is_active = true
+	current_on_finish = on_finish
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	
 	if header_label:
@@ -55,21 +57,29 @@ func show_transmission(speaker: String, portrait_tex: Texture2D, message: String
 	
 	visible = true
 	
+	var already_onscreen = (position.x <= POS_ONSCREEN_X + 20.0 and position.x >= POS_ONSCREEN_X - 20.0)
+	
 	if current_tween and current_tween.is_valid():
 		current_tween.kill()
+		current_tween = null
 	
-	# Animación suave de despliegue desde el borde superior derecho
-	position.x = POS_OFFSCREEN_X
 	current_tween = create_tween().set_parallel(false).set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-	current_tween.tween_property(self, "position:x", POS_ONSCREEN_X, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	if not already_onscreen:
+		position.x = POS_OFFSCREEN_X
+		current_tween.tween_property(self, "position:x", POS_ONSCREEN_X, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	else:
+		position.x = POS_ONSCREEN_X
+		
 	current_tween.tween_interval(duration)
 	current_tween.tween_property(self, "position:x", POS_OFFSCREEN_X, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	current_tween.tween_callback(func():
 		visible = false
 		is_active = false
 		emit_signal("transmission_finished")
-		if on_finish.is_valid():
-			on_finish.call()
+		var cb = current_on_finish
+		current_on_finish = Callable()
+		if cb.is_valid():
+			cb.call()
 	)
 	
 	emit_signal("transmission_started", speaker, message)
@@ -91,25 +101,40 @@ func _play_next_in_queue() -> void:
 		return
 	
 	var item = queue.pop_front()
-	var spk = item.get("speaker", "CAPITÁN HOLLIS VOSS")
-	var tex = item.get("portrait", null)
-	var msg = item.get("message", "")
-	var dur = item.get("duration", 4.0)
+	var spk: String = item.get("speaker", "")
+	var tex: Texture2D = item.get("portrait", null)
+	if spk == "":
+		if item.get("is_voss", false):
+			spk = "CAPITÁN HOLLIS VOSS"
+			if tex == null:
+				tex = load("res://assets/skins/sd/portrait/civilian_portrait.png")
+		else:
+			spk = "??????"
+			if tex == null:
+				tex = SkinManager.get_sprite("wire_marine") if (has_node("/root/GameManager") and GameManager.has_suit_equipped) else SkinManager.get_sprite("wire_civilian")
+	
+	var msg = item.get("message", item.get("text", ""))
+	var dur = item.get("duration", 5.0)
 	show_transmission(spk, tex, msg, dur, Callable(self, "_play_next_in_queue"))
 
 func skip_transmission() -> void:
-	if is_active and current_tween and current_tween.is_valid():
-		current_tween.kill()
-		current_tween = null
-		visible = false
+	if is_active:
+		if current_tween and current_tween.is_valid():
+			current_tween.kill()
+			current_tween = null
 		is_active = false
+		var cb = current_on_finish
+		current_on_finish = Callable()
 		if not queue.is_empty():
 			_play_next_in_queue()
+		elif cb.is_valid():
+			cb.call()
 		else:
-			var cb = on_finished_callback
+			visible = false
+			var old_cb = on_finished_callback
 			on_finished_callback = Callable()
-			if cb.is_valid():
-				cb.call()
+			if old_cb.is_valid():
+				old_cb.call()
 
 func _on_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:

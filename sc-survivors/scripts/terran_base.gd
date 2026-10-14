@@ -23,11 +23,10 @@ extends Node2D
 @onready var armor_stand_hint: Label = $ArmorStand/HintLabel
 @onready var armor_stand_area: Area2D = $ArmorStand/Area2D
 
-# Modal de cinemática/diálogo narrativo
-@onready var story_dialog_modal: Panel = $CanvasLayer/StoryDialogueModal
-@onready var story_speaker_lbl: Label = $CanvasLayer/StoryDialogueModal/HBox/TextVBox/SpeakerLabel
-@onready var story_dialogue_lbl: Label = $CanvasLayer/StoryDialogueModal/HBox/TextVBox/DialogueLabel
-@onready var story_portrait: SCPortrait = $CanvasLayer/StoryDialogueModal/HBox/PortraitControl
+# Comunicador Táctico de Radio Terran (Briefing Transmission Comm - Transmisiones de Radio)
+@onready var transmission_comm: TransmissionComm = $CanvasLayer/TransmissionComm
+# Diálogo Presencial Terran (Briefing Face-to-Face - Para hablar de frente en la base)
+@onready var face_to_face_dialog: FaceToFaceDialog = $CanvasLayer/FaceToFaceDialog
 
 # Menú de Pausa / Configuración
 @onready var pause_panel: Panel = $CanvasLayer/PausePanel
@@ -309,9 +308,8 @@ func _ready() -> void:
 	starport_hint.visible = false
 	npc_hint.visible = false
 	cmd_center_hint.visible = false
-	if armor_stand_hint:
-		armor_stand_hint.visible = false
-	story_dialog_modal.visible = false
+	if transmission_comm:
+		transmission_comm.visible = false
 	
 	_connect_signals()
 	if has_node("/root/GameManager"):
@@ -333,7 +331,7 @@ func _ready() -> void:
 		SaveManager.save_data()
 		
 		var stage = SaveManager.get_story_stage()
-		var has_20_min = (SaveManager.total_minerals >= 20 or GameManager.is_mission_completed)
+		var has_20_min = (GameManager.session_minerals >= 20 or GameManager.is_mission_completed)
 		
 		# Si la muerte ocurrió en Misión 1 (o antes de tener Cuartel y Bahía de Ingeniería)
 		if stage == StoryManager.STAGE_MISSION_1 or stage == StoryManager.STAGE_BASE_INITIAL:
@@ -358,7 +356,7 @@ func _ready() -> void:
 			)
 
 	# Prioridad 2: Regreso vivo sin morir (Condición 3)
-	elif GameManager.is_mission_completed or (SaveManager.get_story_stage() == StoryManager.STAGE_MISSION_1 and SaveManager.total_minerals >= 20):
+	elif GameManager.is_mission_completed or (SaveManager.get_story_stage() == StoryManager.STAGE_MISSION_1 and GameManager.session_minerals >= 20):
 		var stage = SaveManager.get_story_stage()
 		if stage == StoryManager.STAGE_MISSION_1 or stage == StoryManager.STAGE_BASE_INITIAL:
 			# Condición 3: Regreso vivo con 20 minerales -> diálogo de misión cumplida, te manda a construir
@@ -405,50 +403,27 @@ func _ready() -> void:
 
 func _start_story_dialogue(queue: Array[Dictionary], on_finished: Callable = Callable()) -> void:
 	_close_all_modals()
-	story_dialogue_queue = queue
-	story_dialogue_index = 0
 	story_dialogue_finished_callback = on_finished
 	is_playing_story_dialogue = true
-	console_rect.visible = false
+	console_rect.visible = true
 	if player_node:
 		player_node.can_move = false
-	_advance_story_dialogue()
+	
+	if face_to_face_dialog:
+		face_to_face_dialog.play_dialogue_queue(queue, func():
+			_finish_story_dialogue()
+		)
+	else:
+		_finish_story_dialogue()
 
 func _advance_story_dialogue() -> void:
-	if story_dialogue_index >= story_dialogue_queue.size():
-		_finish_story_dialogue()
-		return
-	
-	var item = story_dialogue_queue[story_dialogue_index]
-	var is_first = (story_dialogue_index == 0)
-	story_dialogue_index += 1
-	story_dialogue_timer = 5.0
-	
-	if item["is_voss"]:
-		story_speaker_lbl.text = "CAPITÁN HOLLIS VOSS"
-		story_speaker_lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.25, 1.0))
-		# El retrato de civil de StarCraft es para el comandante Voss (con animación al hablar)
-		var civ_tex = load("res://assets/skins/sd/portrait/civilian_portrait.png")
-		story_portrait.set_portrait(civ_tex)
-		story_portrait.trigger_talk(4.0)
-		if is_first:
-			AudioManager.play_voss_greeting()
-		else:
-			AudioManager.play_sfx("button", 0.05, -4.0)
-	else:
-		story_speaker_lbl.text = "??????"
-		story_speaker_lbl.add_theme_color_override("font_color", Color(0.4, 0.85, 1.0, 1.0))
-		# Para el protagonista ("??????"): el esqueleto / wireframe de StarCraft
-		var wf = SkinManager.get_sprite("wire_marine") if GameManager.has_suit_equipped else SkinManager.get_sprite("wire_civilian")
-		story_portrait.set_portrait(wf)
-		AudioManager.play_sfx("button", 0.05, -6.0)
-	
-	story_dialogue_lbl.text = item["text"]
-	story_dialog_modal.visible = true
+	if face_to_face_dialog and face_to_face_dialog.is_active:
+		face_to_face_dialog.advance_or_close()
 
 func _finish_story_dialogue() -> void:
 	is_playing_story_dialogue = false
-	story_dialog_modal.visible = false
+	if face_to_face_dialog and face_to_face_dialog.is_active:
+		face_to_face_dialog.close_dialogue()
 	if player_node:
 		player_node.can_move = true
 	console_rect.visible = true
@@ -499,17 +474,9 @@ func _process(delta: float) -> void:
 	pulse_time += delta * 4.0
 	if npc_badge:
 		npc_badge.modulate.a = 0.7 + sin(pulse_time) * 0.3
-	
-	if is_playing_story_dialogue:
-		story_dialogue_timer -= delta
-		if story_dialogue_timer <= 0.0:
-			_advance_story_dialogue()
 
 func _unhandled_input(event: InputEvent) -> void:
-	if is_playing_story_dialogue:
-		if (event is InputEventKey and event.pressed and not event.echo and (event.keycode == KEY_SPACE or event.keycode == KEY_ENTER or event.keycode == KEY_E)) or (event is InputEventMouseButton and event.pressed):
-			_advance_story_dialogue()
-			get_viewport().set_input_as_handled()
+	if is_playing_story_dialogue or (face_to_face_dialog != null and face_to_face_dialog.is_active):
 		return
 	
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -523,6 +490,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 		elif (event.keycode == KEY_E or event.keycode == KEY_SPACE) and not _is_any_modal_open() and not (pause_panel and pause_panel.visible):
 			_trigger_active_zone()
+			get_viewport().set_input_as_handled()
 		elif (event.keycode == KEY_ENTER or event.keycode == KEY_SPACE or event.is_action_pressed("ui_accept")) and _is_any_modal_open():
 			if deploy_modal.visible:
 				deploy_confirm_btn.emit_signal("pressed")
@@ -530,9 +498,11 @@ func _unhandled_input(event: InputEvent) -> void:
 				mission_action_btn.emit_signal("pressed")
 
 func _is_any_modal_open() -> bool:
-	return academy_modal.visible or cmd_center_panel.visible or mission_modal.visible or deploy_modal.visible or is_playing_story_dialogue
+	return academy_modal.visible or cmd_center_panel.visible or mission_modal.visible or deploy_modal.visible or is_playing_story_dialogue or (face_to_face_dialog != null and face_to_face_dialog.is_active)
 
 func _close_all_modals() -> void:
+	if face_to_face_dialog and face_to_face_dialog.is_active:
+		face_to_face_dialog.close_dialogue()
 	academy_modal.visible = false
 	cmd_center_panel.visible = false
 	mission_modal.visible = false
@@ -708,8 +678,8 @@ func _populate_cmd_center_buildings() -> void:
 	var ebay_built = StoryManager.is_engineering_bay_built()
 	var ebay_card = _create_building_card(
 		"BAHÍA DE INGENIERÍA",
-		"Instalación de tecnología balística y militar. Permite investigar mejoras permanentes de infantería.",
-		10,
+		"Instalación de tecnología balística y militar. Permite investigar mejoras permanentes con Gas Vespeno.",
+		0,
 		ebay_built,
 		true,
 		func():
@@ -723,12 +693,12 @@ func _populate_cmd_center_buildings() -> void:
 	)
 	cmd_center_container.add_child(ebay_card)
 	
-	# 2. Cuartel Terran (10 minerales)
+	# 2. Cuartel Terran
 	var b_built = StoryManager.is_barracks_built()
 	var b_card = _create_building_card(
 		"CUARTEL TERRAN",
 		"Instalación de reclutamiento táctico. Habilita la selección de unidades de combate militar.",
-		10,
+		0,
 		b_built,
 		true,
 		func():
@@ -760,7 +730,7 @@ func _create_building_card(b_name: String, b_desc: String, cost: int, is_built: 
 	vbox.add_theme_constant_override("separation", 2)
 	
 	var title_lbl = Label.new()
-	title_lbl.text = "%s [%d MINERALES]" % [b_name, cost]
+	title_lbl.text = ("%s [AUTORIZADO]" % b_name) if cost == 0 else ("%s [%d GAS]" % [b_name, cost])
 	title_lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.25, 1.0) if not is_built else Color(0.3, 1.0, 0.4, 1.0))
 	title_lbl.add_theme_font_size_override("font_size", 11)
 	vbox.add_child(title_lbl)
@@ -785,8 +755,8 @@ func _create_building_card(b_name: String, b_desc: String, cost: int, is_built: 
 		btn.text = "BLOQUEADO"
 		btn.disabled = true
 	else:
-		var can_afford = SaveManager.total_minerals >= cost
-		btn.text = "CONSTRUIR" if can_afford else "FALTAN %d MIN" % (cost - SaveManager.total_minerals)
+		var can_afford = (cost == 0 or SaveManager.total_gas >= cost)
+		btn.text = "AUTORIZAR" if cost == 0 else ("CONSTRUIR" if can_afford else "FALTAN %d GAS" % (cost - SaveManager.total_gas))
 		btn.disabled = not can_afford
 		if can_afford:
 			btn.add_theme_color_override("font_color", Color(0.25, 1.0, 0.35, 1.0))
@@ -810,17 +780,12 @@ func _open_academy() -> void:
 	academy_modal.visible = true
 
 func _try_build_academy() -> void:
-	if SaveManager.total_minerals >= 20:
-		if StoryManager.build_academy():
-			AudioManager.play_sfx("upgrade")
-			_refresh_base_buildings()
-			_update_top_bar()
-			if player_node and player_node.has_method("show_bubble"):
-				player_node.show_bubble("¡Academia construida! Mejoras permanentes desbloqueadas.", 3.5)
-	else:
-		AudioManager.play_sfx("button")
+	if StoryManager.build_academy():
+		AudioManager.play_sfx("upgrade")
+		_refresh_base_buildings()
+		_update_top_bar()
 		if player_node and player_node.has_method("show_bubble"):
-			player_node.show_bubble("Se necesitan 20 minerales para la Academia (tienes %d)." % SaveManager.total_minerals, 3.0)
+			player_node.show_bubble("¡Academia construida! Mejoras permanentes desbloqueadas.", 3.5)
 
 func _toggle_armor_suit() -> void:
 	if GameManager.has_suit_equipped:
@@ -898,12 +863,6 @@ func _connect_signals() -> void:
 	academy_close_btn.pressed.connect(_close_all_modals)
 	mission_close_btn.pressed.connect(_close_all_modals)
 	deploy_cancel_btn.pressed.connect(_close_all_modals)
-	
-	if story_dialog_modal:
-		story_dialog_modal.gui_input.connect(func(event: InputEvent):
-			if event is InputEventMouseButton and event.pressed:
-				_advance_story_dialogue()
-		)
 	
 	# Interacción con Centro de Mando
 	if cmd_center_area:
@@ -1031,7 +990,8 @@ func _connect_signals() -> void:
 	)
 
 func _update_top_bar() -> void:
-	top_bar_minerals.text = "%d" % SaveManager.total_minerals
+	if has_node("CanvasLayer/TopBar/HBox/MineralHBox"):
+		$CanvasLayer/TopBar/HBox/MineralHBox.visible = false
 	top_bar_gas.text = "%d" % SaveManager.total_gas
 
 func _open_deploy() -> void:
@@ -1047,33 +1007,42 @@ func _open_mission() -> void:
 	var m_id = StoryManager.get_current_mission_id()
 	var m = StoryManager.get_mission_data(m_id)
 	
-	mission_title_lbl.text = "COMANDANTE HOLLIS VOSS"
+	var has_completed_initial = (GameManager.is_mission_completed or GameManager.session_minerals >= 20 or GameManager.mission_kills >= 20)
+	var dialog_text: String = ""
+	var req_text: String = ""
 	
 	if not StoryManager.is_engineering_bay_built():
-		if SaveManager.total_minerals >= 20:
-			mission_dialog_lbl.text = "\"Sobreviviste a la incursión y recolectaste los recursos. Dirígete a la terminal del Centro de Mando para autorizar la construcción de la Bahía de Ingeniería.\""
-			mission_req_lbl.text = "Objetivo: Construir Bahía de Ingeniería en el Centro de Mando [10 Min]"
-			mission_reward_lbl.text = "Estado: %d / 20 Minerales listos" % SaveManager.total_minerals
+		if has_completed_initial:
+			dialog_text = "«Sobreviviste a la incursión y aseguraste la zona. Dirígete a la terminal del Centro de Mando para autorizar el despliegue de la Bahía de Ingeniería.»"
+			req_text = "Objetivo: Construir Bahía de Ingeniería en el Centro de Mando"
 		else:
-			mission_dialog_lbl.text = "\"Bienvenido a Sigma-4. Te dejé la armadura en el soporte. Baja al exterior con la nave, junta 20 minerales y vuelve entero antes de que el Enjambre te devore.\""
-			mission_req_lbl.text = "Objetivo: 20 Minerales en el exterior (Tienes: %d / 20)" % SaveManager.total_minerals
-			mission_reward_lbl.text = "Recompensa: Autorización de la Bahía de Ingeniería en el Centro de Mando"
+			dialog_text = "«Bienvenido a Sigma-4. Te dejé la armadura en el soporte. Baja al exterior con la nave, elimina Zerglings y vuelve entero antes de que el Enjambre te devore.»"
+			req_text = "Objetivo: Sobrevivir en el exterior y purgar Zerglings"
 	elif not StoryManager.is_barracks_built():
-		if SaveManager.total_minerals >= 20:
-			mission_dialog_lbl.text = "\"La Bahía de Ingeniería está operativa y trajiste suficiente mineral. Ve a la terminal del Centro de Mando para autorizar la construcción del Cuartel.\""
-			mission_req_lbl.text = "Objetivo: Construir Cuartel en el Centro de Mando [10 Min]"
-			mission_reward_lbl.text = "Estado: %d / 20 Minerales listos" % SaveManager.total_minerals
+		if has_completed_initial:
+			dialog_text = "«La Bahía de Ingeniería está operativa. Ve a la terminal del Centro de Mando para autorizar el aterrizaje del Cuartel.»"
+			req_text = "Objetivo: Construir Cuartel en el Centro de Mando"
 		else:
-			mission_dialog_lbl.text = "\"La Bahía de Ingeniería está en pie. Nuestra siguiente prioridad es el Cuartel: reúne minerales en el exterior para habilitar el reclutamiento y la selección de infantería.\""
-			mission_req_lbl.text = "Objetivo: 20 Minerales en el exterior (Tienes: %d / 20)" % SaveManager.total_minerals
-			mission_reward_lbl.text = "Recompensa: Autorización del Cuartel en el Centro de Mando"
+			dialog_text = "«La Bahía de Ingeniería está en pie. Nuestra siguiente prioridad es el Cuartel: despliégate al exterior para habilitar el reclutamiento de infantería militar.»"
+			req_text = "Objetivo: Incursión en el exterior"
 	else:
-		mission_dialog_lbl.text = "\"%s\"" % m.get("desc", "")
-		mission_req_lbl.text = "Misión: %s" % m.get("title", "")
-		mission_reward_lbl.text = "Recompensa: %s" % m.get("reward_text", "")
+		dialog_text = "«%s»" % m.get("desc", "")
+		req_text = "Misión: %s" % m.get("title", "")
 	
-	mission_action_btn.text = "ENTENDIDO [ENTER]"
-	mission_modal.visible = true
+	var voss_tex = load("res://assets/skins/sd/portrait/civilian_portrait.png")
+	if face_to_face_dialog:
+		_close_all_modals()
+		if player_node:
+			player_node.can_move = false
+		face_to_face_dialog.show_dialogue("CAPITÁN HOLLIS VOSS", voss_tex, dialog_text, req_text, func():
+			if player_node:
+				player_node.can_move = true
+			if GameManager.is_mission_completed:
+				GameManager.claim_mission_reward()
+				AudioManager.play_sfx("upgrade")
+				_update_top_bar()
+		)
+	mission_modal.visible = false
 
 func _populate_academy_upgrades() -> void:
 	for child in academy_list.get_children():
@@ -1193,9 +1162,8 @@ func _populate_academy_upgrades() -> void:
 			buy_btn.disabled = true
 			buy_btn.add_theme_color_override("font_color", Color(0.4, 0.9, 0.4, 0.9))
 		else:
-			var cost_m = def["cost_min"][cur_lvl]
 			var cost_g = def["cost_gas"][cur_lvl]
-			var can_afford = (cur_min >= cost_m and cur_gas >= cost_g)
+			var can_afford = (cur_gas >= cost_g)
 			
 			buy_btn.text = ""
 			buy_btn.disabled = not can_afford
@@ -1212,32 +1180,18 @@ func _populate_academy_upgrades() -> void:
 			action_lbl.add_theme_color_override("font_color", Color(0.3, 1.0, 0.4, 1.0) if can_afford else Color(0.85, 0.4, 0.4, 0.9))
 			btn_hbox.add_child(action_lbl)
 			
-			var min_ico = TextureRect.new()
-			min_ico.texture = load("res://assets/skins/sd/ui/icon_mineral.png")
-			min_ico.custom_minimum_size = Vector2(13, 13)
-			min_ico.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-			min_ico.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-			btn_hbox.add_child(min_ico)
+			var gas_ico = TextureRect.new()
+			gas_ico.texture = load("res://assets/skins/sd/ui/icon_gas.png")
+			gas_ico.custom_minimum_size = Vector2(13, 13)
+			gas_ico.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			gas_ico.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			btn_hbox.add_child(gas_ico)
 			
-			var min_lbl = Label.new()
-			min_lbl.text = "%d" % cost_m
-			min_lbl.add_theme_font_size_override("font_size", 8)
-			min_lbl.add_theme_color_override("font_color", Color(0.3, 0.85, 1.0, 1.0) if can_afford else Color(0.85, 0.4, 0.4, 0.9))
-			btn_hbox.add_child(min_lbl)
-			
-			if cost_g > 0:
-				var gas_ico = TextureRect.new()
-				gas_ico.texture = load("res://assets/skins/sd/ui/icon_gas.png")
-				gas_ico.custom_minimum_size = Vector2(13, 13)
-				gas_ico.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-				gas_ico.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-				btn_hbox.add_child(gas_ico)
-				
-				var gas_lbl = Label.new()
-				gas_lbl.text = "%d" % cost_g
-				gas_lbl.add_theme_font_size_override("font_size", 8)
-				gas_lbl.add_theme_color_override("font_color", Color(0.3, 1.0, 0.4, 1.0) if can_afford else Color(0.85, 0.4, 0.4, 0.9))
-				btn_hbox.add_child(gas_lbl)
+			var gas_lbl = Label.new()
+			gas_lbl.text = "%d" % cost_g
+			gas_lbl.add_theme_font_size_override("font_size", 8)
+			gas_lbl.add_theme_color_override("font_color", Color(0.3, 1.0, 0.4, 1.0) if can_afford else Color(0.85, 0.4, 0.4, 0.9))
+			btn_hbox.add_child(gas_lbl)
 			
 			buy_btn.add_child(btn_hbox)
 			

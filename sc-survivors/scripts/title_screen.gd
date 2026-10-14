@@ -232,7 +232,7 @@ func _refresh_armory() -> void:
 	if not has_node("/root/SaveManager"):
 		return
 	
-	armory_minerals_label.text = "MINERALES: %d" % SaveManager.total_minerals
+	armory_minerals_label.text = "GAS VESPENO: %d" % SaveManager.total_gas
 	armory_kills_label.text = "KILLS TOTALES: %d" % SaveManager.total_kills
 	
 	var r_info = SaveManager.get_current_rank()
@@ -331,7 +331,7 @@ func _refresh_armory() -> void:
 			btn_hb.add_child(lbl_mej)
 			
 			var ico = TextureRect.new()
-			ico.texture = load("res://assets/skins/sd/ui/icon_mineral.png")
+			ico.texture = load("res://assets/skins/sd/ui/icon_gas.png")
 			ico.custom_minimum_size = Vector2(13, 13)
 			ico.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 			ico.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -340,7 +340,7 @@ func _refresh_armory() -> void:
 			var cost_lbl = Label.new()
 			cost_lbl.text = "%d" % cost
 			cost_lbl.add_theme_font_size_override("font_size", 9)
-			cost_lbl.add_theme_color_override("font_color", Color(0.3, 0.85, 1.0, 1.0) if can_buy else Color(0.7, 0.7, 0.7, 0.8))
+			cost_lbl.add_theme_color_override("font_color", Color(0.3, 1.0, 0.4, 1.0) if can_buy else Color(0.7, 0.7, 0.7, 0.8))
 			btn_hb.add_child(cost_lbl)
 			
 			buy_btn.add_child(btn_hb)

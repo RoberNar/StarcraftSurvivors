@@ -42,17 +42,19 @@
   - **Rifle Francotirador Ghost C-10**: Balas de 25mm de penetración lineal con retícula táctica y onda expansiva.
   - **Glave Wurm Mutalisco**: Proyectiles parásitos bio-zerg con rebotes orgánicos entre objetivos.
 
-- **Bahía de Ingeniería / Academia (Mejoras Permanentes)**:
+- **Bahía de Ingeniería / Academia (Mejoras Permanentes con Gas Vespeno)**:
+  - Todas las mejoras de infantería se investigan con **Gas Vespeno**, comenzando muy accesibles (1-2 gas) y escalando progresivamente.
+  - Los minerales en los mapas de combate son la **representación visual de la Experiencia (EXP)** y recurso de la run.
   - **Armamento de Infantería**: +5% Daño global por nivel (10 niveles).
   - **Saturación Balística**: +1 Proyectil simultáneo a todas las armas por nivel (3 niveles).
   - **Servomotores CMC**: +5% Velocidad de movimiento inicial por nivel (10 niveles).
   - **Blindaje CMC**: +15 Vida Máxima y +1 Armadura base por nivel (10 niveles).
   - **Estimulantes Sintéticos**: Desbloquea la habilidad `[T]` Stimpack y extiende su duración.
   - **Botiquín Nanomédico**: Regeneración de salud continua por segundo (+0.8 PS/s por nivel).
-  - **Condensador de Flujo**: +18% Radio de atracción de minerales por nivel (10 niveles).
-  - **Excavación de Plasma**: +25% Minerales extra obtenidos por cada cristal recogido.
+  - **Condensador de Flujo**: +18% Radio de atracción de minerales/EXP por nivel (10 niveles).
+  - **Excavación de Plasma**: +5% EXP adicional obtenida por nivel (+exp 5% por nivel, 10 niveles).
   - **Condensador de Vespeno**: Duplica la extracción de Gas Vespeno por bidón recolectado (x2 Gas).
-  - **Cristal Mineral Arcoíris**: Rara aparición que absorbe matemáticamente todos los cristales del mapa sin cálculo de colisiones.
+  - **Cristal Mineral Arcoíris**: Rara aparición que absorbe instantáneamente todos los cristales del mapa.
 
 ---
 

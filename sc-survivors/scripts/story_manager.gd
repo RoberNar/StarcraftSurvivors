@@ -76,19 +76,17 @@ func can_access_character_select() -> bool:
 func is_gas_available_outside() -> bool:
 	return is_engineering_bay_built() or get_current_mission_id() >= 2
 
-# Construir Cuartel Terran en la Base (10 minerales)
+# Construir Cuartel Terran en la Base
 func build_barracks() -> bool:
-	if SaveManager.total_minerals >= 10 and not is_barracks_built():
-		SaveManager.spend_resources(10, 0)
+	if not is_barracks_built():
 		SaveManager.add_building("barracks")
 		_check_base_buildings_complete()
 		return true
 	return false
 
-# Construir Bahía de Ingeniería en la Base (10 minerales)
+# Construir Bahía de Ingeniería en la Base
 func build_engineering_bay() -> bool:
-	if SaveManager.total_minerals >= 10 and not is_engineering_bay_built():
-		SaveManager.spend_resources(10, 0)
+	if not is_engineering_bay_built():
 		SaveManager.add_building("engineering_bay")
 		SaveManager.add_building("academy")
 		_check_base_buildings_complete()

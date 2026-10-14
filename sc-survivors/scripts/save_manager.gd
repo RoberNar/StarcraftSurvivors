@@ -109,43 +109,43 @@ const RANK_MILESTONES = [
 	{ "kills": 1000000, "name": "Mariscal de Campo", "title": "Dominador del Universo" }
 ]
 
-# Mejoras permanentes en la Armería Terran (Costos al 10%)
+# Mejoras permanentes en la Armería Terran (Costos en Gas Vespeno)
 const PERKS_DEF = {
 	"armor": {
 		"name": "Blindaje Compuesto Neosteel",
 		"desc": "+1 Armadura base por nivel",
 		"max_lvl": 5,
-		"costs": [10, 25, 60, 150, 300]
+		"costs": [2, 5, 10, 20, 35]
 	},
 	"damage": {
 		"name": "Condensadores de Antimateria",
 		"desc": "+6% Daño base permanente para todo el arsenal",
 		"max_lvl": 5,
-		"costs": [15, 35, 80, 200, 450]
+		"costs": [2, 5, 10, 20, 35]
 	},
 	"max_hp": {
 		"name": "Refuerzo Fisiológico CMC",
 		"desc": "+15% Vida máxima base permanente",
 		"max_lvl": 5,
-		"costs": [12, 30, 70, 180, 380]
+		"costs": [2, 5, 10, 20, 35]
 	},
 	"regen": {
 		"name": "Dispensador Nanomédico",
 		"desc": "+0.8 Regeneración de salud pasiva por segundo",
 		"max_lvl": 5,
-		"costs": [20, 50, 120, 250, 500]
+		"costs": [2, 5, 10, 20, 35]
 	},
 	"speed": {
 		"name": "Servomotores de Articulación",
 		"desc": "+8% Velocidad de movimiento permanente",
 		"max_lvl": 5,
-		"costs": [10, 25, 60, 150, 300]
+		"costs": [2, 5, 10, 20, 35]
 	},
 	"magnet": {
 		"name": "Amplificador Gravitón",
 		"desc": "+25% Radio de atracción de minerales base",
 		"max_lvl": 5,
-		"costs": [8, 20, 50, 120, 250]
+		"costs": [2, 5, 10, 20, 35]
 	}
 }
 
@@ -565,12 +565,12 @@ func get_perk_cost(perk_id: String) -> int:
 
 func can_buy_perk(perk_id: String) -> bool:
 	var cost = get_perk_cost(perk_id)
-	return cost > 0 and total_minerals >= cost
+	return cost > 0 and total_gas >= cost
 
 func buy_perk(perk_id: String) -> bool:
 	if can_buy_perk(perk_id):
 		var cost = get_perk_cost(perk_id)
-		total_minerals -= cost
+		total_gas -= cost
 		perks[perk_id] = get_perk_level(perk_id) + 1
 		save_data()
 		return true

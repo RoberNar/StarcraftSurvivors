@@ -32,11 +32,14 @@
 
 ### Fase 1: Puesto Avanzado / Base Terran (`scenes/terran_base.tscn` / `scripts/terran_base.gd`)
 - Hub central de descanso, metaprogresión, compra de mejoras y conversación entre incursiones.
+- **Diferenciación Espacial y Visual de Diálogos (Presencial vs. Radio)**:
+  - **Hablar de Frente (Presencial en Base)**: Implementado mediante `FaceToFaceDialog` (`scenes/face_to_face_dialog.tscn`, `scripts/face_to_face_dialog.gd`). Se sitúa en la parte inferior de la pantalla (justo sobre la consola Terran). Usa el diseño original de pantallas de briefing de StarCraft 1: a la izquierda el monitor CRT con marco metálico (`tframe1`/`tframeh1`) y retrato parlante animado (`SCPortrait`), y a la derecha la pantalla de briefing metálica (`dialog_briefing_frame.png`) con ribete de neón naranja, encabezado en color oro/cian, texto autowrap, objetivo de misión y tecla de avance rápido `[ESPACIO / ENTER / CLIC] Continuar`.
+  - **Hablar por Radio (Transmisión Remota)**: Implementado mediante `TransmissionComm` (`scenes/transmission_comm.tscn`). Aparece arriba a la derecha con el comunicador táctico de radio StarCraft, pitidos de transmisión y deslizamiento lateral para transmisiones tácticas en el páramo exterior (`main.tscn`), avisos de dropship (`prologue.tscn`) o alertas lejanas.
 - **NPC Principal**: **Capitán Hollis Voss** (oficial veterano que da órdenes, autorizaciones y análisis táctico).
 - **Armadura Marine CMC-300**: Se encuentra en un soporte al inicio (`story_stage == "base_initial"`). El jugador interactúa y se la equipa una sola vez. A partir de ese momento, `GameManager.has_suit_equipped = true` y queda guardado permanentemente en `SaveManager`.
 - **Estructuras de la Base**:
   1. **Centro de Mando (Command Center)**: Núcleo de operaciones y radar perimetral.
-  2. **Bahía de Ingeniería / Academia**: Terminal de mejoras permanentes globales.
+  2. **Bahía de Ingeniería / Academia**: Terminal de mejoras permanentes globales (costos 100% en Gas Vespeno).
   3. **Cuartel (Barracks)**: Hangar de infantería y selección de armas.
   4. **Puerto Estelar**: Nave de descenso y extracción táctica hacia el exterior.
 
@@ -72,7 +75,8 @@ Implementado en [`scenes/transmission_comm.tscn`](scenes/transmission_comm.tscn)
   - Efecto de sonido oficial `transmission.wav` y reproducción de secuencias de diálogo en cola.
   - Omitible en cualquier momento mediante clic izquierdo sobre el panel o tecla de acción.
 - **Escenas Integradas**:
-  - **Prólogo**: Instrucciones de la nave de descenso y despegue.
+  - **Prólogo**: Instrucciones de la nave de descenso y despegue, con barra de salud oficial de StarCraft (`SCHealthBar`).
+  - **Base Terran**: Diálogos narrativos de historia, órdenes del Capitán Hollis Voss y cinemáticas, reemplazando la ventana inferior genérica.
   - **HUD de Incursión Exterior**: Diálogos del Marine, advertencias de estructuras de desove zerg y clímax de los 20 minutos.
 
 ---
@@ -135,17 +139,19 @@ Cada 2 minutos (`game_time / 120.0`), la biología Zerg muta a un nuevo escalón
 - `magnetic_field` (+30% Radio de recolección de minerales)
 - `medikit` (+3% Regeneración de vida/s y cura inmediata)
 
-### C. Bahía de Ingeniería / Academia (Mejoras Permanentes Guardadas)
+### C. Bahía de Ingeniería / Academia (Mejoras Permanentes con Gas Vespeno)
+Todas las mejoras de metaprogresión permanente se investigan **exclusivamente con Gas Vespeno**, con costos iniciales económicos y escala progresiva.
+Los cristales de mineral funcionan como la **representación gráfica de la Experiencia (EXP)** y recurso exclusivo de las runs en combate (sin requerir seguimiento ni acumulación persistente en la base).
 Definidas en `BARRACKS_UPGRADES_DEF` en `scripts/game_manager.gd`:
-1. **Armamento de Infantería (`damage`)**: +5% Daño a todas las armas por nivel (10 niveles).
-2. **Saturación Balística (`multishot`)**: +1 Proyectil a todas las armas por nivel (3 niveles: 250, 500, 1000 min).
-3. **Servomotores CMC (`speed`)**: +5% Velocidad de movimiento inicial por nivel (10 niveles).
-4. **Blindaje CMC (`armor`)**: +15 Vida Máxima y +1 Armadura base por nivel (10 niveles).
-5. **Estimulantes Sintéticos (`stim`)**: Desbloquea `[T]` Stimpack y amplía duración (5 niveles).
-6. **Botiquín Nanomédico (`regen`)**: +0.8 Regeneración de salud/s por nivel (10 niveles).
-7. **Condensador de Flujo (`magnet`)**: +18% Radio de atracción de minerales por nivel (10 niveles).
-8. **Excavación de Plasma (`mineral_efficiency`)**: +25% Minerales extra obtenidos por cada cristal recogido por nivel (5 niveles).
-9. **Condensador de Vespeno (`vespene_doubler`)**: Duplica la extracción de Gas Vespeno por cada bidón en el mapa (x2 Gas, 1 nivel).
+1. **Armamento de Infantería (`damage`)**: +5% Daño a todas las armas por nivel (10 niveles, 2 a 68 Gas).
+2. **Saturación Balística (`multishot`)**: +1 Proyectil a todas las armas por nivel (3 niveles, 8, 20, 45 Gas).
+3. **Servomotores CMC (`speed`)**: +5% Velocidad de movimiento inicial por nivel (10 niveles, 1 a 50 Gas).
+4. **Blindaje CMC (`armor`)**: +15 Vida Máxima y +1 Armadura base por nivel (10 niveles, 1 a 55 Gas).
+5. **Estimulantes Sintéticos (`stim`)**: Desbloquea `[T]` Stimpack y amplía duración (5 niveles, 2 a 30 Gas).
+6. **Botiquín Nanomédico (`regen`)**: +0.8 Regeneración de salud/s por nivel (10 niveles, 2 a 68 Gas).
+7. **Condensador de Flujo (`magnet`)**: +18% Radio de atracción de minerales/EXP por nivel (10 niveles, 1 a 50 Gas).
+8. **Excavación de Plasma (`mineral_efficiency`)**: +5% Experiencia (EXP) adicional obtenida por nivel (10 niveles, 2 a 68 Gas).
+9. **Condensador de Vespeno (`vespene_doubler`)**: Duplica la extracción de Gas Vespeno por cada tanque en el mapa (x2 Gas, 25 Gas).
 
 ---
 

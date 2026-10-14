@@ -342,7 +342,7 @@ func _update_resources_display() -> void:
 	if gas_label:
 		gas_label.text = str(SaveManager.total_gas) if has_node("/root/SaveManager") else str(GameManager.mission_gas)
 	if minerals_label:
-		minerals_label.text = str(SaveManager.total_minerals) if has_node("/root/SaveManager") else str(GameManager.session_minerals)
+		minerals_label.text = str(GameManager.session_minerals)
 
 func _restyle_top_bar() -> void:
 	if xp_bar:
