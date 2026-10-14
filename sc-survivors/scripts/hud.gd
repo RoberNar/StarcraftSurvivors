@@ -71,10 +71,11 @@ var active_event_boss: Node2D = null
 var toast_tween: Tween = null
 
 # Comunicador de Radio Táctico (StarCraft Style)
-@onready var transmission_panel: Panel = $TransmissionPanel
-@onready var transmission_portrait: SCPortrait = $TransmissionPanel/Margin/HBox/PortraitFrame/PortraitControl
-@onready var transmission_header_lbl: Label = $TransmissionPanel/Margin/HBox/VBox/HeaderLabel
-@onready var transmission_body_lbl: Label = $TransmissionPanel/Margin/HBox/VBox/BodyLabel
+@onready var transmission_comm: TransmissionComm = $TransmissionComm
+var transmission_panel: Control = null
+var transmission_portrait: SCPortrait = null
+var transmission_header_lbl: Label = null
+var transmission_body_lbl: Label = null
 var transmission_tween: Tween = null
 
 var player: Player = null
@@ -256,8 +257,8 @@ func _ready() -> void:
 	level_up_panel.visible = false
 	game_over_panel.visible = false
 	pause_panel.visible = false
-	if transmission_panel:
-		transmission_panel.visible = false
+	if transmission_comm:
+		transmission_comm.visible = false
 	
 	_setup_tooltip_ui()
 	_setup_inventory_slots()
@@ -293,13 +294,6 @@ func _ready() -> void:
 		base_weapon_slot.mouse_exited.connect(_on_base_weapon_mouse_exited)
 		base_weapon_slot.gui_input.connect(_on_base_weapon_gui_input)
 	
-	if transmission_panel:
-		transmission_panel.mouse_filter = Control.MOUSE_FILTER_STOP
-		transmission_panel.gui_input.connect(func(event: InputEvent):
-			if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-				_skip_current_transmission()
-		)
-	
 	_setup_pause_menu()
 	get_tree().paused = false
 	call_deferred("_setup_player")
@@ -309,70 +303,26 @@ func _ready() -> void:
 
 # Muestra el panel desplegable de transmisión de radio estilo StarCraft (a la derecha)
 func show_transmission(speaker: String, portrait_tex: Texture2D, message: String, duration: float = 4.5, on_finish: Callable = Callable()) -> void:
-	if not transmission_panel:
-		if on_finish.is_valid():
-			on_finish.call()
+	if transmission_comm:
+		transmission_comm.show_transmission(speaker, portrait_tex, message, duration, on_finish)
 		return
-	
-	transmission_panel.process_mode = Node.PROCESS_MODE_ALWAYS
-	
-	if transmission_header_lbl:
-		transmission_header_lbl.text = speaker
-	if transmission_body_lbl:
-		transmission_body_lbl.text = message
-	if transmission_portrait and portrait_tex:
-		transmission_portrait.set_portrait(portrait_tex)
-		transmission_portrait.trigger_talk(duration)
-	
-	AudioManager.play_sfx("transmission")
-	transmission_panel.visible = true
-	
-	if transmission_tween and transmission_tween.is_valid():
-		transmission_tween.kill()
-	
-	# Despliegue deslizante desde el lateral derecho (StarCraft style)
-	# Desde x=650 (fuera de pantalla) a x=350 (pantalla visible)
-	transmission_panel.position.x = 650.0
-	transmission_tween = create_tween().set_parallel(false).set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-	transmission_tween.tween_property(transmission_panel, "position:x", 350.0, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	transmission_tween.tween_interval(duration)
-	transmission_tween.tween_property(transmission_panel, "position:x", 650.0, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	transmission_tween.tween_callback(func():
-		transmission_panel.visible = false
-		if on_finish.is_valid():
-			on_finish.call()
-	)
+	if on_finish.is_valid():
+		on_finish.call()
 
 func _skip_current_transmission() -> void:
-	if transmission_panel and transmission_panel.visible and transmission_tween and transmission_tween.is_valid():
-		transmission_tween.kill()
-		transmission_tween = null
-		transmission_panel.visible = false
-		_play_next_transmission()
+	if transmission_comm:
+		transmission_comm.skip_transmission()
 
 # Reproduce una secuencia secuencial de transmisiones de radio
 func play_transmission_sequence(lines: Array, on_finished: Callable = Callable()) -> void:
-	if transmission_tween and transmission_tween.is_valid():
-		transmission_tween.kill()
-		transmission_tween = null
-	_transmission_queue = lines.duplicate()
-	_transmission_on_finished = on_finished
-	_play_next_transmission()
+	if transmission_comm:
+		transmission_comm.play_sequence(lines, on_finished)
+		return
+	if on_finished.is_valid():
+		on_finished.call()
 
 func _play_next_transmission() -> void:
-	if _transmission_queue.is_empty():
-		var cb = _transmission_on_finished
-		_transmission_on_finished = Callable()
-		if cb.is_valid():
-			cb.call()
-		return
-	
-	var item = _transmission_queue.pop_front()
-	var spk = item.get("speaker", "TRANSMISIÓN")
-	var tex = item.get("portrait", null)
-	var msg = item.get("message", "")
-	var dur = item.get("duration", 4.0)
-	show_transmission(spk, tex, msg, dur, Callable(self, "_play_next_transmission"))
+	pass
 
 func _check_pending_death_cinematic() -> void:
 	pass
@@ -838,7 +788,7 @@ func _setup_pause_menu() -> void:
 		btn.mouse_entered.connect(func(): AudioManager.play_sfx("button"))
 
 func _unhandled_input(event: InputEvent) -> void:
-	if transmission_panel and transmission_panel.visible:
+	if (transmission_comm and transmission_comm.visible) or (transmission_panel and transmission_panel.visible):
 		if event.is_action_pressed("ui_accept") or (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed):
 			_skip_current_transmission()
 			get_viewport().set_input_as_handled()

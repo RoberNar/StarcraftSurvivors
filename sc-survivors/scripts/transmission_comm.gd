@@ -1,0 +1,116 @@
+class_name TransmissionComm
+extends Control
+
+## Componente táctico de comunicación de radio StarCraft
+## Muestra una pantalla de cámara con chasis metálico (tframe) a la izquierda
+## y el panel de órdenes/objetivos invertido con el brazo mecánico a la derecha.
+
+signal transmission_started(speaker: String, text: String)
+signal transmission_finished
+
+@onready var text_frame: TextureRect = $TextFrame
+@onready var header_label: Label = $TextFrame/TextContent/VBox/HeaderLabel
+@onready var body_label: Label = $TextFrame/TextContent/VBox/BodyLabel
+@onready var portrait_monitor: Control = $PortraitMonitor
+@onready var portrait_control: SCPortrait = $PortraitMonitor/PortraitControl
+@onready var chassis_rect: TextureRect = $PortraitMonitor/Chassis
+
+var current_tween: Tween = null
+var queue: Array[Dictionary] = []
+var on_finished_callback: Callable = Callable()
+var is_active: bool = false
+
+# Posición fuera de pantalla y posición en pantalla
+const POS_OFFSCREEN_X: float = 660.0
+const POS_ONSCREEN_X: float = 368.0
+
+func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	visible = false
+	position.x = POS_OFFSCREEN_X
+	mouse_filter = Control.MOUSE_FILTER_STOP
+	gui_input.connect(_on_gui_input)
+
+func show_transmission(speaker: String, portrait_tex: Texture2D, message: String, duration: float = 4.5, on_finish: Callable = Callable()) -> void:
+	is_active = true
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	
+	if header_label:
+		header_label.text = speaker
+	if body_label:
+		body_label.text = message
+	
+	# Si no se proporciona textura de retrato, usar el Capitán Hollis Voss por defecto
+	var final_tex = portrait_tex
+	if not final_tex:
+		final_tex = load("res://assets/skins/sd/portrait/civilian_portrait.png")
+	
+	if portrait_control and final_tex:
+		portrait_control.set_portrait(final_tex)
+		portrait_control.trigger_talk(duration)
+	
+	# Sonido auténtico de radio/transmisión de StarCraft
+	if has_node("/root/AudioManager"):
+		AudioManager.play_sfx("transmission")
+	
+	visible = true
+	
+	if current_tween and current_tween.is_valid():
+		current_tween.kill()
+	
+	# Animación suave de despliegue desde el borde superior derecho
+	position.x = POS_OFFSCREEN_X
+	current_tween = create_tween().set_parallel(false).set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	current_tween.tween_property(self, "position:x", POS_ONSCREEN_X, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	current_tween.tween_interval(duration)
+	current_tween.tween_property(self, "position:x", POS_OFFSCREEN_X, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	current_tween.tween_callback(func():
+		visible = false
+		is_active = false
+		emit_signal("transmission_finished")
+		if on_finish.is_valid():
+			on_finish.call()
+	)
+	
+	emit_signal("transmission_started", speaker, message)
+
+func play_sequence(lines: Array, on_finished: Callable = Callable()) -> void:
+	if current_tween and current_tween.is_valid():
+		current_tween.kill()
+		current_tween = null
+	queue = lines.duplicate()
+	on_finished_callback = on_finished
+	_play_next_in_queue()
+
+func _play_next_in_queue() -> void:
+	if queue.is_empty():
+		var cb = on_finished_callback
+		on_finished_callback = Callable()
+		if cb.is_valid():
+			cb.call()
+		return
+	
+	var item = queue.pop_front()
+	var spk = item.get("speaker", "CAPITÁN HOLLIS VOSS")
+	var tex = item.get("portrait", null)
+	var msg = item.get("message", "")
+	var dur = item.get("duration", 4.0)
+	show_transmission(spk, tex, msg, dur, Callable(self, "_play_next_in_queue"))
+
+func skip_transmission() -> void:
+	if is_active and current_tween and current_tween.is_valid():
+		current_tween.kill()
+		current_tween = null
+		visible = false
+		is_active = false
+		if not queue.is_empty():
+			_play_next_in_queue()
+		else:
+			var cb = on_finished_callback
+			on_finished_callback = Callable()
+			if cb.is_valid():
+				cb.call()
+
+func _on_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		skip_transmission()

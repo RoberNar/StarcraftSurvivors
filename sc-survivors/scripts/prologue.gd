@@ -6,9 +6,10 @@ extends Node2D
 @onready var dropship: Sprite2D = $Dropship
 @onready var tutorial_banner: Panel = $CanvasLayer/TutorialBanner
 @onready var tutorial_label: Label = $CanvasLayer/TutorialBanner/Label
-@onready var radio_box: Panel = $CanvasLayer/RadioBox
-@onready var radio_title: Label = $CanvasLayer/RadioBox/VBox/TitleLabel
-@onready var radio_text: Label = $CanvasLayer/RadioBox/VBox/TextLabel
+@onready var transmission_comm: TransmissionComm = $CanvasLayer/TransmissionComm
+var radio_box: Control = null
+var radio_title: Label = null
+var radio_text: Label = null
 @onready var black_fade: ColorRect = $CanvasLayer/BlackFade
 
 # HUD inferior de salud y estado táctico
@@ -32,7 +33,8 @@ func _ready() -> void:
 	
 	# Ocultar naves y UI inicial
 	dropship.visible = false
-	radio_box.visible = false
+	if transmission_comm:
+		transmission_comm.visible = false
 	tutorial_banner.visible = false
 	
 	# Configurar límites exactos de la cámara (3200x2400) para evitar cuadros negros
@@ -187,12 +189,12 @@ func _start_dropship_rescue() -> void:
 	tw.tween_property(dropship, "global_position", land_pos, 1.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tw.tween_property(dropship, "modulate:a", 1.0, 0.5)
 	
-	# Al aterrizar, sonido de transmisión y radio de Voss
+	# Al aterrizar, sonido de transmisión y radio de Voss con el comunicador táctico
 	tw.chain().tween_callback(func():
-		AudioManager.play_sfx("transmission")
 		_show_radio_message(
-			"VOZ DE RADIO [CANAL DE EMERGENCIA]",
-			"«¡Oye, tú! ¡Sube a la nave de inmediato, no pienso esperar aquí!»"
+			"CAPITÁN HOLLIS VOSS",
+			"«¡Oye, tú! ¡Sube a la nave de inmediato, no pienso esperar aquí!»",
+			3.6
 		)
 	)
 	
@@ -202,10 +204,10 @@ func _start_dropship_rescue() -> void:
 	
 	# Mensaje de partida y despegue
 	tw.chain().tween_callback(func():
-		AudioManager.play_sfx("transmission")
 		_show_radio_message(
-			"VOZ DE RADIO [CANAL DE EMERGENCIA]",
-			"«¡Sujétate bien! ¡Salimos de inmediato!»"
+			"CAPITÁN HOLLIS VOSS",
+			"«¡Sujétate bien! ¡Salimos de inmediato!»",
+			2.5
 		)
 	)
 	
@@ -224,10 +226,7 @@ func _start_dropship_rescue() -> void:
 		get_tree().change_scene_to_file("res://scenes/terran_base.tscn")
 	)
 
-func _show_radio_message(title: String, text: String) -> void:
-	radio_title.text = title
-	radio_text.text = text
-	radio_box.visible = true
-	radio_box.modulate.a = 0.0
-	var tw = create_tween()
-	tw.tween_property(radio_box, "modulate:a", 1.0, 0.3)
+func _show_radio_message(title: String, text: String, duration: float = 4.0) -> void:
+	if transmission_comm:
+		var voss_tex = load("res://assets/skins/sd/portrait/civilian_portrait.png")
+		transmission_comm.show_transmission(title, voss_tex, text, duration)
