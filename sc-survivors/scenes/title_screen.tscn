@@ -89,7 +89,7 @@ grow_vertical = 0
 theme = SubResource("Theme_sc")
 theme_override_colors/font_color = Color(0.5, 0.6, 0.7, 0.8)
 theme_override_font_sizes/font_size = 10
-text = "StarCraft: Survivors SD v1.0"
+text = "StarCraft: Survivors SD v0.333"
 
 [node name="OptionsPanel" type="Panel" parent="."]
 visible = false

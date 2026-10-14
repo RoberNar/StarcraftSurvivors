@@ -36,6 +36,15 @@ func _ready() -> void:
 	armory_panel.visible = false
 	slots_panel.visible = false
 	
+	var version_lbl = get_node_or_null("VersionLabel")
+	if version_lbl:
+		var ver = "0.333"
+		if FileAccess.file_exists("res://version.txt"):
+			var vf = FileAccess.open("res://version.txt", FileAccess.READ)
+			if vf:
+				ver = vf.get_as_text().strip_edges()
+		version_lbl.text = "StarCraft: Survivors SD v" + ver
+	
 	# Musica del menu
 	AudioManager.play_music("terran1")
 	
