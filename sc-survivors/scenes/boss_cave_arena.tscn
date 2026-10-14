@@ -1,7 +1,7 @@
 [gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/boss_cave_arena.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://assets/skins/sd/tiles/boss_cave_floor.png" id="2_floor"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/tiles/boss_cave_bg.png" id="2_floor"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="3_player"]
 [ext_resource type="PackedScene" path="res://scenes/torrasque_boss.tscn" id="4_boss"]
 [ext_resource type="PackedScene" path="res://scenes/boss_hud.tscn" id="5_bosshud"]
@@ -14,21 +14,25 @@ script = ExtResource("1_script")
 
 [node name="Floor" type="Sprite2D" parent="."]
 texture_filter = 0
+position = Vector2(512, 287)
 texture = ExtResource("2_floor")
 
 [node name="PillarsContainer" type="Node2D" parent="."]
 
 [node name="EvacuationCircle" parent="." instance=ExtResource("8_evac")]
-position = Vector2(0, 0)
+position = Vector2(529, 305)
 
 [node name="TorrasqueBoss" parent="." instance=ExtResource("4_boss")]
-position = Vector2(0, -60)
+position = Vector2(529, 275)
 
 [node name="Player" parent="." instance=ExtResource("3_player")]
-position = Vector2(0, 340)
+position = Vector2(529, 460)
 
 [node name="HUD" parent="." instance=ExtResource("6_hud")]
 
 [node name="BossHUD" parent="." instance=ExtResource("5_bosshud")]
 
 [node name="TransmissionComm" parent="." instance=ExtResource("7_comm")]
+
+[node name="ZergSpawnerTimer" type="Timer" parent="."]
+wait_time = 7.0

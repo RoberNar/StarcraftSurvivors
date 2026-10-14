@@ -62,23 +62,35 @@
 
 ### Fase 3: Batalla de Jefe del Acto 1 - La Cueva Zerg (`scenes/boss_cave_arena.tscn` / `scripts/boss_cave_arena.gd`)
 - **Entorno de la Cueva ("Cueva Zerg")**:
-  - Zona circular cerrada con suelo orgánico de Creep Zerg auténtico de SC1 (`boss_cave_floor.png`, 1280x1280) y paredes rocosas impenetrables con barrera circular física (36 segmentos, radio 460px).
-- **Los 6 Pilares de Piedra (`scenes/boss_pillar.tscn` / `scripts/boss_pillar.gd`)**:
-  - Dispuestos simétricamente en un círculo de radio 280px (ángulos a 0°, 60°, 120°, 180°, 240°, 300°).
-  - **Mecánica Fundamental de Aturdimiento**:
-    - Cada pilar soporta hasta 2 embestidas directas del jefe antes de desmoronarse en escombros (`boss_pillar_rubble.png`).
-    - En el 1er impacto se agrieta (`boss_pillar_cracked.png`) con astillado y sacudida de pantalla.
-    - Cuando el Torrasque embiste y choca contra un pilar, **queda ATURDIDO durante 3.6 segundos**.
-    - Mientras está aturdido, su coraza queda fracturada recibiendo **DAÑO DOBLE (2.0x)** de todas las armas del jugador.
-    - Los pilares también actúan como escudos físicos, bloqueando las ondas de espinas subterráneas del terremoto.
+  - Zona cavernosa cerrada con suelo orgánico de Creep Zerg y bordes carnosos auténticos (`boss_cave_bg.png`, 1024x574) con barrera física elíptica (centro en `529, 305`, radios 335x235px).
+- **Los 6 Pilares en Pares Opuestos (`scenes/boss_pillar.tscn` / `scripts/boss_pillar.gd`)**:
+  - Posiciones exactas mapeadas del diseño de la arena:
+    - **Par 1 (Verde)**: Pilar 0 (Norte: `531, 167`) <---> Pilar 3 (Sur: `526, 455`)
+    - **Par 2 (Rojo)**: Pilar 1 (Nororiente: `660, 214`) <---> Pilar 4 (Suroccidente: `394, 373`)
+    - **Par 3 (Blanco)**: Pilar 5 (Noroccidente: `407, 220`) <---> Pilar 2 (Suroriente: `656, 397`)
+  - **Mecánica Fundamental de Equilibrio Sísmico**:
+    - **Solo con la embestida del Torrasque se pueden destruir pilares**.
+    - Al romper el primer pilar de un par, la cueva entra en **DESBALANCE SÍSMICO**.
+    - El siguiente pilar destruido **DEBE SER EL OPUESTO EXACTO**:
+      - **Si se destruye el opuesto**: Se restablece el equilibrio de la caverna, el jefe queda aturdido y la batalla continúa.
+      - **Si se destruye un pilar erróneo (no opuesto)**: Se desata la **Cinemática de Colapso de la Cueva**: sacudida cataclísmica, desprendimiento masivo de rocas del techo y muerte del jugador por aplastamiento total.
 - **El Jefe: Torrasque Ancestral (`scenes/torrasque_boss.tscn` / `scripts/torrasque_boss.gd`)**:
-  - Escala colosal (1.6x) con spritesheet de 32 ángulos de StarCraft SD (`ultralisk.png`).
-  - **Fase 1 (100% - 65% HP)**: Desplazamiento pesado y cortes en abanico con cuchillas Kaiser. Embestida sísmica telegrafiada con línea roja direccional y rugido de aviso.
-  - **Fase 2 (65% - 35% HP)**: Incorpora "Terremoto de Espinas" (`LurkerSpineHazard` radiales en 6 direcciones).
-  - **Fase 3 (< 35% HP)**: Modo Furia Carmesí (+25% velocidad, embestidas más rápidas y desove de escoltas de Zerglings).
-  - **Muerte y Recompensas**: Animación clásica SC1 (`ultralisk_death.png`), gran cofre militar, 8 contenedores de Gas Vespeno (+350 gas) y despliegue de la baliza de evacuación en el centro de la cueva.
+  - **Sistema de Armadura y Sobrecalentamiento**:
+    - El jefe posee una barra de armadura que absorbe todos los disparos. Los impactos no dañan su vida directamente, sino que **sobrecalientan la armadura** de 0% a 100%.
+  - **Casteo de Embestida (3 Segundos)**:
+    - Al alcanzar el 100% de calor, el Torrasque canaliza un ataque durante 3 segundos.
+    - Durante el casteo, una línea/flecha de advertencia sigue continuamente al jugador.
+    - Al cumplirse los 3 segundos, se fija el punto final y el Torrasque embiste a máxima velocidad (460 px/s) en línea recta.
+    - El jugador debe colocarse estratégicamente de modo que la carga impacte el pilar adecuado.
+  - **Ventana de Aturdimiento y 6 Barras de Vida**:
+    - El Torrasque posee **6 barras de vida** consecutivas (una por cada pilar del combate).
+    - Al estrellarse contra un pilar válido, queda **ATURDIDO durante 6 segundos** con su coraza expuesta.
+    - Solo durante el aturdimiento se puede dañar su barra de vida actual. Al vaciarse la barra, el jefe ruge, reactiva su armadura y se repite el ciclo.
+- **Escalada de Oleadas Zerg**:
+  - Cada pilar destruido incrementa el desove de refuerzos del Enjambre (Zerglings e Hidraliscos) desde los bordes de la caverna.
 - **Boss HUD (`scenes/boss_hud.tscn` / `scripts/boss_hud.gd`)**:
-  - Retrato del Ultralisco, barra de vida segmentada con porcentaje y puntos exactos, estado táctico dinámico (`PERSIGUIENDO`, `¡PREPARANDO EMBESTIDA!`, `¡ATURDIDO! (CORAZA ROTA x2)`), y contador en vivo de pilares intactos (`PILARES DE ROCA: X / 6`).
+  - Retrato del Ultralisco, contador de 6 barras (`BARRAS: X / 6`), barra de salud activa, barra de calor de armadura (0% a 100%), indicador de estado de balance de la cueva (`ESTABLE` o `DESBALANCE SÍSMICO`) y contador de pilares en pie.
+
 
 
 ---

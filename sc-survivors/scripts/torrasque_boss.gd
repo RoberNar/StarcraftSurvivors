@@ -1,8 +1,11 @@
 class_name TorrasqueBoss
 extends CharacterBody2D
 
-signal health_changed(current_hp: float, max_hp: float)
+signal health_changed(current_bar_hp: float, max_bar_hp: float, bars_remaining: int)
+signal armor_heat_changed(current_heat: float, max_heat: float)
 signal state_changed(state_name: String)
+signal charge_cast_started(duration: float)
+signal charge_launched()
 signal stunned(duration: float)
 signal recovered()
 signal died()
@@ -13,24 +16,44 @@ enum State {
 	TELEGRAPH_CHARGE,
 	CHARGING,
 	STUNNED,
-	GROUND_SLAM,
+	RECOVERING,
 	DEAD
 }
 
-@export var max_health: float = 1600.0
-var current_health: float = 1600.0
+# 6 Barras de vida
+const TOTAL_HEALTH_BARS: int = 6
+const BAR_MAX_HEALTH: float = 250.0
+var health_bars_remaining: int = 6
+var current_bar_health: float = 250.0
 
-@export var base_speed: float = 88.0
-var current_speed: float = 88.0
+# Armadura y Sobrecalentamiento
+var is_armored: bool = true
+var armor_heat: float = 0.0
+const MAX_ARMOR_HEAT: float = 100.0
 
-@export var charge_speed: float = 380.0
-@export var melee_damage: float = 28.0
-@export var charge_damage: float = 52.0
+# Velocidades y Daño
+@export var base_speed: float = 95.0
+var current_speed: float = 95.0
+@export var charge_speed: float = 460.0
+@export var melee_damage: float = 24.0
+@export var charge_damage: float = 48.0
 
 var current_state: State = State.INTRO
 var state_timer: float = 0.0
 
-# Animación y rotación (32 ángulos de StarCraft SD)
+# Casteo de embestida (3 segundos siguiendo al jugador)
+const CHARGE_CAST_TIME: float = 3.0
+var charge_cast_timer: float = 0.0
+var charge_target_pos: Vector2 = Vector2.ZERO
+var charge_direction: Vector2 = Vector2.DOWN
+var charge_distance_travelled: float = 0.0
+var max_charge_distance: float = 900.0
+
+# Aturdimiento
+var stun_timer: float = 0.0
+const STUN_DURATION: float = 6.0
+
+# Animación (32 ángulos clásicos de StarCraft)
 var current_dir32: int = 8
 var facing_column: int = 8
 var is_facing_left: bool = false
@@ -38,21 +61,7 @@ var anim_timer: float = 0.0
 var attack_anim_timer: float = 0.0
 var is_attacking: bool = false
 
-# Lógica de Embestida (Charge)
-var charge_direction: Vector2 = Vector2.DOWN
-var charge_target_pos: Vector2 = Vector2.ZERO
-var charge_distance_travelled: float = 0.0
-var max_charge_distance: float = 850.0
-var charge_cooldown_timer: float = 6.0
-var slam_cooldown_timer: float = 12.0
-var minion_spawn_timer: float = 14.0
-
-# Estado de aturdimiento
-var is_vulnerable: bool = false
-var stun_timer: float = 0.0
-var stun_duration: float = 3.6
-
-# Nodos y referencias
+# Nodos
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 @onready var telegraph_line: Line2D = $TelegraphLine
@@ -60,13 +69,15 @@ var stun_duration: float = 3.6
 @onready var charge_particles: CPUParticles2D = get_node_or_null("ChargeParticles")
 
 var player: Player = null
-var is_enraged: bool = false
 
 func _ready() -> void:
 	add_to_group("enemies")
 	add_to_group("bosses")
 	
-	current_health = max_health
+	health_bars_remaining = TOTAL_HEALTH_BARS
+	current_bar_health = BAR_MAX_HEALTH
+	armor_heat = 0.0
+	is_armored = true
 	current_speed = base_speed
 	
 	_apply_skin()
@@ -79,7 +90,6 @@ func _ready() -> void:
 	if stun_indicator:
 		stun_indicator.visible = false
 	
-	# Transición intro emergente
 	_enter_intro()
 
 func _on_skin_changed(_new_skin: String) -> void:
@@ -92,43 +102,35 @@ func _apply_skin() -> void:
 			sprite.texture = tex
 		sprite.hframes = 17
 		sprite.vframes = 16
-		scale = Vector2(1.6, 1.6)
+		scale = Vector2(1.5, 1.5)
 
 func _enter_intro() -> void:
 	current_state = State.INTRO
-	state_timer = 2.4
-	state_changed.emit("¡EMERGENCIA DEL TITÁN!")
+	state_timer = 1.8
+	state_changed.emit("¡EMERGENCIA DEL TORRASQUE!")
 	
-	# Pulso telúrico y rugido
 	AudioManager.play_sfx("nydus_emerge", 0.0, 5.0)
 	AudioManager.play_sfx("ultra_roar", 0.1, 4.0)
 	
 	modulate = Color(1.8, 1.4, 1.4, 0.0)
 	var tw = create_tween()
-	tw.tween_property(self, "modulate:a", 1.0, 1.0)
-	tw.parallel().tween_property(self, "scale", Vector2(1.6, 1.6), 1.2).from(Vector2(0.4, 0.4))
+	tw.tween_property(self, "modulate:a", 1.0, 0.8)
+	tw.parallel().tween_property(self, "scale", Vector2(1.5, 1.5), 1.0).from(Vector2(0.3, 0.3))
 	tw.tween_callback(func():
 		modulate = Color(1, 1, 1, 1)
 		_enter_chase()
 	)
+
+func _enter_chase() -> void:
+	current_state = State.CHASE
+	state_changed.emit("PERSIGUIENDO (ARMADURA ACTIVA)")
+	_update_armor_visuals()
 
 func _physics_process(delta: float) -> void:
 	if current_state == State.DEAD:
 		return
 	
 	player = get_tree().get_first_node_in_group("player") as Player
-	
-	# Temporizadores de habilidades
-	if charge_cooldown_timer > 0.0:
-		charge_cooldown_timer -= delta
-	if slam_cooldown_timer > 0.0:
-		slam_cooldown_timer -= delta
-	if minion_spawn_timer > 0.0:
-		minion_spawn_timer -= delta
-	
-	# Furia a menos de 35% de vida
-	if not is_enraged and current_health <= max_health * 0.35:
-		_trigger_enrage()
 	
 	match current_state:
 		State.INTRO:
@@ -141,33 +143,18 @@ func _physics_process(delta: float) -> void:
 			_process_charging(delta)
 		State.STUNNED:
 			_process_stunned(delta)
-		State.GROUND_SLAM:
-			_process_ground_slam(delta)
+		State.RECOVERING:
+			pass
 
 func _process_chase(delta: float) -> void:
 	if not is_instance_valid(player):
 		return
 	
-	# Verificar si es momento de embestir
-	if charge_cooldown_timer <= 0.0:
-		_start_charge_telegraph()
-		return
-	
-	# Verificar si es momento de azotar el suelo (Fase 2+)
-	if current_health <= max_health * 0.65 and slam_cooldown_timer <= 0.0:
-		_start_ground_slam()
-		return
-	
-	# Invocar refuerzos de Zerglings en furia
-	if is_enraged and minion_spawn_timer <= 0.0:
-		minion_spawn_timer = 12.0
-		_spawn_zergling_reinforcements(4)
-	
 	var to_player = player.global_position - global_position
 	var dist = to_player.length()
 	var move_dir = to_player.normalized()
 	
-	if dist > 44.0:
+	if dist > 48.0:
 		velocity = move_dir * current_speed
 		move_and_slide()
 		_update_direction(move_dir)
@@ -186,58 +173,107 @@ func _melee_attack() -> void:
 	if player and player.has_method("take_damage"):
 		player.take_damage(melee_damage)
 
-func _start_charge_telegraph() -> void:
+# ==============================================================================
+# SISTEMA DE SOBRECALENTAMIENTO DE ARMADURA Y DAÑO
+# ==============================================================================
+func take_damage(amount: float) -> void:
+	if current_state == State.DEAD:
+		return
+	
+	if is_armored:
+		# La armadura absorbe el impacto y se sobrecalienta
+		armor_heat = min(MAX_ARMOR_HEAT, armor_heat + amount * 0.95)
+		armor_heat_changed.emit(armor_heat, MAX_ARMOR_HEAT)
+		_update_armor_visuals()
+		
+		# Destello de calor en armadura
+		var tw = create_tween()
+		tw.tween_property(sprite, "modulate", Color(2.5, 1.4, 0.4, 1.0), 0.05)
+		tw.tween_property(sprite, "modulate", _get_heat_color(), 0.08)
+		
+		# ¿Armadura sobrecalentada al 100%? -> Iniciar casteo de embestida
+		if armor_heat >= MAX_ARMOR_HEAT and current_state == State.CHASE:
+			_start_charge_cast()
+			
+	elif current_state == State.STUNNED:
+		# JEFE ATURDIDO: RECIBE DAÑO DIRECTO A LA BARRA DE VIDA
+		current_bar_health = max(0.0, current_bar_health - amount)
+		health_changed.emit(current_bar_health, BAR_MAX_HEALTH, health_bars_remaining)
+		
+		# Destello crítico amarillo
+		var tw = create_tween()
+		tw.tween_property(sprite, "modulate", Color(3.0, 3.0, 1.0, 1.0), 0.04)
+		tw.tween_property(sprite, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.06)
+		
+		# Si se vacía la barra actual
+		if current_bar_health <= 0.0:
+			_on_health_bar_depleted()
+
+func _update_armor_visuals() -> void:
+	if not sprite:
+		return
+	if is_armored:
+		sprite.modulate = _get_heat_color()
+	else:
+		sprite.modulate = Color(1.0, 1.0, 1.0, 1.0)
+
+func _get_heat_color() -> Color:
+	var heat_ratio = armor_heat / MAX_ARMOR_HEAT
+	# De gris metálico a naranja ardiente
+	return Color(1.0 + heat_ratio * 1.5, 1.0 + heat_ratio * 0.4, 1.0 - heat_ratio * 0.5, 1.0)
+
+# ==============================================================================
+# CASTEO DE EMBESTIDA (3 SEGUNDOS SIGUIENDO AL JUGADOR)
+# ==============================================================================
+func _start_charge_cast() -> void:
 	current_state = State.TELEGRAPH_CHARGE
 	velocity = Vector2.ZERO
-	state_timer = 1.25 if not is_enraged else 0.85
-	state_changed.emit("¡PREPARANDO EMBESTIDA!")
+	charge_cast_timer = CHARGE_CAST_TIME
+	state_changed.emit("¡SOBRECALENTAMIENTO! ¡PREPARANDO EMBESTIDA (3s)!")
+	charge_cast_started.emit(CHARGE_CAST_TIME)
 	
-	if is_instance_valid(player):
-		charge_direction = (player.global_position - global_position).normalized()
-		_update_direction(charge_direction)
+	AudioManager.play_sfx("ultra_roar", 0.0, 4.5)
 	
-	# Sonido de aviso y rugido de aviso
-	AudioManager.play_sfx("ultra_roar", 0.05, 3.5)
-	
-	# Mostrar línea de trayectoria roja de peligro
 	if telegraph_line:
 		telegraph_line.clear_points()
 		telegraph_line.add_point(Vector2.ZERO)
-		telegraph_line.add_point(charge_direction * 700.0)
-		telegraph_line.default_color = Color(1.0, 0.1, 0.1, 0.7)
-		telegraph_line.width = 16.0
+		telegraph_line.add_point(Vector2.DOWN * 800.0)
+		telegraph_line.default_color = Color(1.0, 0.4, 0.1, 0.7)
+		telegraph_line.width = 18.0
 		telegraph_line.visible = true
-	
-	# Destello de advertencia
-	var tw = create_tween()
-	tw.tween_property(sprite, "modulate", Color(2.5, 0.5, 0.5, 1.0), 0.2)
-	tw.tween_property(sprite, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.2)
-	tw.set_loops(3)
 
 func _process_telegraph(delta: float) -> void:
-	state_timer -= delta
-	# Ajuste fino continuo antes de fijar trayectoria definitiva
-	if state_timer > 0.4 and is_instance_valid(player):
-		charge_direction = (player.global_position - global_position).normalized()
-		_update_direction(charge_direction)
-		if telegraph_line:
-			telegraph_line.set_point_position(1, charge_direction * 700.0)
+	charge_cast_timer -= delta
 	
-	if state_timer <= 0.0:
+	# La flecha SIGUE al jugador continuamente durante los 3 segundos de casteo
+	if is_instance_valid(player):
+		charge_target_pos = player.global_position
+		charge_direction = (charge_target_pos - global_position).normalized()
+		_update_direction(charge_direction)
+		
+		if telegraph_line:
+			var local_target = to_local(charge_target_pos).normalized() * 800.0
+			telegraph_line.set_point_position(1, local_target)
+			# Parpadeo que se acelera conforme termina el casteo
+			var pulse = sin(charge_cast_timer * 15.0) * 0.3 + 0.7
+			telegraph_line.default_color = Color(1.0, 0.1, 0.1, pulse)
+	
+	# Al terminar exactamente los 3 segundos: fijar punto y lanzar carga
+	if charge_cast_timer <= 0.0:
 		_execute_charge()
 
 func _execute_charge() -> void:
 	current_state = State.CHARGING
 	charge_distance_travelled = 0.0
 	state_changed.emit("¡EMBESTIDA SÍSMICA EN CURSO!")
+	charge_launched.emit()
 	
 	if telegraph_line:
 		telegraph_line.visible = false
-	
 	if charge_particles:
 		charge_particles.emitting = true
 	
-	# Sonido de despegue y temblor
+	# Sonido de embestida a fondo
 	AudioManager.play_sfx("ultra_attack", 0.0, 4.0)
 
 func _process_charging(delta: float) -> void:
@@ -245,164 +281,115 @@ func _process_charging(delta: float) -> void:
 	charge_distance_travelled += move_step.length()
 	
 	# Animación de carrera rápida
-	anim_timer += delta * 18.0
+	anim_timer += delta * 20.0
 	var run_sub = int(anim_timer) % 6
 	_set_sprite_frame((1 + run_sub) * 17 + facing_column)
 	
-	# Moverse detectando colisiones físicas con move_and_collide
 	var collision = move_and_collide(move_step)
 	if collision:
 		var collider = collision.get_collider()
 		
-		# 1. ¿CHOCÓ CONTRA UN PILAR DE PIEDRA? (¡MECÁNICA CLAVE!)
+		# 1. ¿CHOCÓ CONTRA UN PILAR? (SOLO LA CARGA PUEDE ROMPERLO)
 		if collider is BossPillar:
 			var pillar = collider as BossPillar
-			var stunned_boss = pillar.hit_by_boss_charge()
-			if stunned_boss:
-				_enter_stunned()
-				return
+			# Notificar al arena que este pilar fue golpeado por la embestida
+			var arena = get_parent() as BossCaveArena
+			if arena and arena.has_method("on_pillar_hit_by_charge"):
+				arena.on_pillar_hit_by_charge(pillar)
+			return
 		
-		# 2. ¿CHOCÓ CONTRA EL JUGADOR?
+		# 2. Chocó contra el jugador
 		elif collider is Player or (collider and collider.is_in_group("player")):
 			var p = collider as Player
 			if p and p.has_method("take_damage"):
 				p.take_damage(charge_damage)
-				# Empuje hacia atrás
-				p.velocity = charge_direction * 220.0
-			_end_charge_recovery()
+				p.velocity = charge_direction * 260.0
+			_end_charge_missed()
 			return
 		
 		# 3. Chocó contra la pared de la cueva
 		else:
-			AudioManager.play_sfx("pillar_crack", 0.05, 2.5)
-			_end_charge_recovery()
+			AudioManager.play_sfx("pillar_crack", 0.05, 3.0)
+			_end_charge_missed()
 			return
 	
-	# Si viajó la distancia máxima sin chocar
 	if charge_distance_travelled >= max_charge_distance:
-		_end_charge_recovery()
+		_end_charge_missed()
 
-func _end_charge_recovery() -> void:
+func _end_charge_missed() -> void:
 	if charge_particles:
 		charge_particles.emitting = false
-	
-	# Pequeña desaceleración de 0.6s
 	current_state = State.CHASE
-	charge_cooldown_timer = 7.0 if not is_enraged else 4.5
-	state_changed.emit("PERSIGUIENDO")
+	state_changed.emit("PERSIGUIENDO (ARMADURA ACTIVA)")
 
-func _enter_stunned() -> void:
+# ==============================================================================
+# ATURDIMIENTO (STUN) TRAS ROMPER PILAR
+# ==============================================================================
+func enter_stunned_state() -> void:
 	current_state = State.STUNNED
-	is_vulnerable = true
-	stun_timer = stun_duration
+	is_armored = false
+	stun_timer = STUN_DURATION
 	velocity = Vector2.ZERO
-	state_changed.emit("¡ATURDIDO! (CORAZA ROTA x2)")
-	stunned.emit(stun_duration)
+	state_changed.emit("¡ATURDIDO! ¡CORAZA EXPUESTA! (FUEGO A DISCRECIÓN)")
+	stunned.emit(STUN_DURATION)
 	
 	if charge_particles:
 		charge_particles.emitting = false
-	
-	# Sonido de impacto contundente y aturdimiento
-	AudioManager.play_sfx("boss_stun", 0.0, 4.0)
-	
-	# Visuales de aturdimiento (estrellas giratorias)
+	if telegraph_line:
+		telegraph_line.visible = false
 	if stun_indicator:
 		stun_indicator.visible = true
 	
-	# Animación de sacudida y postura vulnerable (fila 0 inclinada o frame bajo)
+	AudioManager.play_sfx("boss_stun", 0.0, 4.0)
 	_set_sprite_frame(facing_column)
-	var tw = create_tween().set_loops(int(stun_duration * 4.0))
-	tw.tween_property(sprite, "modulate", Color(1.6, 1.6, 0.4, 1.0), 0.12)
-	tw.tween_property(sprite, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.12)
 
 func _process_stunned(delta: float) -> void:
 	stun_timer -= delta
 	if stun_indicator:
 		stun_indicator.rotation += delta * 6.0
 	
+	# Si se agota el tiempo de stun sin vaciar la barra, se recupera
 	if stun_timer <= 0.0:
 		_recover_from_stun()
 
+func _on_health_bar_depleted() -> void:
+	health_bars_remaining -= 1
+	health_changed.emit(0.0, BAR_MAX_HEALTH, health_bars_remaining)
+	
+	if health_bars_remaining <= 0:
+		die()
+	else:
+		# Barra vaciada con éxito -> reiniciar barra para el siguiente ciclo
+		current_bar_health = BAR_MAX_HEALTH
+		_recover_from_stun()
+
 func _recover_from_stun() -> void:
-	is_vulnerable = false
+	if current_state == State.DEAD:
+		return
+	
+	current_state = State.RECOVERING
 	if stun_indicator:
 		stun_indicator.visible = false
 	
-	# Rugido furioso al recuperarse
-	AudioManager.play_sfx("ultra_roar", 0.05, 3.5)
+	AudioManager.play_sfx("ultra_roar", 0.05, 4.0)
 	
-	current_state = State.CHASE
-	charge_cooldown_timer = 6.0 if not is_enraged else 3.5
-	state_changed.emit("PERSIGUIENDO")
-	recovered.emit()
-
-func _start_ground_slam() -> void:
-	current_state = State.GROUND_SLAM
-	state_timer = 1.3
-	velocity = Vector2.ZERO
-	state_changed.emit("¡TERREMOTO DE ESPINAS!")
+	# Reactivar armadura y resetear sobrecalentamiento
+	is_armored = true
+	armor_heat = 0.0
+	armor_heat_changed.emit(armor_heat, MAX_ARMOR_HEAT)
 	
-	# Animación levantando cuchillas Kaiser
-	_set_sprite_frame(8 * 17 + facing_column)
-	AudioManager.play_sfx("ultra_roar", 0.0, 3.0)
-	
-	# Sacudir y cargar energía
+	# Transición breve de recuperación
 	var tw = create_tween()
-	tw.tween_property(sprite, "position", Vector2(0, -14), 0.5).set_trans(Tween.TRANS_SINE)
-	tw.tween_property(sprite, "position", Vector2(0, 0), 0.15).set_trans(Tween.TRANS_BOUNCE)
+	tw.tween_property(sprite, "modulate", Color(1.8, 1.8, 1.8, 1.0), 0.25)
+	tw.tween_property(sprite, "modulate", _get_heat_color(), 0.25)
 	tw.tween_callback(func():
-		_execute_ground_slam_spines()
+		_enter_chase()
+		recovered.emit()
 	)
 
-func _process_ground_slam(delta: float) -> void:
-	state_timer -= delta
-	if state_timer <= 0.0:
-		current_state = State.CHASE
-		slam_cooldown_timer = 14.0
-		state_changed.emit("PERSIGUIENDO")
-
-func _execute_ground_slam_spines() -> void:
-	# Lanzar espinas subterráneas radiantes en 6 direcciones (hacia los pilares)
-	AudioManager.play_sfx("lurker_fire", 0.05, 4.0)
-	var hazard_scene = load("res://scenes/lurker_spine_hazard.tscn")
-	if not hazard_scene:
-		return
-	
-	var angles = [0.0, PI / 3.0, 2.0 * PI / 3.0, PI, 4.0 * PI / 3.0, 5.0 * PI / 3.0]
-	for a in angles:
-		var dir = Vector2.RIGHT.rotated(a)
-		_spawn_spine_wave(hazard_scene, dir)
-
-func _spawn_spine_wave(hazard_scene: PackedScene, dir: Vector2) -> void:
-	var tw = create_tween()
-	for step in range(1, 8):
-		tw.tween_callback(func():
-			if not is_inside_tree():
-				return
-			var h = hazard_scene.instantiate()
-			h.global_position = global_position + dir * (step * 48.0)
-			get_parent().add_child(h)
-		)
-		tw.tween_interval(0.08)
-
-func _trigger_enrage() -> void:
-	is_enraged = true
-	current_speed = base_speed * 1.25
-	charge_speed *= 1.2
-	modulate = Color(1.3, 0.7, 0.7, 1.0)
-	AudioManager.play_sfx("ultra_roar", 0.0, 4.5)
-
-func _spawn_zergling_reinforcements(count: int) -> void:
-	var z_scene = load("res://scenes/zergling.tscn")
-	if not z_scene:
-		return
-	AudioManager.play_sfx("burrow_up", 0.05, 3.0)
-	for i in range(count):
-		var z = z_scene.instantiate()
-		var ang = randf_range(0, TAU)
-		z.global_position = global_position + Vector2.RIGHT.rotated(ang) * randf_range(120, 200)
-		get_parent().add_child(z)
-
+# ==============================================================================
+# ANIMACIÓN Y MUERTE
+# ==============================================================================
 func _update_direction(dir: Vector2) -> void:
 	if dir == Vector2.ZERO:
 		return
@@ -432,29 +419,11 @@ func _set_sprite_frame(f: int) -> void:
 		sprite.frame = clampi(f, 0, sprite.hframes * sprite.vframes - 1)
 		sprite.flip_h = is_facing_left
 
-func take_damage(amount: float) -> void:
-	if current_state == State.DEAD:
-		return
-	
-	# Mientras esté aturdido por haber chocado con un pilar: ¡DOBLE DAÑO!
-	var final_dmg = amount * 2.0 if is_vulnerable else amount * 0.85
-	current_health = max(0.0, current_health - final_dmg)
-	health_changed.emit(current_health, max_health)
-	
-	# Destello visual de impacto
-	var flash_color = Color(3.0, 3.0, 1.2, 1) if is_vulnerable else Color(2.5, 0.8, 0.8, 1)
-	var tw = create_tween()
-	tw.tween_property(sprite, "modulate", flash_color, 0.04)
-	tw.tween_property(sprite, "modulate", Color(1, 1, 1, 1) if not is_enraged else Color(1.3, 0.7, 0.7, 1), 0.07)
-	
-	if current_health <= 0.0:
-		die()
-
 func die() -> void:
 	if current_state == State.DEAD:
 		return
 	current_state = State.DEAD
-	state_changed.emit("¡COLOSO ERRADICADO!")
+	state_changed.emit("¡TORRASQUE ERRADICADO!")
 	died.emit()
 	
 	velocity = Vector2.ZERO
@@ -471,10 +440,8 @@ func die() -> void:
 	GameManager.add_kill()
 	GameManager.add_boss_kill()
 	
-	# Recompensas legendarias
 	_drop_rewards()
 	
-	# Animación de muerte canónica SC1 (ultralisk_death.png)
 	var death_tex = SkinManager.get_sprite("ultralisk_death")
 	if death_tex:
 		sprite.texture = death_tex
@@ -496,14 +463,12 @@ func die() -> void:
 	tw.tween_callback(queue_free)
 
 func _drop_rewards() -> void:
-	# 1. Gran cofre militar de campaña
 	var chest_scene = load("res://scenes/chest.tscn")
 	if chest_scene:
 		var c = chest_scene.instantiate()
 		c.global_position = global_position
 		get_parent().call_deferred("add_child", c)
 	
-	# 2. Gran torrente de Gas Vespeno
 	var vespene_scene = load("res://scenes/vespene_tank.tscn")
 	if vespene_scene:
 		for i in range(8):
