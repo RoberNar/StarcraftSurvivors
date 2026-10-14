@@ -6,12 +6,42 @@ const MAP_H: float = 1152.0
 
 var pulse_t: float = 0.0
 
+var cmd_tex: Texture2D
+var voss_tex: Texture2D
+var bar_tex: Texture2D
+var ebay_tex: Texture2D
+var ship_tex: Texture2D
+
+func _ready() -> void:
+	_init_textures()
+
+func _init_textures() -> void:
+	if not cmd_tex:
+		cmd_tex = SkinManager.get_building("command_center")
+	if not voss_tex:
+		voss_tex = SkinManager.get_building("npc_officer")
+	if not bar_tex:
+		bar_tex = SkinManager.get_building("barracks")
+	if not ship_tex:
+		ship_tex = SkinManager.get_building("dropship")
+	if not ebay_tex:
+		var full_bldg = SkinManager.get_building("engineering_bay")
+		if full_bldg:
+			var atlas = AtlasTexture.new()
+			atlas.atlas = full_bldg
+			atlas.region = Rect2(0, 0, 192, 160)
+			ebay_tex = atlas
+		else:
+			ebay_tex = SkinManager.get_building("engineering_bay_icon")
+
 func _process(delta: float) -> void:
 	pulse_t += delta * 5.0
 	queue_redraw()
 
 func _draw() -> void:
 	var sz = size
+	if not cmd_tex or not ebay_tex:
+		_init_textures()
 	
 	# Fondo de monitor táctico militar
 	draw_rect(Rect2(Vector2.ZERO, sz), Color(0.03, 0.06, 0.11, 0.94), true)
@@ -26,14 +56,12 @@ func _draw() -> void:
 	var font_sz = 8
 	
 	# 1. Centro de Mando Terran
-	var cmd_tex = SkinManager.get_building("command_center")
 	if cmd_tex:
 		var cmd_nx = (950.0 / MAP_W) * sz.x
 		var cmd_ny = (320.0 / MAP_H) * sz.y
 		draw_texture_rect(cmd_tex, Rect2(Vector2(cmd_nx - 8, cmd_ny - 7), Vector2(16, 14)), false)
 	
 	# 2. Comandante Hollis Voss
-	var voss_tex = SkinManager.get_building("npc_officer")
 	var npc = get_tree().get_first_node_in_group("npc")
 	var voss_pos = npc.global_position if (npc and is_instance_valid(npc)) else Vector2(880, 700)
 	var voss_nx = (voss_pos.x / MAP_W) * sz.x
@@ -47,7 +75,6 @@ func _draw() -> void:
 	
 	# 3. Cuartel / Barraca (solo si está construido)
 	if StoryManager.is_barracks_built():
-		var bar_tex = SkinManager.get_building("barracks")
 		var bar_pos = Vector2(450, 540)
 		var bar_node = get_node_or_null("../../../Barracks")
 		if bar_node and is_instance_valid(bar_node):
@@ -63,7 +90,6 @@ func _draw() -> void:
 	
 	# 4. Bahía de Ingeniería Terran (solo si está construida)
 	if StoryManager.is_engineering_bay_built():
-		var ebay_tex = SkinManager.get_building("engineering_bay_icon")
 		var ebay_pos = Vector2(1080, 740)
 		var ebay_node = get_node_or_null("../../../Academy")
 		if ebay_node and is_instance_valid(ebay_node):
@@ -71,14 +97,13 @@ func _draw() -> void:
 		var ebay_nx = (ebay_pos.x / MAP_W) * sz.x
 		var ebay_ny = (ebay_pos.y / MAP_H) * sz.y
 		if ebay_tex:
-			draw_texture_rect(ebay_tex, Rect2(Vector2(ebay_nx - 8, ebay_ny - 7), Vector2(16, 14)), false)
+			draw_texture_rect(ebay_tex, Rect2(Vector2(ebay_nx - 8, ebay_ny - 8), Vector2(16, 16)), false)
 		else:
 			draw_circle(Vector2(ebay_nx, ebay_ny), 3.0, Color(0.2, 0.9, 0.9, 1.0))
 		if font:
-			draw_string(font, Vector2(ebay_nx - 24, ebay_ny - 8), "BAHÍA ING.", HORIZONTAL_ALIGNMENT_CENTER, 48, font_sz, Color(0.2, 0.9, 0.9, 1.0))
+			draw_string(font, Vector2(ebay_nx - 24, ebay_ny - 9), "BAHÍA ING.", HORIZONTAL_ALIGNMENT_CENTER, 48, font_sz, Color(0.2, 0.9, 0.9, 1.0))
 	
 	# 5. Nave de Transporte / Starport
-	var ship_tex = SkinManager.get_building("dropship")
 	var ship_pos = Vector2(1560, 840)
 	var ship_node = get_node_or_null("../../../Starport")
 	if ship_node and is_instance_valid(ship_node):

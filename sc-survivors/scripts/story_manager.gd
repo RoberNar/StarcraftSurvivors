@@ -12,8 +12,8 @@ const STAGE_PROLOGUE = "prologue"               # Civil en el páramo, sin armas
 const STAGE_BASE_INITIAL = "base_initial"       # Llegada a la base en ruinas (solo Centro de Mando + Geiser)
 const STAGE_MISSION_1 = "mission_1"             # Primera bajada con armadura, 20 minerales (para Cuartel y Bahía de Ingeniería)
 const STAGE_BASE_BUILDING = "base_building"     # 20 minerales listos, construir Cuartel y Bahía de Ingeniería (10 y 10)
-const STAGE_MISSION_2 = "mission_2"             # Sobrevivir 30 minutos y limpiar los páramos
-const STAGE_ACT_1_END = "act_1_end"             # Fin de los 30 minutos, emergencia del Nydus y llegada del Jefe
+const STAGE_MISSION_2 = "mission_2"             # Sobrevivir 20 minutos y limpiar los páramos
+const STAGE_ACT_1_END = "act_1_end"             # Fin de los 20 minutos, emergencia del Nydus y llegada del Jefe
 
 # Definición de Misiones del Capitán Voss
 const MISSIONS = {
@@ -27,9 +27,9 @@ const MISSIONS = {
 	},
 	2: {
 		"title": "Misión 2: Limpieza de los Páramos",
-		"desc": "Sobrevive 30 minutos frente al Enjambre para limpiar los páramos y forzar la emergencia de la amenaza.",
+		"desc": "Sobrevive 20 minutos frente al Enjambre para limpiar los páramos y forzar la emergencia de la amenaza.",
 		"type": "survival",
-		"target": 1800,
+		"target": 1200,
 		"reward_text": "Emergencia del Canal Nydus",
 		"next_stage": STAGE_ACT_1_END
 	}

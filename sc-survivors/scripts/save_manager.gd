@@ -84,11 +84,11 @@ const ACHIEVEMENTS_DEF = [
 	{
 		"id": "survive_30_min",
 		"name": "Leyenda de Koprulu",
-		"desc": "Sobrevive 30 minutos hasta la apertura del Nydus",
+		"desc": "Sobrevive 20 minutos hasta la apertura del Nydus",
 		"reward": "Acceso al Enfrentamiento Final",
 		"weapon_id": "",
 		"icon_idx": 4,
-		"target": 1800
+		"target": 1200
 	}
 ]
 
@@ -488,7 +488,7 @@ func check_realtime_achievements(run_time: float) -> void:
 		unlock_achievement("ghost_sniper_unlock")
 	if (run_time >= 1200.0 or highest_survive_time >= 1200.0) and not is_achievement_unlocked("goliath_unlock"):
 		unlock_achievement("goliath_unlock")
-	if (run_time >= 1800.0 or highest_survive_time >= 1800.0) and not is_achievement_unlocked("survive_30_min"):
+	if (run_time >= 1200.0 or highest_survive_time >= 1200.0) and not is_achievement_unlocked("survive_30_min"):
 		unlock_achievement("survive_30_min")
 
 func is_weapon_unlocked(w_id: String, current_run_time: float = 0.0) -> bool:

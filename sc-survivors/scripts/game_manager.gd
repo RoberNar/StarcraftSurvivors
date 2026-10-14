@@ -197,11 +197,19 @@ var ultralisk_scene: PackedScene = null
 var drone_scene: PackedScene = null
 var nydus_scene: PackedScene = null
 
-# Mini-jefes cada 5 minutos (300 segundos) y Clímax a los 30 minutos (1800s)
-var next_ultralisk_time: float = 300.0
-var has_triggered_30min_climax: bool = false
+# Mini-jefes cada 4 minutos (240 segundos) y Clímax a los 20 minutos (1200s)
+var next_ultralisk_time: float = 240.0
+var has_triggered_20min_climax: bool = false
+var has_triggered_30min_climax: bool = false # compat
 
-# Eventos de Estructuras del Enjambre (Minutos 10, 20 y 25)
+# Peligro Subterráneo del Enjambre: Espinas de Lurker
+var lurker_hazard_scene: PackedScene = null
+var next_lurker_event_time: float = 180.0
+var lurker_frenzy_active: bool = false
+var lurker_frenzy_timer: float = 0.0
+var lurker_frenzy_interval: float = 3.2
+
+# Eventos de Estructuras del Enjambre (Minutos 5, 10 y 13)
 var event_zergling_pool_spawned: bool = false
 var event_hydralisk_den_spawned: bool = false
 var event_mutalisk_spire_spawned: bool = false
@@ -313,6 +321,7 @@ func _ready() -> void:
 	ultralisk_scene = load("res://scenes/ultralisk.tscn")
 	drone_scene = load("res://scenes/drone.tscn")
 	nydus_scene = load("res://scenes/nydus_canal.tscn")
+	lurker_hazard_scene = load("res://scenes/lurker_spine_hazard.tscn")
 	sync_barracks_upgrades()
 	reset_game()
 
@@ -353,11 +362,15 @@ func reset_game() -> void:
 	xp_needed = 40
 	session_minerals = 0
 	mineral_accumulator = 0.0
-	next_ultralisk_time = 300.0
+	next_ultralisk_time = 240.0
+	has_triggered_20min_climax = false
 	has_triggered_30min_climax = false
 	event_zergling_pool_spawned = false
 	event_hydralisk_den_spawned = false
 	event_mutalisk_spire_spawned = false
+	next_lurker_event_time = 180.0
+	lurker_frenzy_active = false
+	lurker_frenzy_timer = 0.0
 	is_game_over = false
 	is_leveling_up = false
 	has_shown_max_upgrades_notice = false
@@ -401,7 +414,7 @@ func get_mission_progress_str() -> String:
 			var boss_str = "Jefe Abatido" if mission_bosses >= 1 else "Eliminar Ultralisco"
 			return "%d / %d Kills | %s" % [mini(mission_kills, m.get("kills_req", 200)), m.get("kills_req", 200), boss_str]
 		"survival":
-			var tgt = m.get("target", 1800)
+			var tgt = m.get("target", 1200)
 			var cur_s = int(game_time)
 			return "%02d:%02d / %02d:%02d" % [cur_s / 60, cur_s % 60, tgt / 60, tgt % 60]
 		"combined":
@@ -431,8 +444,8 @@ func _check_mission_progress() -> void:
 			if mission_bosses >= tgt and mission_kills >= m.get("kills_req", 1):
 				complete = true
 		"survival":
-			var tgt = m.get("target", 1800)
-			if game_time >= tgt or has_triggered_30min_climax:
+			var tgt = m.get("target", 1200)
+			if game_time >= tgt or has_triggered_20min_climax or has_triggered_30min_climax:
 				complete = true
 		"combined":
 			if mission_gas >= m.get("target_count", 20) and mission_kills >= m.get("kills_req", 300):
@@ -545,23 +558,35 @@ func _process(delta: float) -> void:
 		SaveManager.check_realtime_achievements(game_time)
 	
 	_handle_world_events()
+	_handle_lurker_hazards(delta)
 	
-	if game_time >= 1800.0 and not has_triggered_30min_climax:
-		_trigger_30min_climax()
+	if game_time >= 1200.0 and not has_triggered_20min_climax:
+		_trigger_20min_climax()
 	
 	_handle_spawning(delta)
 	_handle_boss_spawning()
 
 func _handle_world_events() -> void:
-	if game_time >= 600.0 and not event_zergling_pool_spawned:
+	if game_time >= 300.0 and not event_zergling_pool_spawned:
 		event_zergling_pool_spawned = true
 		_spawn_spawner_structure("zergling_pool")
-	if game_time >= 1200.0 and not event_hydralisk_den_spawned:
+	if game_time >= 600.0 and not event_hydralisk_den_spawned:
 		event_hydralisk_den_spawned = true
 		_spawn_spawner_structure("hydralisk_den")
-	if game_time >= 1500.0 and not event_mutalisk_spire_spawned:
+	if game_time >= 780.0 and not event_mutalisk_spire_spawned:
 		event_mutalisk_spire_spawned = true
 		_spawn_spawner_structure("mutalisk_spire")
+
+func _send_voss_transmission(msg: String, duration: float = 5.5) -> void:
+	AudioManager.play_voss_greeting()
+	for hud in get_tree().get_nodes_in_group("hud"):
+		if hud and hud.has_method("show_transmission"):
+			hud.show_transmission(
+				"CAPITÁN HOLLIS VOSS",
+				load("res://assets/skins/sd/portrait/civilian_portrait.png"),
+				msg,
+				duration
+			)
 
 func _spawn_spawner_structure(type: String) -> void:
 	var player = get_tree().get_first_node_in_group("player")
@@ -593,17 +618,15 @@ func _spawn_spawner_structure(type: String) -> void:
 		"mutalisk_spire":
 			msg = "«¡CÓDIGO ROJO! Una Espira de Mutaliscos domina el cielo. ¡Derríbala para cortar el asalto aéreo del enjambre!»"
 	
-	for hud in get_tree().get_nodes_in_group("hud"):
-		if hud and hud.has_method("show_transmission"):
-			hud.show_transmission(
-				"CAPITÁN HOLLIS VOSS",
-				load("res://assets/skins/sd/portrait/civilian_portrait.png"),
-				msg,
-				5.5
-			)
+	_send_voss_transmission(msg, 5.5)
 
-func _trigger_30min_climax() -> void:
+func _trigger_20min_climax() -> void:
+	has_triggered_20min_climax = true
 	has_triggered_30min_climax = true
+	lurker_frenzy_active = false
+	
+	# Detener y limpiar de inmediato todos los peligros de espinas subterráneas ("para todo")
+	get_tree().call_group("lurker_hazards", "clear_immediately")
 	
 	# 1. Limpiar todos los enemigos del mapa
 	var enemies = get_tree().get_nodes_in_group("enemies")
@@ -623,19 +646,103 @@ func _trigger_30min_climax() -> void:
 	AudioManager.play_sfx("nydus_emerge", 0.0, 5.0)
 	
 	# 3. Transmisión del Capitán Voss
-	for hud in get_tree().get_nodes_in_group("hud"):
-		if hud and hud.has_method("show_transmission"):
-			hud.show_transmission(
-				"CAPITÁN HOLLIS VOSS",
-				load("res://assets/skins/sd/portrait/civilian_portrait.png"),
-				"«¡SUPERVIVENCIA DE 30 MINUTOS COMPLETADA! ¡UN CANAL NYDUS COLOSAL HA EMERGIDO! ¡PREPÁRATE PARA LA BATALLA DEFINITIVA!»",
-				6.0
-			)
+	_send_voss_transmission(
+		"«¡SUPERVIVENCIA DE 20 MINUTOS COMPLETADA! ¡UN CANAL NYDUS COLOSAL HA EMERGIDO! ¡PREPÁRATE PARA LA BATALLA DEFINITIVA!»",
+		7.0
+	)
 	
 	_check_mission_progress()
 
+func _trigger_30min_climax() -> void:
+	_trigger_20min_climax()
+
+func _handle_lurker_hazards(delta: float) -> void:
+	if has_triggered_20min_climax or is_game_over:
+		return
+	
+	var player = get_tree().get_first_node_in_group("player")
+	if not player or not is_instance_valid(player) or player.is_dead:
+		return
+	
+	# 1. Avisos y erupciones tácticas cada 3 minutos (180s, 360s, 540s, 720s)
+	if game_time >= next_lurker_event_time and game_time < 900.0:
+		var current_mark = next_lurker_event_time
+		next_lurker_event_time += 180.0
+		_trigger_lurker_event_wave(current_mark)
+	
+	# 2. Alerta de la fase final a los 15 minutos (900s)
+	if game_time >= 900.0 and not lurker_frenzy_active and game_time < 1200.0:
+		lurker_frenzy_active = true
+		_trigger_lurker_frenzy_warning()
+	
+	# 3. Frenesí de los últimos 5 minutos (15:00 a 20:00 = 900s a 1200s): espinas incesantes
+	if lurker_frenzy_active and game_time < 1200.0:
+		lurker_frenzy_timer += delta
+		if lurker_frenzy_timer >= lurker_frenzy_interval:
+			lurker_frenzy_timer = 0.0
+			var count = randi_range(2, 3)
+			for i in range(count):
+				_spawn_tactical_lurker_line(player.global_position)
+
+func _trigger_lurker_event_wave(mark: float) -> void:
+	var player = get_tree().get_first_node_in_group("player")
+	if not player or not is_instance_valid(player):
+		return
+	
+	var msg = ""
+	var line_count = 3
+	if mark <= 185.0:
+		msg = "«¡ALERTA SÍSMICA! ¡Sensores geológicos detectan movimientos en el subsuelo! ¡El Enjambre despliega espinas subterráneas, mantén la movilidad!»"
+		line_count = 3
+	elif mark <= 365.0:
+		msg = "«¡CUIDADO CON EL TERRENO! ¡Erupciones subterráneas detectadas en tu sector! ¡Evita las trayectorias marcadas antes de que broten las púas!»"
+		line_count = 4
+	elif mark <= 545.0:
+		msg = "«¡ACTIVIDAD SÍSMICA EN AUMENTO! ¡Oleadas de espinas subterráneas cruzando el campo de batalla! ¡Vigila tus pasos, soldado!»"
+		line_count = 5
+	else:
+		msg = "«¡RADAR GEOLÓGICO SATURADO! ¡Múltiples líneas de espinas de acechador perforando la superficie en masa!»"
+		line_count = 6
+	
+	_send_voss_transmission(msg, 5.0)
+	
+	for i in range(line_count):
+		get_tree().create_timer(float(i) * 0.40).timeout.connect(func():
+			if not is_instance_valid(player) or has_triggered_20min_climax:
+				return
+			_spawn_tactical_lurker_line(player.global_position)
+		)
+
+func _trigger_lurker_frenzy_warning() -> void:
+	var msg = "«¡EMERGENCIA CRÍTICA! ¡TEMBLOR ZERG MASIVO! ¡EL SUELO SE ESTÁ DESGARRANDO POR TODAS PARTES, NO DEJES DE MOVERTE HASTA QUE SE CUMPLAN LOS 20 MINUTOS!»"
+	_send_voss_transmission(msg, 6.0)
+
+func _spawn_tactical_lurker_line(center_pos: Vector2) -> void:
+	if not lurker_hazard_scene:
+		lurker_hazard_scene = load("res://scenes/lurker_spine_hazard.tscn")
+	if not lurker_hazard_scene:
+		return
+	
+	var hazard = lurker_hazard_scene.instantiate()
+	var angle = randf() * TAU
+	var dir = Vector2(cos(angle), sin(angle))
+	var perp = Vector2(-dir.y, dir.x)
+	
+	var lateral_offset = randf_range(-140.0, 140.0)
+	var start_dist = randf_range(220.0, 320.0)
+	var start_pos = center_pos - (dir * start_dist) + (perp * lateral_offset)
+	var length = randf_range(560.0, 680.0)
+	var telegraph_time = randf_range(1.3, 1.6)
+	var dmg = 16.0
+	
+	hazard.setup(start_pos, dir, length, dmg, telegraph_time)
+	
+	var cur_scene = get_tree().current_scene
+	if cur_scene:
+		cur_scene.add_child(hazard)
+
 func _handle_spawning(delta: float) -> void:
-	if has_triggered_30min_climax:
+	if has_triggered_20min_climax or has_triggered_30min_climax:
 		return
 	
 	# Descanzo táctico de 10 segundos al final de cada ciclo de 2 minutos (sin mensaje)
@@ -658,9 +765,9 @@ func _handle_spawning(delta: float) -> void:
 			_spawn_enemy()
 
 func _handle_boss_spawning() -> void:
-	if game_time >= next_ultralisk_time and game_time < 1800.0:
-		var cycle = int(next_ultralisk_time / 300.0)
-		next_ultralisk_time += 300.0
+	if game_time >= next_ultralisk_time and game_time < 1200.0:
+		var cycle = int(next_ultralisk_time / 240.0)
+		next_ultralisk_time += 240.0
 		_spawn_ultralisk(cycle)
 
 func _spawn_ultralisk(cycle: int = 1) -> void:
@@ -690,7 +797,7 @@ func _spawn_ultralisk(cycle: int = 1) -> void:
 			main_scene.add_child(boss)
 
 func _spawn_enemy() -> void:
-	if has_triggered_30min_climax:
+	if has_triggered_20min_climax or has_triggered_30min_climax:
 		return
 	
 	var player = get_tree().get_first_node_in_group("player")

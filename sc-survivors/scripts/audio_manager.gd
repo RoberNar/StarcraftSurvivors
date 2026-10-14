@@ -80,6 +80,9 @@ func play_sfx(sfx_name: String, pitch_range: float = 0.05, volume_offset_db: flo
 	var base_db = _vol_to_db(sfx_volume)
 	var target_db = -80.0 if sfx_volume <= 0.001 else (base_db + volume_offset_db)
 	
+	if sfx_pool.is_empty():
+		return
+	
 	# Buscar reproductor libre en el pool
 	for p in sfx_pool:
 		if not p.playing:

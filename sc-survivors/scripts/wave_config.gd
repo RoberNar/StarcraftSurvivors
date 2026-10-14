@@ -24,9 +24,9 @@ const WAVE_SCHEDULE: Array = [
 		"name": "Minuto 0 a 2: Enjambre Inicial Ligero",
 		"minute_start": 0.0,
 		"minute_end": 2.0,
-		"spawn_interval": 0.35,     # Frecuencia rápida para que el inicio esté lleno de enemigos
-		"batch_size": 3,            # 3 enemigos por tanda (~8.5 enemigos/seg)
-		"max_enemies": 130,         # Límite amplio de pantalla para enemigos débiles
+		"spawn_interval": 0.32,     # Frecuencia equilibrada (~6.2 enemigos/seg, ~75-80% de intensidad inicial)
+		"batch_size": 2,            # 2 enemigos por tanda para inicio manejable
+		"max_enemies": 95,          # Límite cómodo para los primeros minerales y mejoras
 		"spawns": [
 			{ "type": "drone", "tier": 1, "weight": 40 },
 			{ "type": "zergling", "tier": 1, "weight": 60 }
@@ -36,9 +36,9 @@ const WAVE_SCHEDULE: Array = [
 		"name": "Minuto 2 a 4: Vanguardia Hidralisco y Zerglings Bronce",
 		"minute_start": 2.0,
 		"minute_end": 4.0,
-		"spawn_interval": 0.30,     # Aumento de densidad
-		"batch_size": 4,            # 4 enemigos por tanda (~13 enemigos/seg)
-		"max_enemies": 140,
+		"spawn_interval": 0.34,     # Progresión gradual
+		"batch_size": 3,            # 3 enemigos por tanda (~8.8 enemigos/seg)
+		"max_enemies": 115,
 		"spawns": [
 			{ "type": "drone", "tier": 1, "weight": 15 },
 			{ "type": "zergling", "tier": 1, "weight": 35 },
@@ -50,9 +50,9 @@ const WAVE_SCHEDULE: Array = [
 		"name": "Minuto 4 a 6: Asalto Aéreo y Cazadores Púrpura",
 		"minute_start": 4.0,
 		"minute_end": 6.0,
-		"spawn_interval": 0.28,     # Presión continua en el clímax del early game
-		"batch_size": 4,            # 4 enemigos por tanda (~14 enemigos/seg)
-		"max_enemies": 145,
+		"spawn_interval": 0.30,     # Presión continua moderada
+		"batch_size": 3,            # 3 enemigos por tanda (~10 enemigos/seg)
+		"max_enemies": 130,
 		"spawns": [
 			{ "type": "zergling", "tier": 2, "weight": 30 },
 			{ "type": "zergling", "tier": 3, "weight": 35 },
