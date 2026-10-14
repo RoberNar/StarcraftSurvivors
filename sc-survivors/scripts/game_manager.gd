@@ -349,9 +349,67 @@ func start_new_run(hero: String = "marine") -> void:
 	mission_gas = 0
 	mission_bosses = 0
 	is_mission_completed = false
+	cached_player_state.clear()
 	sync_barracks_upgrades()
 	emit_signal("base_resources_changed", get_total_minerals(), get_total_gas())
 	emit_signal("mission_updated", get_current_mission())
+
+var cached_player_state: Dictionary = {}
+
+func save_player_state(p: Player) -> void:
+	if not is_instance_valid(p):
+		return
+	cached_player_state = {
+		"current_health": p.current_health,
+		"max_health": p.max_health,
+		"weapons": p.weapons.duplicate(true),
+		"passives": p.passives.duplicate(true),
+		"damage_mult": p.damage_mult,
+		"fire_rate_mult": p.fire_rate_mult,
+		"range_mult": p.range_mult,
+		"aoe_mult": p.aoe_mult,
+		"bullet_pierce": p.bullet_pierce,
+		"damage": p.damage,
+		"fire_rate": p.fire_rate,
+		"attack_range": p.attack_range,
+		"multishot": p.multishot,
+		"has_explosive": p.has_explosive,
+		"armor": p.armor,
+		"firebat_power_lvl": p.firebat_power_lvl,
+		"firebat_streams": p.firebat_streams,
+		"stimpack_duration": p.stimpack_duration,
+		"stimpack_cooldown": p.stimpack_cooldown,
+		"move_speed": p.move_speed,
+		"is_civilian_mode": p.is_civilian_mode
+	}
+
+func restore_player_state(p: Player) -> void:
+	if cached_player_state.is_empty() or not is_instance_valid(p):
+		return
+	p.max_health = cached_player_state.get("max_health", p.max_health)
+	p.current_health = cached_player_state.get("current_health", p.current_health)
+	p.weapons = cached_player_state.get("weapons", p.weapons).duplicate(true)
+	p.passives = cached_player_state.get("passives", p.passives).duplicate(true)
+	p.damage_mult = cached_player_state.get("damage_mult", p.damage_mult)
+	p.fire_rate_mult = cached_player_state.get("fire_rate_mult", p.fire_rate_mult)
+	p.range_mult = cached_player_state.get("range_mult", p.range_mult)
+	p.aoe_mult = cached_player_state.get("aoe_mult", p.aoe_mult)
+	p.bullet_pierce = cached_player_state.get("bullet_pierce", p.bullet_pierce)
+	p.damage = cached_player_state.get("damage", p.damage)
+	p.fire_rate = cached_player_state.get("fire_rate", p.fire_rate)
+	p.attack_range = cached_player_state.get("attack_range", p.attack_range)
+	p.multishot = cached_player_state.get("multishot", p.multishot)
+	p.has_explosive = cached_player_state.get("has_explosive", p.has_explosive)
+	p.armor = cached_player_state.get("armor", p.armor)
+	p.firebat_power_lvl = cached_player_state.get("firebat_power_lvl", p.firebat_power_lvl)
+	p.firebat_streams = cached_player_state.get("firebat_streams", p.firebat_streams)
+	p.stimpack_duration = cached_player_state.get("stimpack_duration", p.stimpack_duration)
+	p.stimpack_cooldown = cached_player_state.get("stimpack_cooldown", p.stimpack_cooldown)
+	p.move_speed = cached_player_state.get("move_speed", p.move_speed)
+	p.is_civilian_mode = cached_player_state.get("is_civilian_mode", false)
+	p.inventory_changed.emit(p.weapons, p.passives)
+	p.health_changed.emit(p.current_health, p.max_health)
+
 
 func reset_game() -> void:
 	sync_barracks_upgrades()

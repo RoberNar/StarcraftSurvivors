@@ -1,0 +1,62 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/torrasque_boss.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/sprites/ultralisk.png" id="2_ultra"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_ultra"]
+radius = 38.0
+
+[node name="TorrasqueBoss" type="CharacterBody2D"]
+collision_layer = 3
+collision_mask = 3
+script = ExtResource("1_script")
+
+[node name="TelegraphLine" type="Line2D" parent="."]
+z_index = -1
+points = PackedVector2Array(0, 0, 0, 400)
+width = 24.0
+default_color = Color(1, 0.1, 0.1, 0.65)
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 0
+texture = ExtResource("2_ultra")
+hframes = 17
+vframes = 16
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, 4)
+shape = SubResource("CircleShape2D_ultra")
+
+[node name="StunIndicator" type="Node2D" parent="."]
+position = Vector2(0, -55)
+
+[node name="Label" type="Label" parent="StunIndicator"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -30.0
+offset_top = -12.0
+offset_right = 30.0
+offset_bottom = 12.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.2, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 14
+text = "★ ★ ★"
+horizontal_alignment = 1
+
+[node name="ChargeParticles" type="CPUParticles2D" parent="."]
+emitting = false
+amount = 18
+lifetime = 0.4
+spread = 45.0
+gravity = Vector2(0, 0)
+initial_velocity_min = 40.0
+initial_velocity_max = 90.0
+scale_amount_min = 3.0
+scale_amount_max = 6.0
+color = Color(0.7, 0.55, 0.4, 0.8)

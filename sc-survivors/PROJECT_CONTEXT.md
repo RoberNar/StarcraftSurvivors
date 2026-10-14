@@ -45,21 +45,41 @@
 
 ### Fase 2: Incursión Exterior en los Páramos (`scenes/main.tscn` / `scripts/main.gd`)
 - Mapa exterior de combate, supervivencia y extracción en el planeta Sigma-4.
-- **Estado de la Campaña (Acto 1 - En Desarrollo)**:
-  - Supervivencia táctica, recolección de minerales y gas, y resistencia ante oleadas escalonadas del Enjambre.
-  - *(Nota Crítica: El jefe final del Acto 1 aún no está implementado; está planificado para el cierre del acto)*.
+### Fase 2: Incursión Exterior en los Páramos (`scenes/main.tscn` / `scripts/main.gd`)
+- Mapa exterior de combate, supervivencia y extracción en el planeta Sigma-4.
 - **HUD Superior (`scripts/hud.gd`)**:
-  - `minerals_label`: Muestra **`GameManager.session_minerals`** en tiempo real.
+  - `minerals_label`: Muestra **`GameManager.session_minerals`** (EXP de la run) en tiempo real.
   - Temporizador (`time_label`): Cuenta el tiempo sobrevivido.
   - Barra de XP y Nivel en tiempo real.
 - **Duración de Incursión y Clímax a los 20 Minutos (1200s)**:
   - Al alcanzar los 20:00 (1200 segundos), se dispara `_trigger_20min_climax()`.
   - Se limpian instantáneamente todos los enemigos comunes y peligros de espinas del mapa.
-  - Emerge un **Canal Nydus Colosal** frente al Marine con sonido sísmico y advertencia del Capitán Voss.
-- **Condición de Evacuación**:
-  - El círculo de evacuación (`scenes/evacuation_circle.tscn`) permite regresar a la base conservando todos los recursos acumulados.
-- **Muerte en Combate**:
-  - Animación de muerte auténtica de marine (8 frames) y restos óseos en el suelo con diálogos contextuales con el Capitán Voss.
+  - Emerge un **Canal Nydus Colosal** (`scenes/nydus_canal.tscn`) frente al Marine con sonido sísmico y advertencia del Capitán Voss.
+  - **Entrada al Nydus**: El jugador interactúa con `[E]` (o entra en la boca del canal) para descender a la Cueva del Jefe.
+  - **Atajo de Desarrollo (Debug)**: Tecla `F9` en `main.gd` activa de inmediato el clímax y el Canal Nydus; `F9` en `terran_base.gd` teletransporta directamente a la cueva.
+
+---
+
+### Fase 3: Batalla de Jefe del Acto 1 - La Cueva Zerg (`scenes/boss_cave_arena.tscn` / `scripts/boss_cave_arena.gd`)
+- **Entorno de la Cueva ("Cueva Zerg")**:
+  - Zona circular cerrada con suelo orgánico de Creep Zerg auténtico de SC1 (`boss_cave_floor.png`, 1280x1280) y paredes rocosas impenetrables con barrera circular física (36 segmentos, radio 460px).
+- **Los 6 Pilares de Piedra (`scenes/boss_pillar.tscn` / `scripts/boss_pillar.gd`)**:
+  - Dispuestos simétricamente en un círculo de radio 280px (ángulos a 0°, 60°, 120°, 180°, 240°, 300°).
+  - **Mecánica Fundamental de Aturdimiento**:
+    - Cada pilar soporta hasta 2 embestidas directas del jefe antes de desmoronarse en escombros (`boss_pillar_rubble.png`).
+    - En el 1er impacto se agrieta (`boss_pillar_cracked.png`) con astillado y sacudida de pantalla.
+    - Cuando el Torrasque embiste y choca contra un pilar, **queda ATURDIDO durante 3.6 segundos**.
+    - Mientras está aturdido, su coraza queda fracturada recibiendo **DAÑO DOBLE (2.0x)** de todas las armas del jugador.
+    - Los pilares también actúan como escudos físicos, bloqueando las ondas de espinas subterráneas del terremoto.
+- **El Jefe: Torrasque Ancestral (`scenes/torrasque_boss.tscn` / `scripts/torrasque_boss.gd`)**:
+  - Escala colosal (1.6x) con spritesheet de 32 ángulos de StarCraft SD (`ultralisk.png`).
+  - **Fase 1 (100% - 65% HP)**: Desplazamiento pesado y cortes en abanico con cuchillas Kaiser. Embestida sísmica telegrafiada con línea roja direccional y rugido de aviso.
+  - **Fase 2 (65% - 35% HP)**: Incorpora "Terremoto de Espinas" (`LurkerSpineHazard` radiales en 6 direcciones).
+  - **Fase 3 (< 35% HP)**: Modo Furia Carmesí (+25% velocidad, embestidas más rápidas y desove de escoltas de Zerglings).
+  - **Muerte y Recompensas**: Animación clásica SC1 (`ultralisk_death.png`), gran cofre militar, 8 contenedores de Gas Vespeno (+350 gas) y despliegue de la baliza de evacuación en el centro de la cueva.
+- **Boss HUD (`scenes/boss_hud.tscn` / `scripts/boss_hud.gd`)**:
+  - Retrato del Ultralisco, barra de vida segmentada con porcentaje y puntos exactos, estado táctico dinámico (`PERSIGUIENDO`, `¡PREPARANDO EMBESTIDA!`, `¡ATURDIDO! (CORAZA ROTA x2)`), y contador en vivo de pilares intactos (`PILARES DE ROCA: X / 6`).
+
 
 ---
 

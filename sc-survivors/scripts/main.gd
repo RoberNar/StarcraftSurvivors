@@ -117,3 +117,17 @@ func _apply_skin() -> void:
 		var tile = SkinManager.get_tile("ground")
 		if tile:
 			ground.texture = tile
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_F9:
+			# Atajo de desarrollo para probar de inmediato la pelea de jefe
+			if not GameManager.has_triggered_20min_climax:
+				GameManager._trigger_20min_climax()
+			else:
+				var player = get_tree().get_first_node_in_group("player") as Player
+				if is_instance_valid(player):
+					GameManager.save_player_state(player)
+				get_tree().change_scene_to_file("res://scenes/boss_cave_arena.tscn")
+			get_viewport().set_input_as_handled()
+
