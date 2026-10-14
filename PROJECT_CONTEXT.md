@@ -61,40 +61,98 @@
 
 ---
 
-### Fase 3: Batalla de Jefe del Acto 1 - La Cueva Zerg (`scenes/boss_cave_arena.tscn` / `scripts/boss_cave_arena.gd`)
-- **Entorno de la Cueva ("Cueva Zerg") y Encuadre**:
-  - Zona circular cerrada con suelo orgánico de Creep Zerg auténtico de SC1 (`boss_cave_floor.png`, 1280x1280) y paredes rocosas impenetrables con 36 bloques macizos de 160px de espesor (`RectangleShape2D`), doble restricción física matemática en `_physics_process` y anillo perimetral sombreado en `_draw()`, impidiendo cualquier escape fuera del círculo.
-  - **Cámara Táctica Ampliada**: Al entrar a la arena, la cámara se aleja suavemente a `zoom = Vector2(0.62, 0.62)` para que toda la caverna, los 6 pilares y el Torrasque sean visibles simultáneamente en pantalla sin ser tapados por la interfaz.
-- **Los 6 Pilares en Pares Opuestos (`scenes/boss_pillar.tscn` / `scripts/boss_pillar.gd`)**:
-  - 6 monolitos de roca extraídos directamente de los doodads originales de StarCraft SD (`boss_pillar.png`), agrandados un 35% (`scale = 1.35`) con sombra en el suelo y colocados simétricamente a un radio de 280px (a 0°, 60°, 120°, 180°, 240°, 300° rotados con Norte a las 12h):
-    - **Par 1 (Verde)**: Pilar 0 (Norte: `0, -280`) <---> Pilar 3 (Sur: `0, 280`)
-    - **Par 2 (Rojo)**: Pilar 1 (Nororiente: `242.5, -140`) <---> Pilar 4 (Suroccidente: `-242.5, 140`)
-    - **Par 3 (Blanco)**: Pilar 5 (Noroccidente: `-242.5, -140`) <---> Pilar 2 (Suroriente: `242.5, 140`)
+### Fase 3: Batalla de Jefe del Acto 1 - La Cueva Zerg y el Torrasque Ancestral
 
-  - **Mecánica Fundamental de Equilibrio Sísmico**:
-    - **Solo con la embestida del Torrasque se pueden destruir pilares**.
-    - Al romper el primer pilar de un par, la cueva entra en **DESBALANCE SÍSMICO**.
-    - El siguiente pilar destruido **DEBE SER EL OPUESTO EXACTO**:
-      - **Si se destruye el opuesto**: Se restablece el equilibrio de la caverna, el jefe queda aturdido y la batalla continúa.
-      - **Si se destruye un pilar erróneo (no opuesto)**: Se desata la **Cinemática de Colapso de la Cueva**: sacudida cataclísmica, desprendimiento masivo de rocas del techo y muerte del jugador por aplastamiento total.
-- **El Jefe: Torrasque Ancestral (`scenes/torrasque_boss.tscn` / `scripts/torrasque_boss.gd`)**:
-  - **Ataques Cuerpo a Cuerpo Activos**:
-    - Alcance melee amplio (85px), cadencia de golpe con cooldown de 0.75s, detección directa por colisión física `move_and_slide()` y proximidad. Aplica 24 de daño por golpe con sonido de garras de ultralisco, retroceso al jugador y animación de ataque. Durante la embestida inflige 48 de daño masivo y arrolla al jugador.
-  - **Sistema de Armadura y Sobrecalentamiento**:
-    - El jefe posee una barra de armadura que absorbe todos los disparos. Los impactos no dañan su vida directamente, sino que **sobrecalientan la armadura** de 0% a 100%.
-  - **Casteo de Embestida (3 Segundos)**:
-    - Al alcanzar el 100% de calor, el Torrasque canaliza un ataque durante 3 segundos.
-    - Durante el casteo, una línea/flecha de advertencia sigue continuamente al jugador.
-    - Al cumplirse los 3 segundos, se fija el punto final y el Torrasque embiste a máxima velocidad (460 px/s) en línea recta.
-    - El jugador debe colocarse estratégicamente de modo que la carga impacte el pilar adecuado.
-  - **Ventana de Aturdimiento y 6 Barras de Vida**:
-    - El Torrasque posee **6 barras de vida** consecutivas (una por cada pilar del combate).
-    - Al estrellarse contra un pilar válido, queda **ATURDIDO durante 6 segundos** con su coraza expuesta.
-    - Solo durante el aturdimiento se puede dañar su barra de vida actual. Al vaciarse la barra, el jefe ruge, reactiva su armadura y se repite el ciclo.
-- **Escalada de Oleadas Zerg**:
-  - Cada pilar destruido incrementa el desove de refuerzos del Enjambre (Zerglings e Hidraliscos) desde los bordes de la caverna.
-- **Boss HUD (`scenes/boss_hud.tscn` / `scripts/boss_hud.gd`)**:
-  - Retrato del Ultralisco, contador de 6 barras (`BARRAS: X / 6`), barra de salud activa, barra de calor de armadura (0% a 100%), indicador de estado de balance de la cueva (`ESTABLE` o `DESBALANCE SÍSMICO`) y contador de pilares en pie.
+La pelea final del Acto 1 transcurre en una caverna subterránea claustrofóbica a la que se accede descendiendo por el Canal Nydus colosal. Representa el clímax narrativo y de combate, implementando un diseño de puzzle de combate sísmico, armadura reactiva y contención física estricta.
+
+#### A. Arquitectura de la Escena (`scenes/boss_cave_arena.tscn` / `scripts/boss_cave_arena.gd`)
+1. **Entorno y Renderizado**:
+   - Centro geométrico fijado en `Vector2.ZERO` con radio de combate `ARENA_RADIUS = 460.0` px.
+   - Textura de piso: Biomasa viva y Creep Zerg clásica de StarCraft (`assets/skins/sd/tiles/boss_cave_floor.png`, 1280x1280).
+   - Anillo visual perimetral en `_draw()`: Múltiples arcos concéntricos con gradiente de oscuridad (de radio 450 a 496 px) que delimitan visualmente la pared de roca cavernosa y la sombra envolvente.
+
+2. **Cámara Táctica Dinámica**:
+   - En `_ready()`, se accede al nodo `Camera2D` del Marine y se interpola suavemente su zoom a `Vector2(0.62, 0.62)` con un tween amortiguado (`Tween.TRANS_SINE`).
+   - Esto expande el campo de visión horizontal a ~1032 px y vertical a ~774 px, asegurando que el jugador visualice permanentemente los 6 pilares, al Torrasque, el perímetro de la caverna y la interfaz de consola sin puntos ciegos.
+
+3. **Límites Físicos Infranqueables (Prevención de Salida y Túneles)**:
+   - **Muros de contención perimetrales (`_setup_cave_boundary`)**: Se generan 36 bloques macizos de roca (`StaticBody2D`) con forma rectangular (`RectangleShape2D`) de **160 px de espesor** y ~90 px de longitud, dispuestos tangencialmente alrededor de la circunferencia de 460 px. Utilizan máscara y capa de colisión 7 (jugador, enemigos y proyectiles).
+   - **Restricción matemática estricta (`_physics_process`)**:
+     - Si `player.position.length() > ARENA_RADIUS - 16.0`: Se reubica instantáneamente en el borde interior normalizado y se resetea su vector de velocidad a cero.
+     - Si `torrasque_boss.position.length() > ARENA_RADIUS - 30.0` (y no está en plena embestida): Se reubica de igual forma para evitar desplazamientos anómalos.
+   - **Descarte de Evacuación en Superficie**: Al entrar a la cueva (y en el clímax del min 20), se destruye inmediatamente cualquier nodo en el grupo `evacuation_zone`. La única forma de salir con vida es destruyendo al Torrasque.
+
+#### B. Mecánica Sísmica de los 6 Pilares Opuestos (`scenes/boss_pillar.tscn` / `scripts/boss_pillar.gd`)
+1. **Modelado y Disposición Simétrica**:
+   - Monolitos de roca mineral 2x3 extraídos de los doodads originales de la paleta Dirt de StarCraft SD (`assets/skins/sd/sprites/boss_pillar.png`).
+   - Agrandados un 35% (`scale = Vector2(1.35, 1.35)`) con su sombra de suelo, caja de colisión circular (`radius = 24.0`) y sprite de escombros de desintegración (`boss_pillar_rubble.png`).
+   - Distribución polar a radio constante `PILLAR_RADIUS = 280.0` px:
+     - **Par 1 (Norte / Sur)**: Pilar 0 (`Vector2(0, -280)`) $\longleftrightarrow$ Pilar 3 (`Vector2(0, 280)`)
+     - **Par 2 (Nororiente / Suroccidente)**: Pilar 1 (`Vector2(242.5, -140)`) $\longleftrightarrow$ Pilar 4 (`Vector2(-242.5, 140)`)
+     - **Par 3 (Suroriente / Noroccidente)**: Pilar 2 (`Vector2(242.5, 140)`) $\longleftrightarrow$ Pilar 5 (`Vector2(-242.5, -140)`)
+
+2. **Lógica de Equilibrio Sísmico (`on_pillar_hit_by_charge`)**:
+   - **Destrucción exclusiva por embestida**: Los pilares son inmunes a los disparos del jugador y proyectiles comunes; solo la embestida recta a 460 px/s del Torrasque puede fracturarlos.
+   - **Ciclo de Desbalance y Restablecimiento**:
+     - **Primer pilar roto de un par**: Al colisionar el Torrasque contra un pilar en estado estable (`pending_opposite_id == -1`), la cueva entra en **DESBALANCE SÍSMICO**. Se registra `pending_opposite_id = pillar.opposite_id`. El pilar opuesto activa su marcador rotatorio en verde (`"▼ OPUESTO ▼"`), el HUD pasa a alerta roja, y el Torrasque entra en estado aturdido (Stun).
+     - **Segundo pilar roto (Acierto)**: Si en la siguiente embestida el Torrasque impacta el pilar opuesto exacto (`hit_id == pending_opposite_id`), el equilibrio de la cueva se restablece (`pending_opposite_id = -1`), se apagan los marcadores de peligro, el HUD vuelve a `EQUILIBRIO: ESTABLE` y el Torrasque vuelve a quedar aturdido.
+     - **Segundo pilar erróneo (Colapso Fatal de la Cueva)**: Si el Torrasque impacta un pilar distinto al opuesto requerido, se detona `_trigger_cave_collapse_cinematic()`:
+       1. Bloqueo inmediato de controles del jugador y acciones del jefe.
+       2. Transmisión radial de emergencia con estática de Hollis Voss: *"«¡FALLA ESTRUCTURAL TOTAL! ¡LA CAVERNA ESTÁ COLAPSANDO!»"*.
+       3. Sacudida sísmica de pantalla violenta (`shake = 35.0`).
+       4. Desprendimiento y caída parabólica masiva de 25 rocas del techo en cascada.
+       5. Fundido a negro y detonación del Game Over por aplastamiento total.
+
+#### C. Inteligencia y Máquina de Estados del Torrasque (`scenes/torrasque_boss.tscn` / `scripts/torrasque_boss.gd`)
+1. **Máquina de Estados Finita (FSM)**:
+   - `INTRO`: Emerge del suelo con sonido sísmico `nydus_emerge` y rugido `ultra_roar`, escalando de 0.3 a 1.5.
+   - `CHASE`: Persigue activamente al Marine, ataca cuerpo a cuerpo y absorbe impactos para sobrecalentar armadura.
+   - `TELEGRAPH_CHARGE`: Al alcanzar 100% de calor, se detiene durante 3 segundos para casteo; línea roja telégrafo sigue al jugador en tiempo real.
+   - `CHARGING`: Embestida en línea recta a 460 px/s con estela de partículas de tierra hasta colisionar con un pilar, el jugador o la pared.
+   - `STUNNED`: Aturdido durante 6 segundos tras destruir un pilar; su coraza se abre y recibe daño a su barra de salud.
+   - `RECOVERING`: Transición de 0.5s donde restablece su armadura y enfría el calor a 0%.
+   - `DEAD`: Cinemática de muerte zerg de 5 cuadros, liberación de recompensas y conclusión del combate.
+
+2. **Ataques Físicos Melee Activos**:
+   - **Rango y cadencia**: Rango de ataque `MELEE_RANGE = 85.0` px con tiempo de recuperación de `ATTACK_COOLDOWN = 0.75` s.
+   - **Doble detección**: Se evalúa proximidad euclidiana y eventos directos de colisión en `move_and_slide()`.
+   - **Daño y respuesta**: Ejecuta sonido `ultra_attack`, animación de ataque con cuchillas en 32 orientaciones clásicas de SC1, inflige **24 de daño** a la armadura/vida del Marine y aplica un impulso de retroceso (knockback de 130 px/s).
+   - **Daño por arrollamiento durante carga**: Si cruza o impacta al jugador durante `CHARGING`, inflige **48 de daño** masivo y proyecta al Marine violentamente.
+
+3. **Sistema de Armadura y Sobrecalentamiento**:
+   - Durante `CHASE`, el Torrasque tiene `is_armored = true`. Cualquier bala o daño recibido no reduce sus puntos de vida; se transfiere a `armor_heat` (0.0 a 100.0) a razón de `damage * 0.95`.
+   - El sprite del jefe modula cromáticamente de blanco/metálico hasta un naranja ígneo intenso conforme sube la temperatura.
+   - Al llegar a 100% de calor, ruge y comienza el casteo de 3 segundos de embestida.
+
+4. **Las 6 Barras de Vida Consecutivas**:
+   - El jefe cuenta con `TOTAL_HEALTH_BARS = 6`, cada una con `BAR_MAX_HEALTH = 250.0` HP (salud total combinada: 1500 HP).
+   - Solo es vulnerable mientras se encuentra en estado `STUNNED` (aturdido por estrellarse contra un pilar).
+   - Al vaciarse una barra de 250 HP, se descuenta del contador (`health_bars_remaining -= 1`). Si aún quedan barras, el jefe se recupera, reactiva su armadura al 100% y reinicia el ciclo sísmico.
+
+5. **Escalada de Oleadas Zerg**:
+   - A través de `_on_zerg_spawn_tick()`, la caverna genera refuerzos cada 8 segundos proporcionales a los pilares destruidos:
+     - Zerglings: `broken_pillars_count * 2` unidades.
+     - Hidraliscos: `max(0, broken_pillars_count - 2)` unidades.
+
+#### D. Interfaz del Jefe (`scenes/boss_hud.tscn` / `scripts/boss_hud.gd`)
+- Anclada en la parte superior central con marco de consola táctica:
+  - **Retrato animado**: Ícono del Ultralisco ancestral con scanline CRT.
+  - **Contador de barras**: `BARRAS: X / 6` y cuadrícula visual de 6 bloques.
+  - **Barra de salud actual**: Barra roja de 250 HP con valor numérico en tiempo real.
+  - **Barra de calor de armadura**: Gradiente de gris a naranja con lectura de `CALOR DE ARMADURA: X%`.
+  - **Monitor de estabilidad de la caverna**: Muestra `EQUILIBRIO: ESTABLE` en cian, o `¡ALERTA SÍSMICA! DERRIBA: [NOMBRE_PILAR_OPUESTO]` en rojo parpadeante con animación pulsante.
+  - **Pilares restantes**: Muestra la cantidad de pilares aún intactos.
+
+#### E. Resolución y Extracción
+- Al vaciarse la 6ta barra de vida, el Torrasque colapsa definitivamente:
+  - Se detiene el temporizador de oleadas zerg.
+  - Se añade la baja de jefe a las estadísticas (`GameManager.add_boss_kill()`).
+  - Suelta un contenedor de suministros de élite (`chest.tscn`) y 8 tanques de gas vespeno (`vespene_tank.tscn`).
+  - **Descenso de la nave de rescate**: 2.5 segundos después de su muerte, aterriza la nave de evacuación (`evacuation_circle.tscn`) en el centro exacto de la cueva con sonido `dropship_ready` y aviso radial de Voss para regresar a la base con la victoria asegurada.
+
+#### F. Atajos de Teclado para Desarrollo y Pruebas
+- **`F9`**: Salto directo a la arena del jefe (funciona tanto desde la base de operaciones como durante la incursión de combate).
+- **`F10`**: Derrota instantánea del Torrasque en la cueva para verificar la extracción y cinemáticas de fin de misión.
 
 
 
