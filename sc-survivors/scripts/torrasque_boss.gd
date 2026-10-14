@@ -37,6 +37,9 @@ var current_speed: float = 95.0
 @export var charge_speed: float = 460.0
 @export var melee_damage: float = 24.0
 @export var charge_damage: float = 48.0
+var attack_cooldown_timer: float = 0.0
+const ATTACK_COOLDOWN: float = 0.75
+const MELEE_RANGE: float = 85.0
 
 var current_state: State = State.INTRO
 var state_timer: float = 0.0
@@ -150,19 +153,37 @@ func _process_chase(delta: float) -> void:
 	if not is_instance_valid(player):
 		return
 	
+	if attack_cooldown_timer > 0.0:
+		attack_cooldown_timer -= delta
+	
 	var to_player = player.global_position - global_position
 	var dist = to_player.length()
 	var move_dir = to_player.normalized()
 	
-	if dist > 48.0:
-		velocity = move_dir * current_speed
-		move_and_slide()
-		_update_direction(move_dir)
-	else:
-		velocity = Vector2.ZERO
-		_update_direction(move_dir)
-		if attack_anim_timer <= 0.0:
+	_update_direction(move_dir)
+	
+	# Si está a distancia cuerpo a cuerpo, lanzar ataque al jugador
+	if dist <= MELEE_RANGE:
+		if attack_cooldown_timer <= 0.0:
 			_melee_attack()
+			attack_cooldown_timer = ATTACK_COOLDOWN
+	
+	if dist > 62.0:
+		velocity = move_dir * current_speed
+	else:
+		velocity = move_dir * (current_speed * 0.25)
+	
+	move_and_slide()
+	
+	# Verificar si tocó directamente al jugador durante el choque de físicas
+	for i in range(get_slide_collision_count()):
+		var col = get_slide_collision(i)
+		var collider = col.get_collider()
+		if collider is Player or (collider and collider.is_in_group("player")):
+			if attack_cooldown_timer <= 0.0:
+				_melee_attack()
+				attack_cooldown_timer = ATTACK_COOLDOWN
+				break
 	
 	_update_animation(delta, velocity.length() > 5.0)
 
@@ -170,8 +191,12 @@ func _melee_attack() -> void:
 	is_attacking = true
 	attack_anim_timer = 0.55
 	AudioManager.play_sfx("ultra_attack")
-	if player and player.has_method("take_damage"):
+	if is_instance_valid(player) and player.has_method("take_damage"):
 		player.take_damage(melee_damage)
+		var push_dir = (player.global_position - global_position).normalized()
+		if push_dir == Vector2.ZERO:
+			push_dir = Vector2.DOWN
+		player.velocity += push_dir * 130.0
 
 # ==============================================================================
 # SISTEMA DE SOBRECALENTAMIENTO DE ARMADURA Y DAÑO
@@ -284,6 +309,14 @@ func _process_charging(delta: float) -> void:
 	anim_timer += delta * 20.0
 	var run_sub = int(anim_timer) % 6
 	_set_sprite_frame((1 + run_sub) * 17 + facing_column)
+	
+	# Comprobar si arrolló al jugador en proximidad durante la embestida
+	if is_instance_valid(player) and global_position.distance_to(player.global_position) < 70.0:
+		if player.has_method("take_damage"):
+			player.take_damage(charge_damage)
+			player.velocity = charge_direction * 280.0
+		_end_charge_missed()
+		return
 	
 	var collision = move_and_collide(move_step)
 	if collision:

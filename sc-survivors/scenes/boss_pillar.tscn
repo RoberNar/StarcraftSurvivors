@@ -6,26 +6,27 @@
 radius = 24.0
 
 [node name="BossPillar" type="StaticBody2D"]
+scale = Vector2(1.35, 1.35)
 collision_layer = 3
 collision_mask = 3
 script = ExtResource("1_script")
 
 [node name="Shadow" type="Sprite2D" parent="."]
-modulate = Color(0, 0, 0, 0.45)
-position = Vector2(0, 24)
-scale = Vector2(0.9, 0.4)
+modulate = Color(0, 0, 0, 0.5)
+position = Vector2(0, 26)
+scale = Vector2(1.0, 0.45)
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture_filter = 0
-position = Vector2(0, -12)
+position = Vector2(0, -14)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(0, 14)
+position = Vector2(0, 16)
 shape = SubResource("CircleShape2D_pillar")
 
 [node name="TargetMarker" type="Node2D" parent="."]
 visible = false
-position = Vector2(0, -50)
+position = Vector2(0, -62)
 
 [node name="Label" type="Label" parent="TargetMarker"]
 anchors_preset = 8

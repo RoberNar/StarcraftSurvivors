@@ -16,6 +16,14 @@ var is_designated_target: bool = false
 func _ready() -> void:
 	add_to_group("boss_pillars")
 	opposite_id = (pillar_id + 3) % 6
+	if shadow and not shadow.texture:
+		var sh_tex = SkinManager.get_sprite("marine_shadow")
+		if sh_tex:
+			shadow.texture = sh_tex
+			shadow.hframes = 17
+			shadow.vframes = 14
+			shadow.frame = 8
+			shadow.scale = Vector2(2.6, 1.3)
 	_apply_visuals()
 	set_designated_target(false)
 

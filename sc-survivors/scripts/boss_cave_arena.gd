@@ -40,7 +40,14 @@ func _ready() -> void:
 	
 	if is_instance_valid(player):
 		GameManager.restore_player_state(player)
+		player.is_in_base = false
 		player.global_position = Vector2(0, 330)
+		
+		# Alejar la cámara para que toda la arena sea visible durante la pelea
+		var cam = player.get_node_or_null("Camera2D") as Camera2D
+		if cam:
+			var tw = create_tween()
+			tw.tween_property(cam, "zoom", Vector2(0.62, 0.62), 1.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	
 	if is_instance_valid(torrasque_boss):
 		torrasque_boss.global_position = Vector2(0, -60)
@@ -55,24 +62,48 @@ func _ready() -> void:
 	call_deferred("_play_intro_transmission")
 	AudioManager.play_music("terran1", true)
 
+func _physics_process(_delta: float) -> void:
+	# Contención estricta: asegurar que nada salga del radio circular de la cueva
+	if is_instance_valid(player):
+		var p_pos = player.position
+		if p_pos.length() > ARENA_RADIUS - 16.0:
+			player.position = p_pos.normalized() * (ARENA_RADIUS - 16.0)
+			player.velocity = Vector2.ZERO
+	
+	if is_instance_valid(torrasque_boss):
+		if torrasque_boss.current_state != TorrasqueBoss.State.CHARGING:
+			var b_pos = torrasque_boss.position
+			if b_pos.length() > ARENA_RADIUS - 30.0:
+				torrasque_boss.position = b_pos.normalized() * (ARENA_RADIUS - 30.0)
+				torrasque_boss.velocity = Vector2.ZERO
+
+func _draw() -> void:
+	# Borde perimetral visual de cueva: delimita el círculo con roca oscura y sombra envolvente
+	draw_arc(ARENA_CENTER, ARENA_RADIUS - 8.0, 0, TAU, 64, Color(0.15, 0.08, 0.06, 0.4), 16.0)
+	draw_arc(ARENA_CENTER, ARENA_RADIUS + 6.0, 0, TAU, 64, Color(0.04, 0.02, 0.02, 0.88), 28.0)
+	draw_arc(ARENA_CENTER, ARENA_RADIUS + 36.0, 0, TAU, 64, Color(0.0, 0.0, 0.0, 1.0), 60.0)
+
 func _setup_cave_boundary(radius: float, segments: int) -> void:
 	var body = StaticBody2D.new()
-	body.collision_layer = 3
-	body.collision_mask = 3
+	body.collision_layer = 7
+	body.collision_mask = 7
 	body.name = "CaveBoundaryWalls"
 	add_child(body)
 	
+	var step_angle = TAU / float(segments)
+	var seg_length = 2.0 * radius * sin(step_angle * 0.5) + 24.0
+	var wall_thickness = 160.0
+	
 	for i in range(segments):
-		var a1 = (i / float(segments)) * TAU
-		var a2 = ((i + 1) / float(segments)) * TAU
-		var p1 = Vector2(cos(a1) * radius, sin(a1) * radius)
-		var p2 = Vector2(cos(a2) * radius, sin(a2) * radius)
+		var mid_angle = (i + 0.5) * step_angle
+		var center_pos = Vector2(cos(mid_angle), sin(mid_angle)) * (radius + wall_thickness * 0.5)
 		
 		var col = CollisionShape2D.new()
-		var seg = SegmentShape2D.new()
-		seg.a = p1
-		seg.b = p2
-		col.shape = seg
+		var box = RectangleShape2D.new()
+		box.size = Vector2(seg_length, wall_thickness)
+		col.shape = box
+		col.position = center_pos
+		col.rotation = mid_angle + PI * 0.5
 		body.add_child(col)
 
 func _setup_pillars() -> void:

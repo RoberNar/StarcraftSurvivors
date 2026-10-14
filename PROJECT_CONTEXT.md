@@ -62,10 +62,11 @@
 ---
 
 ### Fase 3: Batalla de Jefe del Acto 1 - La Cueva Zerg (`scenes/boss_cave_arena.tscn` / `scripts/boss_cave_arena.gd`)
-- **Entorno de la Cueva ("Cueva Zerg")**:
-  - Zona circular cerrada con suelo orgánico de Creep Zerg auténtico de SC1 (`boss_cave_floor.png`, 1280x1280) y paredes rocosas impenetrables con barrera circular física (36 segmentos, radio 460px).
+- **Entorno de la Cueva ("Cueva Zerg") y Encuadre**:
+  - Zona circular cerrada con suelo orgánico de Creep Zerg auténtico de SC1 (`boss_cave_floor.png`, 1280x1280) y paredes rocosas impenetrables con 36 bloques macizos de 160px de espesor (`RectangleShape2D`), doble restricción física matemática en `_physics_process` y anillo perimetral sombreado en `_draw()`, impidiendo cualquier escape fuera del círculo.
+  - **Cámara Táctica Ampliada**: Al entrar a la arena, la cámara se aleja suavemente a `zoom = Vector2(0.62, 0.62)` para que toda la caverna, los 6 pilares y el Torrasque sean visibles simultáneamente en pantalla sin ser tapados por la interfaz.
 - **Los 6 Pilares en Pares Opuestos (`scenes/boss_pillar.tscn` / `scripts/boss_pillar.gd`)**:
-  - 6 monolitos de roca simétricos en un círculo de radio 280px (a 0°, 60°, 120°, 180°, 240°, 300° rotados con Norte a las 12h):
+  - 6 monolitos de roca extraídos directamente de los doodads originales de StarCraft SD (`boss_pillar.png`), agrandados un 35% (`scale = 1.35`) con sombra en el suelo y colocados simétricamente a un radio de 280px (a 0°, 60°, 120°, 180°, 240°, 300° rotados con Norte a las 12h):
     - **Par 1 (Verde)**: Pilar 0 (Norte: `0, -280`) <---> Pilar 3 (Sur: `0, 280`)
     - **Par 2 (Rojo)**: Pilar 1 (Nororiente: `242.5, -140`) <---> Pilar 4 (Suroccidente: `-242.5, 140`)
     - **Par 3 (Blanco)**: Pilar 5 (Noroccidente: `-242.5, -140`) <---> Pilar 2 (Suroriente: `242.5, 140`)
@@ -77,6 +78,8 @@
       - **Si se destruye el opuesto**: Se restablece el equilibrio de la caverna, el jefe queda aturdido y la batalla continúa.
       - **Si se destruye un pilar erróneo (no opuesto)**: Se desata la **Cinemática de Colapso de la Cueva**: sacudida cataclísmica, desprendimiento masivo de rocas del techo y muerte del jugador por aplastamiento total.
 - **El Jefe: Torrasque Ancestral (`scenes/torrasque_boss.tscn` / `scripts/torrasque_boss.gd`)**:
+  - **Ataques Cuerpo a Cuerpo Activos**:
+    - Alcance melee amplio (85px), cadencia de golpe con cooldown de 0.75s, detección directa por colisión física `move_and_slide()` y proximidad. Aplica 24 de daño por golpe con sonido de garras de ultralisco, retroceso al jugador y animación de ataque. Durante la embestida inflige 48 de daño masivo y arrolla al jugador.
   - **Sistema de Armadura y Sobrecalentamiento**:
     - El jefe posee una barra de armadura que absorbe todos los disparos. Los impactos no dañan su vida directamente, sino que **sobrecalientan la armadura** de 0% a 100%.
   - **Casteo de Embestida (3 Segundos)**:
