@@ -87,7 +87,13 @@ func _trigger_descent_into_cave() -> void:
 	if hint_bubble:
 		hint_bubble.visible = false
 	
+	# Quitar de inmediato la nave de evacuación para no poder volver a la superficie
+	for evac in get_tree().get_nodes_in_group("evacuation_zone"):
+		if is_instance_valid(evac):
+			evac.queue_free()
+	
 	var player = get_tree().get_first_node_in_group("player") as Player
+
 	if is_instance_valid(player):
 		# Guardar estado actual del jugador para la arena
 		GameManager.save_player_state(player)

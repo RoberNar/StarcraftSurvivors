@@ -5,49 +5,49 @@ extends Node2D
 @onready var torrasque_boss: TorrasqueBoss = $TorrasqueBoss
 @onready var boss_hud: BossHUD = $BossHUD
 @onready var transmission_comm: TransmissionComm = $TransmissionComm
-@onready var evac_circle: EvacuationCircle = $EvacuationCircle
 @onready var pillars_container: Node2D = $PillarsContainer
 @onready var zerg_spawner_timer: Timer = $ZergSpawnerTimer
 
-const ARENA_CENTER: Vector2 = Vector2(529.0, 305.0)
+const ARENA_CENTER: Vector2 = Vector2.ZERO
+const ARENA_RADIUS: float = 460.0
+const PILLAR_RADIUS: float = 280.0
 
-# 6 Pilares exactos mapeados según el diseño del usuario
-# Pares opuestos: (0, 3), (1, 4), (2, 5)
+# 6 Pilares simétricos en círculo (a 0°, 60°, 120°, 180°, 240°, 300° rotados para tener Norte a las 12h)
+# Pares opuestos: (0, 3) Norte-Sur, (1, 4) Nororiente-Suroccidente, (2, 5) Suroriente-Noroccidente
 const PILLAR_DEFS = [
-	{ "id": 0, "name": "PILAR NORTE", "pos": Vector2(531, 167), "opposite_id": 3 },
-	{ "id": 1, "name": "PILAR NORORIENTE", "pos": Vector2(660, 214), "opposite_id": 4 },
-	{ "id": 2, "name": "PILAR SURORIENTE", "pos": Vector2(656, 397), "opposite_id": 5 },
-	{ "id": 3, "name": "PILAR SUR", "pos": Vector2(526, 455), "opposite_id": 0 },
-	{ "id": 4, "name": "PILAR SUROCCIDENTE", "pos": Vector2(394, 373), "opposite_id": 1 },
-	{ "id": 5, "name": "PILAR NOROCCIDENTE", "pos": Vector2(407, 220), "opposite_id": 2 }
+	{ "id": 0, "name": "PILAR NORTE", "pos": Vector2(0, -280), "opposite_id": 3 },
+	{ "id": 1, "name": "PILAR NORORIENTE", "pos": Vector2(242.5, -140), "opposite_id": 4 },
+	{ "id": 2, "name": "PILAR SURORIENTE", "pos": Vector2(242.5, 140), "opposite_id": 5 },
+	{ "id": 3, "name": "PILAR SUR", "pos": Vector2(0, 280), "opposite_id": 0 },
+	{ "id": 4, "name": "PILAR SUROCCIDENTE", "pos": Vector2(-242.5, 140), "opposite_id": 1 },
+	{ "id": 5, "name": "PILAR NOROCCIDENTE", "pos": Vector2(-242.5, -140), "opposite_id": 2 }
 ]
 
 var pillars_map: Dictionary = {}
 var broken_pillars_count: int = 0
 var pending_opposite_id: int = -1 # -1 = cueva equilibrada
 var is_cave_collapsing: bool = false
+var evac_circle: EvacuationCircle = null
 
 func _ready() -> void:
-	_setup_cave_boundary(ARENA_CENTER, 335.0, 235.0, 36)
+	_setup_cave_boundary(ARENA_RADIUS, 36)
 	_setup_pillars()
+	
+	# Asegurar que NO haya ninguna nave de evacuación activa al entrar a la cueva
+	for node in get_tree().get_nodes_in_group("evacuation_zone"):
+		if is_instance_valid(node):
+			node.queue_free()
 	
 	if is_instance_valid(player):
 		GameManager.restore_player_state(player)
-		player.global_position = Vector2(529, 460)
+		player.global_position = Vector2(0, 330)
 	
 	if is_instance_valid(torrasque_boss):
-		torrasque_boss.global_position = ARENA_CENTER + Vector2(0, -30)
+		torrasque_boss.global_position = Vector2(0, -60)
 		torrasque_boss.died.connect(_on_boss_died)
 		if boss_hud:
 			boss_hud.setup_boss(torrasque_boss)
 	
-	if evac_circle:
-		evac_circle.visible = false
-		evac_circle.monitoring = false
-		evac_circle.monitorable = false
-		evac_circle.global_position = ARENA_CENTER
-	
-	# Temporizador de oleadas zerg escalonadas
 	if zerg_spawner_timer:
 		zerg_spawner_timer.timeout.connect(_on_zerg_spawn_tick)
 		zerg_spawner_timer.start(8.0)
@@ -55,7 +55,7 @@ func _ready() -> void:
 	call_deferred("_play_intro_transmission")
 	AudioManager.play_music("terran1", true)
 
-func _setup_cave_boundary(center: Vector2, rx: float, ry: float, segments: int) -> void:
+func _setup_cave_boundary(radius: float, segments: int) -> void:
 	var body = StaticBody2D.new()
 	body.collision_layer = 3
 	body.collision_mask = 3
@@ -65,8 +65,8 @@ func _setup_cave_boundary(center: Vector2, rx: float, ry: float, segments: int) 
 	for i in range(segments):
 		var a1 = (i / float(segments)) * TAU
 		var a2 = ((i + 1) / float(segments)) * TAU
-		var p1 = center + Vector2(cos(a1) * rx, sin(a1) * ry)
-		var p2 = center + Vector2(cos(a2) * rx, sin(a2) * ry)
+		var p1 = Vector2(cos(a1) * radius, sin(a1) * radius)
+		var p2 = Vector2(cos(a2) * radius, sin(a2) * radius)
 		
 		var col = CollisionShape2D.new()
 		var seg = SegmentShape2D.new()
@@ -91,7 +91,7 @@ func _setup_pillars() -> void:
 		p.name = "Pillar_%d" % def["id"]
 		p.pillar_id = def["id"]
 		p.opposite_id = def["opposite_id"]
-		p.global_position = def["pos"]
+		p.position = def["pos"]
 		pillars_container.add_child(p)
 		pillars_map[def["id"]] = p
 	
@@ -100,7 +100,7 @@ func _setup_pillars() -> void:
 		boss_hud.update_cave_balance(true)
 
 # ==============================================================================
-# MECÁNICA CRÍTICA DE BALANCE DE PILARES Y EMBESTIDA
+# MECÁNICA DE BALANCE DE PILARES Y EMBESTIDA
 # ==============================================================================
 func on_pillar_hit_by_charge(pillar: BossPillar) -> void:
 	if is_cave_collapsing or not is_instance_valid(pillar) or pillar.is_destroyed:
@@ -126,18 +126,17 @@ func on_pillar_hit_by_charge(pillar: BossPillar) -> void:
 			boss_hud.update_cave_balance(false, opposite_name)
 		
 		_send_voss_radio(
-			"«¡Pilar destruido! ¡ALERTA SÍSMICA! ¡La cueva está desbalanceada! ¡Haz que el Torrasque embista el %s o el techo colapsará sobre nosotros!»" % opposite_name,
+			"«¡Pilar destruido! ¡ALERTA SÍSMICA! ¡La caverna está desbalanceada! ¡Haz que el Torrasque embista el %s o el techo colapsará sobre nosotros!»" % opposite_name,
 			6.5
 		)
 		
-		# Torrasque queda aturdido por el impacto
 		if is_instance_valid(torrasque_boss):
 			torrasque_boss.enter_stunned_state()
 			
 	# CASO 2: Es el segundo pilar de un par
 	else:
 		if hit_id == pending_opposite_id:
-			# ¡ACIERTO! Rompió el opuesto exacto -> Equilibrio mantenido
+			# Rompió el opuesto exacto -> Equilibrio mantenido
 			var prev_req = pillars_map.get(pending_opposite_id) as BossPillar
 			if is_instance_valid(prev_req):
 				prev_req.set_designated_target(false)
@@ -151,11 +150,10 @@ func on_pillar_hit_by_charge(pillar: BossPillar) -> void:
 				5.0
 			)
 			
-			# Torrasque queda aturdido
 			if is_instance_valid(torrasque_boss):
 				torrasque_boss.enter_stunned_state()
 		else:
-			# ¡ERROR FATAL! Rompió un pilar que NO era el opuesto -> COLAPSO DE LA CUEVA
+			# Rompió un pilar no opuesto -> Colapso de la cueva
 			_trigger_cave_collapse_cinematic(pillar)
 
 func _get_pillar_name(id: int) -> String:
@@ -172,7 +170,6 @@ func _trigger_cave_collapse_cinematic(_wrong_pillar: BossPillar) -> void:
 		return
 	is_cave_collapsing = true
 	
-	# Desactivar controles
 	if is_instance_valid(player):
 		player.set_physics_process(false)
 	if is_instance_valid(torrasque_boss):
@@ -183,18 +180,15 @@ func _trigger_cave_collapse_cinematic(_wrong_pillar: BossPillar) -> void:
 		7.0
 	)
 	
-	# Sacudida sísmica extrema y lluvia de rocas
 	_trigger_camera_shake(35.0)
 	AudioManager.play_sfx("pillar_smash", 0.0, 5.0)
 	
-	# Lluvia masiva de rocas cayendo desde el techo
 	for i in range(25):
 		var rock_delay = i * 0.08
 		get_tree().create_timer(rock_delay).timeout.connect(func():
 			_spawn_falling_boulder()
 		)
 	
-	# Oscurecer la pantalla tras el derrumbe y mostrar derrota
 	var collapse_tw = create_tween()
 	collapse_tw.tween_interval(2.2)
 	collapse_tw.tween_callback(func():
@@ -212,8 +206,8 @@ func _spawn_falling_boulder() -> void:
 	rock.scale = Vector2(1.2, 1.2)
 	rock.modulate = Color(0.3, 0.25, 0.25, 0.95)
 	
-	var drop_pos = ARENA_CENTER + Vector2(randf_range(-300, 300), randf_range(-200, 200))
-	rock.global_position = drop_pos + Vector2(0, -350)
+	var drop_pos = ARENA_CENTER + Vector2(randf_range(-340, 340), randf_range(-340, 340))
+	rock.global_position = drop_pos + Vector2(0, -380)
 	add_child(rock)
 	
 	var tw = rock.create_tween()
@@ -277,21 +271,20 @@ func _on_zerg_spawn_tick() -> void:
 	if not z_scene:
 		return
 	
-	# Escala según cantidad de pilares rotos
 	var zerglings_count = broken_pillars_count * 2
 	var hydras_count = max(0, broken_pillars_count - 2)
 	
 	for i in range(zerglings_count):
 		var z = z_scene.instantiate()
 		var ang = randf_range(0, TAU)
-		z.global_position = ARENA_CENTER + Vector2(cos(ang) * 310.0, sin(ang) * 210.0)
+		z.global_position = ARENA_CENTER + Vector2(cos(ang) * 380.0, sin(ang) * 380.0)
 		add_child(z)
 	
 	if h_scene and hydras_count > 0:
 		for i in range(hydras_count):
 			var h = h_scene.instantiate()
 			var ang = randf_range(0, TAU)
-			h.global_position = ARENA_CENTER + Vector2(cos(ang) * 310.0, sin(ang) * 210.0)
+			h.global_position = ARENA_CENTER + Vector2(cos(ang) * 380.0, sin(ang) * 380.0)
 			add_child(h)
 
 # ==============================================================================
@@ -308,10 +301,12 @@ func _on_boss_died() -> void:
 	var tw = create_tween()
 	tw.tween_interval(2.5)
 	tw.tween_callback(func():
-		if evac_circle:
-			evac_circle.visible = true
-			evac_circle.monitoring = true
-			evac_circle.monitorable = true
+		# Aterrizaje de la nave de evacuación únicamente al morir el jefe
+		var evac_scene = load("res://scenes/evacuation_circle.tscn")
+		if evac_scene:
+			evac_circle = evac_scene.instantiate()
+			evac_circle.global_position = ARENA_CENTER
+			add_child(evac_circle)
 			AudioManager.play_sfx("dropship_ready", 0.05, 4.0)
 		
 		_send_voss_radio(

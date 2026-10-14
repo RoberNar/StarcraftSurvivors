@@ -55,6 +55,7 @@
   - Al alcanzar los 20:00 (1200 segundos), se dispara `_trigger_20min_climax()`.
   - Se limpian instantáneamente todos los enemigos comunes y peligros de espinas del mapa.
   - Emerge un **Canal Nydus Colosal** (`scenes/nydus_canal.tscn`) frente al Marine con sonido sísmico y advertencia del Capitán Voss.
+  - **Retiro de la Nave de Evacuación**: Al emerger o entrar al Nydus, la nave de evacuación a la superficie se retira/destruye. No hay vuelta atrás ni escape posible; la única vía es derrotar al Torrasque en la caverna.
   - **Entrada al Nydus**: El jugador interactúa con `[E]` (o entra en la boca del canal) para descender a la Cueva del Jefe.
   - **Atajo de Desarrollo (Debug)**: Tecla `F9` en `main.gd` activa de inmediato el clímax y el Canal Nydus; `F9` en `terran_base.gd` teletransporta directamente a la cueva.
 
@@ -62,12 +63,13 @@
 
 ### Fase 3: Batalla de Jefe del Acto 1 - La Cueva Zerg (`scenes/boss_cave_arena.tscn` / `scripts/boss_cave_arena.gd`)
 - **Entorno de la Cueva ("Cueva Zerg")**:
-  - Zona cavernosa cerrada con suelo orgánico de Creep Zerg y bordes carnosos auténticos (`boss_cave_bg.png`, 1024x574) con barrera física elíptica (centro en `529, 305`, radios 335x235px).
+  - Zona circular cerrada con suelo orgánico de Creep Zerg auténtico de SC1 (`boss_cave_floor.png`, 1280x1280) y paredes rocosas impenetrables con barrera circular física (36 segmentos, radio 460px).
 - **Los 6 Pilares en Pares Opuestos (`scenes/boss_pillar.tscn` / `scripts/boss_pillar.gd`)**:
-  - Posiciones exactas mapeadas del diseño de la arena:
-    - **Par 1 (Verde)**: Pilar 0 (Norte: `531, 167`) <---> Pilar 3 (Sur: `526, 455`)
-    - **Par 2 (Rojo)**: Pilar 1 (Nororiente: `660, 214`) <---> Pilar 4 (Suroccidente: `394, 373`)
-    - **Par 3 (Blanco)**: Pilar 5 (Noroccidente: `407, 220`) <---> Pilar 2 (Suroriente: `656, 397`)
+  - 6 monolitos de roca simétricos en un círculo de radio 280px (a 0°, 60°, 120°, 180°, 240°, 300° rotados con Norte a las 12h):
+    - **Par 1 (Verde)**: Pilar 0 (Norte: `0, -280`) <---> Pilar 3 (Sur: `0, 280`)
+    - **Par 2 (Rojo)**: Pilar 1 (Nororiente: `242.5, -140`) <---> Pilar 4 (Suroccidente: `-242.5, 140`)
+    - **Par 3 (Blanco)**: Pilar 5 (Noroccidente: `-242.5, -140`) <---> Pilar 2 (Suroriente: `242.5, 140`)
+
   - **Mecánica Fundamental de Equilibrio Sísmico**:
     - **Solo con la embestida del Torrasque se pueden destruir pilares**.
     - Al romper el primer pilar de un par, la cueva entra en **DESBALANCE SÍSMICO**.

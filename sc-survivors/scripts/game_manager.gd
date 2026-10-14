@@ -708,7 +708,14 @@ func _trigger_20min_climax() -> void:
 		7.0
 	)
 	
+	# 4. Quitar la nave de evacuación: la única vía es el Canal Nydus
+	for evac in get_tree().get_nodes_in_group("evacuation_zone"):
+		if is_instance_valid(evac):
+			evac.queue_free()
+	
 	_check_mission_progress()
+
+
 
 func _trigger_30min_climax() -> void:
 	_trigger_20min_climax()
