@@ -71,13 +71,25 @@ static func get_sfx(name: String) -> AudioStream:
 static func get_music(name: String) -> AudioStream:
 	var path_ogg = get_skin_path("music", name + ".ogg")
 	if ResourceLoader.exists(path_ogg):
-		return load(path_ogg)
+		var res = load(path_ogg)
+		if res:
+			return res
+	if FileAccess.file_exists(path_ogg):
+		var stream = AudioStreamOggVorbis.load_from_file(path_ogg)
+		if stream:
+			return stream
 	var path_wav = get_skin_path("music", name + ".wav")
 	if ResourceLoader.exists(path_wav):
 		return load(path_wav)
 	var fallback_ogg = get_skin_path("music", name + ".ogg", "sd")
 	if ResourceLoader.exists(fallback_ogg):
-		return load(fallback_ogg)
+		var res = load(fallback_ogg)
+		if res:
+			return res
+	if FileAccess.file_exists(fallback_ogg):
+		var stream = AudioStreamOggVorbis.load_from_file(fallback_ogg)
+		if stream:
+			return stream
 	var fallback_wav = get_skin_path("music", name + ".wav", "sd")
 	if ResourceLoader.exists(fallback_wav):
 		return load(fallback_wav)

@@ -73,7 +73,7 @@ func _ready() -> void:
 		if boss_hud:
 			boss_hud.setup_boss(torrasque_boss)
 	
-	AudioManager.play_music("terran1", true)
+	AudioManager.play_music("zerg4", true)
 	call_deferred("_start_intro_cinematic")
 
 func _start_intro_cinematic() -> void:
@@ -126,7 +126,8 @@ func _finish_intro_cinematic() -> void:
 	if boss_hud:
 		boss_hud.show_hud_animated()
 	
-	# El Torrasque inicia su persecución
+	# El Torrasque inicia su persecución y suena el tema de combate Brood War Zerg 4
+	AudioManager.play_music("zerg4", true)
 	if is_instance_valid(torrasque_boss):
 		torrasque_boss.start_fight()
 	
