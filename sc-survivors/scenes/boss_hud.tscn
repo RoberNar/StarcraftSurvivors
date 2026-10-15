@@ -1,6 +1,7 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/boss_hud.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/portrait/ultralisk_portrait.png" id="2_port"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 bg_color = Color(0.04, 0.06, 0.09, 0.94)
@@ -56,7 +57,7 @@ script = ExtResource("1_script")
 layout_mode = 3
 anchors_preset = 10
 anchor_right = 1.0
-offset_bottom = 110.0
+offset_bottom = 90.0
 grow_horizontal = 2
 mouse_filter = 2
 
@@ -65,32 +66,35 @@ layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -240.0
-offset_top = 8.0
-offset_right = 240.0
-offset_bottom = 98.0
+offset_left = -150.0
+offset_top = 10.0
+offset_right = 150.0
+offset_bottom = 74.0
 grow_horizontal = 2
+scale = Vector2(0.85, 0.85)
+pivot_offset = Vector2(150, 0)
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="Margin" type="MarginContainer" parent="CenterContainer/BossPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 8
-theme_override_constants/margin_top = 6
-theme_override_constants/margin_right = 10
-theme_override_constants/margin_bottom = 6
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 4
 
 [node name="HBox" type="HBoxContainer" parent="CenterContainer/BossPanel/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 8
 
 [node name="PortraitFrame" type="PanelContainer" parent="CenterContainer/BossPanel/Margin/HBox"]
-custom_minimum_size = Vector2(52, 52)
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 size_flags_vertical = 4
 
 [node name="Portrait" type="TextureRect" parent="CenterContainer/BossPanel/Margin/HBox/PortraitFrame"]
-custom_minimum_size = Vector2(52, 52)
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
+texture = ExtResource("2_port")
 expand_mode = 1
 stretch_mode = 5
 
@@ -107,17 +111,17 @@ layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.25, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 10
 text = "TORRASQUE ANCESTRAL"
 
-[node name="BossStatus" type="Label" parent="CenterContainer/BossPanel/Margin/HBox/VBox/Header"]
+[node name="PillarsLabel" type="Label" parent="CenterContainer/BossPanel/Margin/HBox/VBox/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 9
-text = "PERSIGUIENDO"
+theme_override_font_sizes/font_size = 8
+text = "PILARES: 6 / 6"
 horizontal_alignment = 2
 
 [node name="HealthBarsRow" type="HBoxContainer" parent="CenterContainer/BossPanel/Margin/HBox/VBox"]
@@ -142,7 +146,7 @@ text = "■ ■ ■ ■ ■ ■"
 horizontal_alignment = 2
 
 [node name="HealthBar" type="ProgressBar" parent="CenterContainer/BossPanel/Margin/HBox/VBox"]
-custom_minimum_size = Vector2(0, 12)
+custom_minimum_size = Vector2(0, 10)
 layout_mode = 2
 theme_override_styles/background = SubResource("StyleBoxFlat_hp_bg")
 theme_override_styles/fill = SubResource("StyleBoxFlat_hp_fill")
@@ -159,8 +163,8 @@ grow_vertical = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 8
-text = "250 / 250 HP"
+theme_override_font_sizes/font_size = 7
+text = "2000 / 2000 HP"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -168,7 +172,7 @@ vertical_alignment = 1
 layout_mode = 2
 
 [node name="ArmorBar" type="ProgressBar" parent="CenterContainer/BossPanel/Margin/HBox/VBox/ArmorRow"]
-custom_minimum_size = Vector2(0, 11)
+custom_minimum_size = Vector2(0, 8)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/background = SubResource("StyleBoxFlat_armor_bg")
@@ -186,28 +190,7 @@ grow_vertical = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 8
+theme_override_font_sizes/font_size = 7
 text = "CALOR DE ARMADURA: 0%"
 horizontal_alignment = 1
 vertical_alignment = 1
-
-[node name="FooterRow" type="HBoxContainer" parent="CenterContainer/BossPanel/Margin/HBox/VBox"]
-layout_mode = 2
-
-[node name="CaveBalanceLabel" type="Label" parent="CenterContainer/BossPanel/Margin/HBox/VBox/FooterRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.3, 1, 0.4, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 8
-text = "EQUILIBRIO: ESTABLE"
-
-[node name="PillarsLabel" type="Label" parent="CenterContainer/BossPanel/Margin/HBox/VBox/FooterRow"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 8
-text = "PILARES: 6 / 6"
-horizontal_alignment = 2

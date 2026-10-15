@@ -24,6 +24,8 @@ var spike_tex: Texture2D = null
 func _ready() -> void:
 	add_to_group("hazards")
 	add_to_group("lurker_hazards")
+	z_as_relative = false
+	z_index = -1
 	
 	spike_tex = load("res://assets/skins/sd/sprites/lurker_spikes.png")
 	if not spike_tex and has_node("/root/SkinManager"):
@@ -121,7 +123,8 @@ func _spawn_single_spike(rel_pos: Vector2, delay: float) -> void:
 	
 	var spike_node = Node2D.new()
 	spike_node.position = rel_pos
-	spike_node.z_index = 1
+	spike_node.z_as_relative = false
+	spike_node.z_index = 2
 	add_child(spike_node)
 	spikes.append(spike_node)
 	

@@ -9,25 +9,43 @@
 [ext_resource type="PackedScene" path="res://scenes/transmission_comm.tscn" id="7_comm"]
 
 [node name="BossCaveArena" type="Node2D"]
+y_sort_enabled = true
 script = ExtResource("1_script")
 
 [node name="Floor" type="Sprite2D" parent="."]
+z_index = -10
 texture_filter = 0
 texture = ExtResource("2_floor")
 
+[node name="BoundaryDoodads" type="Node2D" parent="."]
+z_index = 1
+
 [node name="PillarsContainer" type="Node2D" parent="."]
+y_sort_enabled = true
 
 [node name="TorrasqueBoss" parent="." instance=ExtResource("4_boss")]
-position = Vector2(0, -60)
+z_index = 3
+position = Vector2(0, -90)
 
 [node name="Player" parent="." instance=ExtResource("3_player")]
-position = Vector2(0, 330)
+z_index = 3
+position = Vector2(0, 190)
 
 [node name="HUD" parent="." instance=ExtResource("6_hud")]
 
 [node name="BossHUD" parent="." instance=ExtResource("5_bosshud")]
 
-[node name="TransmissionComm" parent="." instance=ExtResource("7_comm")]
+[node name="CommLayer" type="CanvasLayer" parent="."]
+layer = 15
+
+[node name="TransmissionComm" parent="CommLayer" instance=ExtResource("7_comm")]
 
 [node name="ZergSpawnerTimer" type="Timer" parent="."]
 wait_time = 7.0
+
+[node name="ArenaCamera" type="Camera2D" parent="."]
+position = Vector2(0, 190)
+zoom = Vector2(0.48, 0.48)
+process_callback = 0
+position_smoothing_enabled = true
+position_smoothing_speed = 8.0

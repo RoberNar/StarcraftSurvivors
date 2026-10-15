@@ -1,9 +1,12 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/boss_pillar.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/sprites/boss_pillar_dirt_base.png" id="2_dirt"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/sprites/boss_pillar_shadow1.png" id="3_shadow"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/sprites/boss_pillar_rock1.png" id="4_rock"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_pillar"]
-radius = 24.0
+radius = 22.0
 
 [node name="BossPillar" type="StaticBody2D"]
 scale = Vector2(1.35, 1.35)
@@ -11,22 +14,34 @@ collision_layer = 3
 collision_mask = 3
 script = ExtResource("1_script")
 
+[node name="DirtBase" type="Sprite2D" parent="."]
+z_as_relative = false
+z_index = -5
+texture_filter = 0
+position = Vector2(0, 14)
+scale = Vector2(1.25, 1.25)
+texture = ExtResource("2_dirt")
+
 [node name="Shadow" type="Sprite2D" parent="."]
-modulate = Color(0, 0, 0, 0.5)
-position = Vector2(0, 26)
-scale = Vector2(1.0, 0.45)
+z_as_relative = false
+z_index = -4
+texture_filter = 0
+modulate = Color(0, 0, 0, 0.55)
+position = Vector2(0, -6)
+texture = ExtResource("3_shadow")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture_filter = 0
-position = Vector2(0, -14)
+position = Vector2(0, -6)
+texture = ExtResource("4_rock")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(0, 16)
+position = Vector2(0, 12)
 shape = SubResource("CircleShape2D_pillar")
 
 [node name="TargetMarker" type="Node2D" parent="."]
 visible = false
-position = Vector2(0, -62)
+position = Vector2(0, -48)
 
 [node name="Label" type="Label" parent="TargetMarker"]
 anchors_preset = 8

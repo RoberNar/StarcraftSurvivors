@@ -491,8 +491,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif (event.keycode == KEY_E or event.keycode == KEY_SPACE) and not _is_any_modal_open() and not (pause_panel and pause_panel.visible):
 			_trigger_active_zone()
 			get_viewport().set_input_as_handled()
-		elif event.keycode == KEY_F9:
-			# Debug rápido para saltar directo a la batalla del jefe
+		elif event.keycode == KEY_N or event.keycode == KEY_M or event.keycode == KEY_F9:
+			# Debug rápido M / N / F9 para saltar directo a la batalla del jefe
 			get_tree().change_scene_to_file("res://scenes/boss_cave_arena.tscn")
 			get_viewport().set_input_as_handled()
 		elif (event.keycode == KEY_ENTER or event.keycode == KEY_SPACE or event.is_action_pressed("ui_accept")) and _is_any_modal_open():

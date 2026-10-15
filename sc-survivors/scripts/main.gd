@@ -120,14 +120,16 @@ func _apply_skin() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_F9:
-			# Atajo de desarrollo para probar de inmediato la pelea de jefe
+		if event.keycode == KEY_M:
+			# Atajo de desarrollo M: Forzar emergencia del Canal Nydus y clímax
 			if not GameManager.has_triggered_20min_climax:
 				GameManager._trigger_20min_climax()
-			else:
-				var player = get_tree().get_first_node_in_group("player") as Player
-				if is_instance_valid(player):
-					GameManager.save_player_state(player)
-				get_tree().change_scene_to_file("res://scenes/boss_cave_arena.tscn")
+			get_viewport().set_input_as_handled()
+		elif event.keycode == KEY_N or event.keycode == KEY_F9:
+			# Atajo de desarrollo N / F9: Saltar de inmediato a la Cueva del Torrasque
+			var player = get_tree().get_first_node_in_group("player") as Player
+			if is_instance_valid(player):
+				GameManager.save_player_state(player)
+			get_tree().change_scene_to_file("res://scenes/boss_cave_arena.tscn")
 			get_viewport().set_input_as_handled()
 

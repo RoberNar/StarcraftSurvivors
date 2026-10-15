@@ -3,7 +3,7 @@ extends CanvasLayer
 
 @onready var container: PanelContainer = $CenterContainer/BossPanel
 @onready var boss_name_label: Label = $CenterContainer/BossPanel/Margin/HBox/VBox/Header/BossName
-@onready var status_label: Label = $CenterContainer/BossPanel/Margin/HBox/VBox/Header/BossStatus
+@onready var status_label: Label = get_node_or_null("CenterContainer/BossPanel/Margin/HBox/VBox/Header/BossStatus")
 
 # Barras de Salud (6 en total)
 @onready var bars_count_label: Label = $CenterContainer/BossPanel/Margin/HBox/VBox/HealthBarsRow/BarsCountLabel
@@ -16,8 +16,8 @@ extends CanvasLayer
 @onready var armor_numeric_label: Label = $CenterContainer/BossPanel/Margin/HBox/VBox/ArmorRow/ArmorBar/ArmorLabel
 
 # Estado de Cueva y Pilares
-@onready var cave_balance_label: Label = $CenterContainer/BossPanel/Margin/HBox/VBox/FooterRow/CaveBalanceLabel
-@onready var pillars_label: Label = $CenterContainer/BossPanel/Margin/HBox/VBox/FooterRow/PillarsLabel
+@onready var cave_balance_label: Label = get_node_or_null("CenterContainer/BossPanel/Margin/HBox/VBox/FooterRow/CaveBalanceLabel")
+@onready var pillars_label: Label = get_node_or_null("CenterContainer/BossPanel/Margin/HBox/VBox/Header/PillarsLabel")
 
 @onready var portrait_texture: TextureRect = $CenterContainer/BossPanel/Margin/HBox/PortraitFrame/Portrait
 
@@ -49,18 +49,26 @@ func setup_boss(boss: TorrasqueBoss) -> void:
 	_update_armor_text(boss_ref.armor_heat, TorrasqueBoss.MAX_ARMOR_HEAT)
 	
 	container.position.y = -90.0
+	container.scale = Vector2(0.85, 0.85)
+	container.pivot_offset = Vector2(150, 0)
+	container.visible = false
+
+func show_hud_animated() -> void:
+	if not container:
+		return
+	container.visible = true
+	container.position.y = -90.0
 	var tw = create_tween()
-	tw.tween_property(container, "position:y", 10.0, 0.7).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(container, "position:y", 10.0, 0.6).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 func update_cave_balance(is_balanced: bool, target_pillar_name: String = "") -> void:
-	if not cave_balance_label:
-		return
-	if is_balanced:
-		cave_balance_label.text = "EQUILIBRIO: ESTABLE"
-		cave_balance_label.modulate = Color(0.3, 1.0, 0.4, 1.0)
-	else:
-		cave_balance_label.text = "¡DESBALANCE SÍSMICO! OBJETIVO: %s" % target_pillar_name
-		cave_balance_label.modulate = Color(1.0, 0.2, 0.2, 1.0)
+	if cave_balance_label:
+		if is_balanced:
+			cave_balance_label.text = "EQUILIBRIO: ESTABLE"
+			cave_balance_label.modulate = Color(0.3, 1.0, 0.4, 1.0)
+		else:
+			cave_balance_label.text = "OBJETIVO: %s" % target_pillar_name
+			cave_balance_label.modulate = Color(1.0, 0.2, 0.2, 1.0)
 
 func update_pillars_count(standing: int, total: int = 6) -> void:
 	if pillars_label:
@@ -116,9 +124,10 @@ func _on_boss_state_changed(state_text: String) -> void:
 		status_label.modulate = Color(0.85, 0.85, 0.85, 1.0)
 
 func _on_boss_died() -> void:
-	status_label.text = "¡TORRASQUE ANIQUILADO!"
-	status_label.modulate = Color(0.2, 1.8, 0.4, 1.0)
+	if status_label:
+		status_label.text = "¡TORRASQUE ANIQUILADO!"
+		status_label.modulate = Color(0.2, 1.8, 0.4, 1.0)
 	var tw = create_tween()
 	tw.tween_interval(3.5)
-	tw.tween_property(container, "modulate:a", 0.0, 1.0)
+	tw.tween_property(container, "modulate", Color(1, 1, 1, 0), 1.0)
 	tw.tween_callback(queue_free)

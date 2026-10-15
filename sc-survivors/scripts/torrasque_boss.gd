@@ -22,21 +22,21 @@ enum State {
 
 # 6 Barras de vida
 const TOTAL_HEALTH_BARS: int = 6
-const BAR_MAX_HEALTH: float = 250.0
+const BAR_MAX_HEALTH: float = 2200.0
 var health_bars_remaining: int = 6
-var current_bar_health: float = 250.0
+var current_bar_health: float = 2200.0
 
 # Armadura y Sobrecalentamiento
 var is_armored: bool = true
 var armor_heat: float = 0.0
-const MAX_ARMOR_HEAT: float = 100.0
+const MAX_ARMOR_HEAT: float = 1000.0
 
 # Velocidades y Daño
-@export var base_speed: float = 95.0
-var current_speed: float = 95.0
+@export var base_speed: float = 85.0
+var current_speed: float = 85.0
 @export var charge_speed: float = 460.0
 @export var melee_damage: float = 24.0
-@export var charge_damage: float = 48.0
+@export var charge_damage: float = 999990.0
 var attack_cooldown_timer: float = 0.0
 const ATTACK_COOLDOWN: float = 0.75
 const MELEE_RANGE: float = 85.0
@@ -109,23 +109,26 @@ func _apply_skin() -> void:
 
 func _enter_intro() -> void:
 	current_state = State.INTRO
-	state_timer = 1.8
+	velocity = Vector2.ZERO
 	state_changed.emit("¡EMERGENCIA DEL TORRASQUE!")
 	
-	AudioManager.play_sfx("nydus_emerge", 0.0, 5.0)
-	AudioManager.play_sfx("ultra_roar", 0.1, 4.0)
+	modulate = Color(1.4, 1.2, 1.2, 1.0)
+	scale = Vector2(1.5, 1.5)
+	_update_direction(Vector2.DOWN)
+	_set_sprite_frame(facing_column)
 	
-	modulate = Color(1.8, 1.4, 1.4, 0.0)
 	var tw = create_tween()
-	tw.tween_property(self, "modulate:a", 1.0, 0.8)
-	tw.parallel().tween_property(self, "scale", Vector2(1.5, 1.5), 1.0).from(Vector2(0.3, 0.3))
-	tw.tween_callback(func():
-		modulate = Color(1, 1, 1, 1)
-		_enter_chase()
-	)
+	tw.tween_property(self, "scale", Vector2(1.5, 1.5), 0.6).from(Vector2(0.8, 0.8))
+	tw.parallel().tween_property(self, "modulate", Color(1, 1, 1, 1), 0.6)
+
+func start_fight() -> void:
+	if current_state == State.DEAD:
+		return
+	_enter_chase()
 
 func _enter_chase() -> void:
 	current_state = State.CHASE
+	current_speed = 85.0
 	state_changed.emit("PERSIGUIENDO (ARMADURA ACTIVA)")
 	_update_armor_visuals()
 
@@ -133,11 +136,15 @@ func _physics_process(delta: float) -> void:
 	if current_state == State.DEAD:
 		return
 	
-	player = get_tree().get_first_node_in_group("player") as Player
+	if not is_instance_valid(player):
+		player = get_tree().get_first_node_in_group("player") as Player
 	
 	match current_state:
 		State.INTRO:
-			pass
+			velocity = Vector2.ZERO
+			_update_direction(Vector2.DOWN)
+			_set_sprite_frame(facing_column)
+			# Permanece completamente inmóvil hasta que termine la cinemática de cámara
 		State.CHASE:
 			_process_chase(delta)
 		State.TELEGRAPH_CHARGE:
@@ -153,6 +160,14 @@ func _process_chase(delta: float) -> void:
 	if not is_instance_valid(player):
 		return
 	
+	# Acumulación continua de furia / calor de armadura (carga garantizada aun sin disparos)
+	armor_heat = min(MAX_ARMOR_HEAT, armor_heat + delta * 18.0)
+	armor_heat_changed.emit(armor_heat, MAX_ARMOR_HEAT)
+	_update_armor_visuals()
+	if armor_heat >= MAX_ARMOR_HEAT:
+		_start_charge_cast()
+		return
+	
 	if attack_cooldown_timer > 0.0:
 		attack_cooldown_timer -= delta
 	
@@ -162,20 +177,27 @@ func _process_chase(delta: float) -> void:
 	
 	_update_direction(move_dir)
 	
-	# Si está a distancia cuerpo a cuerpo, lanzar ataque al jugador
+	# Ataque cuerpo a cuerpo
 	if dist <= MELEE_RANGE:
 		if attack_cooldown_timer <= 0.0:
 			_melee_attack()
 			attack_cooldown_timer = ATTACK_COOLDOWN
 	
-	if dist > 62.0:
-		velocity = move_dir * current_speed
-	else:
-		velocity = move_dir * (current_speed * 0.25)
-	
+	var target_speed = current_speed if dist > 62.0 else current_speed * 0.4
+	velocity = move_dir * target_speed
 	move_and_slide()
 	
-	# Verificar si tocó directamente al jugador durante el choque de físicas
+	# Desvío tangencial inteligente si choca de frente contra un obstáculo o pilar
+	if get_slide_collision_count() > 0 and velocity.length() < target_speed * 0.35:
+		var col = get_slide_collision(0)
+		var normal = col.get_normal()
+		var tangent = Vector2(-normal.y, normal.x)
+		if tangent.dot(move_dir) < 0:
+			tangent = -tangent
+		velocity = (tangent * 0.75 + move_dir * 0.25).normalized() * target_speed
+		move_and_slide()
+	
+	# Verificar impacto directo con el jugador
 	for i in range(get_slide_collision_count()):
 		var col = get_slide_collision(i)
 		var collider = col.get_collider()
@@ -202,12 +224,12 @@ func _melee_attack() -> void:
 # SISTEMA DE SOBRECALENTAMIENTO DE ARMADURA Y DAÑO
 # ==============================================================================
 func take_damage(amount: float) -> void:
-	if current_state == State.DEAD:
+	if current_state == State.DEAD or current_state == State.INTRO:
 		return
 	
 	if is_armored:
-		# La armadura absorbe el impacto y se sobrecalienta
-		armor_heat = min(MAX_ARMOR_HEAT, armor_heat + amount * 0.95)
+		# La armadura absorbe el impacto y se sobrecalienta gradualmente
+		armor_heat = min(MAX_ARMOR_HEAT, armor_heat + amount * 0.28)
 		armor_heat_changed.emit(armor_heat, MAX_ARMOR_HEAT)
 		_update_armor_visuals()
 		
@@ -263,8 +285,8 @@ func _start_charge_cast() -> void:
 		telegraph_line.clear_points()
 		telegraph_line.add_point(Vector2.ZERO)
 		telegraph_line.add_point(Vector2.DOWN * 800.0)
-		telegraph_line.default_color = Color(1.0, 0.4, 0.1, 0.7)
-		telegraph_line.width = 18.0
+		telegraph_line.default_color = Color(1.0, 0.15, 0.05, 0.85)
+		telegraph_line.width = 24.0
 		telegraph_line.visible = true
 
 func _process_telegraph(delta: float) -> void:
@@ -277,11 +299,11 @@ func _process_telegraph(delta: float) -> void:
 		_update_direction(charge_direction)
 		
 		if telegraph_line:
-			var local_target = to_local(charge_target_pos).normalized() * 800.0
+			var local_target = to_local(global_position + charge_direction * 900.0)
+			telegraph_line.set_point_position(0, Vector2.ZERO)
 			telegraph_line.set_point_position(1, local_target)
-			# Parpadeo que se acelera conforme termina el casteo
-			var pulse = sin(charge_cast_timer * 15.0) * 0.3 + 0.7
-			telegraph_line.default_color = Color(1.0, 0.1, 0.1, pulse)
+			var pulse = sin(charge_cast_timer * 18.0) * 0.3 + 0.7
+			telegraph_line.default_color = Color(1.0, 0.1, 0.05, pulse)
 	
 	# Al terminar exactamente los 3 segundos: fijar punto y lanzar carga
 	if charge_cast_timer <= 0.0:
@@ -310,11 +332,18 @@ func _process_charging(delta: float) -> void:
 	var run_sub = int(anim_timer) % 6
 	_set_sprite_frame((1 + run_sub) * 17 + facing_column)
 	
-	# Comprobar si arrolló al jugador en proximidad durante la embestida
+	# Arrollar y aniquilar cualquier zerg en su camino durante la embestida desenfrenada
+	for enemy in get_tree().get_nodes_in_group("enemies"):
+		if is_instance_valid(enemy) and enemy != self and not (enemy is TorrasqueBoss):
+			if global_position.distance_to(enemy.global_position) < 95.0:
+				if enemy.has_method("take_damage"):
+					enemy.take_damage(99999.0)
+	
+	# Comprobar si arrolló al jugador en proximidad durante la embestida (INSTA-KILL)
 	if is_instance_valid(player) and global_position.distance_to(player.global_position) < 70.0:
 		if player.has_method("take_damage"):
 			player.take_damage(charge_damage)
-			player.velocity = charge_direction * 280.0
+			player.velocity = charge_direction * 350.0
 		_end_charge_missed()
 		return
 	
@@ -325,24 +354,22 @@ func _process_charging(delta: float) -> void:
 		# 1. ¿CHOCÓ CONTRA UN PILAR? (SOLO LA CARGA PUEDE ROMPERLO)
 		if collider is BossPillar:
 			var pillar = collider as BossPillar
-			# Notificar al arena que este pilar fue golpeado por la embestida
-			var arena = get_parent() as BossCaveArena
+			var arena = get_parent()
 			if arena and arena.has_method("on_pillar_hit_by_charge"):
 				arena.on_pillar_hit_by_charge(pillar)
 			return
 		
-		# 2. Chocó contra el jugador
+		# 2. Chocó contra el jugador (INSTA-KILL)
 		elif collider is Player or (collider and collider.is_in_group("player")):
 			var p = collider as Player
 			if p and p.has_method("take_damage"):
 				p.take_damage(charge_damage)
-				p.velocity = charge_direction * 260.0
+				p.velocity = charge_direction * 350.0
 			_end_charge_missed()
 			return
 		
 		# 3. Chocó contra la pared de la cueva
 		else:
-			AudioManager.play_sfx("pillar_crack", 0.05, 3.0)
 			_end_charge_missed()
 			return
 	
@@ -352,8 +379,16 @@ func _process_charging(delta: float) -> void:
 func _end_charge_missed() -> void:
 	if charge_particles:
 		charge_particles.emitting = false
+	
+	# Si falló la carga contra un pilar y chocó contra el muro:
+	# Su armadura se reinicia a 0 y hay que calentarla de nuevo
+	armor_heat = 0.0
+	armor_heat_changed.emit(armor_heat, MAX_ARMOR_HEAT)
+	_update_armor_visuals()
+	AudioManager.play_sfx("pillar_crack", 0.05, 3.5)
+	
 	current_state = State.CHASE
-	state_changed.emit("PERSIGUIENDO (ARMADURA ACTIVA)")
+	state_changed.emit("PERSIGUIENDO (ARMADURA REINICIADA)")
 
 # ==============================================================================
 # ATURDIMIENTO (STUN) TRAS ROMPER PILAR
@@ -492,7 +527,7 @@ func die() -> void:
 		)
 	tw.tween_interval(0.2)
 	tw.tween_interval(2.0)
-	tw.tween_property(sprite, "modulate:a", 0.0, 1.5)
+	tw.tween_property(sprite, "modulate", Color(1, 1, 1, 0), 1.5)
 	tw.tween_callback(queue_free)
 
 func _drop_rewards() -> void:
