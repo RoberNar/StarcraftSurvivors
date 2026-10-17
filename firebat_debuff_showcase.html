@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StarCraft Survivors - Catálogo Visual de Efectos de Fuego y Debuff (Firebat)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #06090e;
+      --panel-bg: rgba(13, 20, 30, 0.92);
+      --panel-border: #22374d;
+      --accent-orange: #ff6a00;
+      --accent-amber: #ffaa00;
+      --accent-red: #ff2a14;
+      --accent-cyan: #00e5ff;
+      --accent-green: #2ecc71;
+      --text-main: #e2ecf5;
+      --text-muted: #8397aa;
+      --font-display: 'Rajdhani', sans-serif;
+      --font-mono: 'Share Tech Mono', monospace;
+      --font-body: 'Outfit', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(255, 90, 0, 0.12) 0%, transparent 60%),
+        radial-gradient(circle at 10% 30%, rgba(0, 180, 255, 0.05) 0%, transparent 50%),
+        linear-gradient(180deg, #070b10 0%, #030507 100%);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 60px 16px;
+      overflow-x: hidden;
+    }
+
+    /* Scanlines CRT overlay */
+    body::before {
+      content: " ";
+      display: block;
+      position: fixed;
+      top: 0; left: 0; bottom: 0; right: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+      z-index: 999;
+      background-size: 100% 3px, 6px 100%;
+      pointer-events: none;
+      opacity: 0.7;
+    }
+
+    header {
+      width: 100%;
+      max-width: 1200px;
+      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      border-bottom: 2px solid var(--panel-border);
+      padding-bottom: 18px;
+      position: relative;
+    }
+
+    .badge-sub {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--accent-orange);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      background: rgba(255, 106, 0, 0.12);
+      padding: 4px 14px;
+      border: 1px solid rgba(255, 106, 0, 0.4);
+      border-radius: 4px;
+      margin-bottom: 8px;
+      box-shadow: 0 0 12px rgba(255, 106, 0, 0.2);
+    }
+
+    h1 {
+      font-family: var(--font-display);
+      font-size: 38px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #fff;
+      text-shadow: 0 0 20px rgba(255, 110, 0, 0.6);
+      margin-bottom: 6px;
+    }
+
+    h1 span {
+      color: var(--accent-orange);
+    }
+
+    .subtitle {
+      font-size: 15px;
+      color: var(--text-muted);
+      max-width: 820px;
+      line-height: 1.5;
+    }
+
+    /* Layout principal */
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 24px;
+    }
+
+    @media (max-width: 980px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Panel Estilo StarCraft Metal */
+    .sc-panel {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(8px);
+    }
+
+    .sc-panel-header {
+      background: linear-gradient(90deg, #121c27 0%, #0d151e 100%);
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--panel-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .sc-panel-title {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--accent-cyan);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sc-panel-body {
+      padding: 20px;
+    }
+
+    /* Escenario Interactivo Central */
+    .stage-wrapper {
+      position: relative;
+      background: #030508;
+      border: 2px solid #1c2b3a;
+      border-radius: 8px;
+      height: 380px;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.9);
+      background-image: url('showcase_assets/creep_bg.png');
+      background-repeat: repeat;
+      background-size: 128px 128px;
+    }
+
+    .stage-vignette {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(circle at center, transparent 35%, rgba(4, 7, 12, 0.95) 90%);
+      pointer-events: none;
+    }
+
+    .stage-grid-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-size: 32px 32px;
+      background-image: linear-gradient(to right, rgba(0, 229, 255, 0.04) 1px, transparent 1px),
+                        linear-gradient(to bottom, rgba(0, 229, 255, 0.04) 1px, transparent 1px);
+      pointer-events: none;
+    }
+
+    /* Unidad y Capas de Efecto */
+    .unit-container {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .unit-sprite {
+      image-rendering: pixelated;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: crisp-edges;
+      display: block;
+      filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.85));
+      transition: filter 0.25s ease;
+    }
+
+    /* Modulación Naranja Térmica (CSS Filter Emulando Godot Modulate) */
+    .unit-sprite.burned {
+      filter: 
+        drop-shadow(0 0 18px rgba(255, 90, 0, 0.75))
+        brightness(1.25)
+        sepia(0.85)
+        saturate(3.2)
+        hue-rotate(-22deg);
+      animation: pulse-burn 1.2s infinite alternate ease-in-out;
+    }
+
+    @keyframes pulse-burn {
+      0% {
+        filter: drop-shadow(0 0 12px rgba(255, 70, 0, 0.6)) brightness(1.15) sepia(0.8) saturate(3.0) hue-rotate(-25deg);
+      }
+      100% {
+        filter: drop-shadow(0 0 24px rgba(255, 140, 0, 0.95)) brightness(1.4) sepia(0.9) saturate(3.8) hue-rotate(-18deg);
+      }
+    }
+
+    /* Capa de Efecto a los Pies */
+    .fx-layer-feet {
+      position: absolute;
+      bottom: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      pointer-events: none;
+      image-rendering: pixelated;
+      display: none;
+      z-index: 12;
+      opacity: 0.95;
+    }
+
+    /* Capa de Efecto en el Cuerpo */
+    .fx-layer-body {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      image-rendering: pixelated;
+      display: none;
+      z-index: 13;
+      mix-blend-mode: screen;
+      opacity: 0.9;
+    }
+
+    /* Capa de Efecto Ragnarok Online Fire */
+    .fx-layer-ro {
+      position: absolute;
+      bottom: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      pointer-events: none;
+      image-rendering: pixelated;
+      display: none;
+      z-index: 14;
+      mix-blend-mode: screen;
+    }
+
+    /* Capa de Ascuas / Partículas */
+    .fx-layer-embers {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -65%);
+      pointer-events: none;
+      image-rendering: pixelated;
+      display: none;
+      z-index: 15;
+    }
+
+    /* Capa de Ícono de Reducción de Armadura (Badge) */
+    .fx-layer-badge {
+      position: absolute;
+      top: -46px;
+      left: 50%;
+      transform: translateX(-50%);
+      pointer-events: none;
+      image-rendering: pixelated;
+      display: none;
+      z-index: 16;
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.8));
+    }
+
+    /* Barra de Vida y Armadura Flotante estilo SC1 */
+    .unit-health-bar {
+      position: absolute;
+      top: -36px;
+      left: 50%;
+      transform: translateX(-50%) scale(0.8);
+      transform-origin: bottom center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      z-index: 20;
+    }
+
+    .hp-track {
+      width: 70px;
+      height: 6px;
+      background: rgba(0, 0, 0, 0.8);
+      border: 1px solid #444;
+      border-radius: 2px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hp-fill {
+      width: 68%;
+      height: 100%;
+      background: linear-gradient(90deg, #ff3300, #ff8800);
+      box-shadow: 0 0 6px #ff5500;
+      transition: width 0.3s;
+    }
+
+    .armor-badge-mini {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(20, 30, 40, 0.85);
+      border: 1px solid #3d5872;
+      color: #92b8de;
+      transition: all 0.25s;
+    }
+
+    .armor-badge-mini.shredded {
+      background: rgba(220, 40, 10, 0.85);
+      border-color: #ff5533;
+      color: #fff;
+      box-shadow: 0 0 10px rgba(255, 60, 20, 0.6);
+      animation: pulse-badge 0.8s infinite alternate;
+    }
+
+    @keyframes pulse-badge {
+      from { transform: scale(1); }
+      to { transform: scale(1.08); }
+    }
+
+    /* Controles de la Sala de Pruebas */
+    .stage-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 14px;
+      padding: 10px 14px;
+      background: rgba(8, 14, 22, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 6px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .unit-selector {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-unit {
+      background: #111a24;
+      border: 1px solid #283e54;
+      color: var(--text-muted);
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-unit:hover {
+      border-color: var(--accent-orange);
+      color: #fff;
+    }
+
+    .btn-unit.active {
+      background: linear-gradient(180deg, #ff6a00 0%, #c44000 100%);
+      border-color: #ffaa00;
+      color: #fff;
+      box-shadow: 0 0 12px rgba(255, 106, 0, 0.5);
+    }
+
+    .slider-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .slider-group input[type="range"] {
+      accent-color: var(--accent-orange);
+      cursor: pointer;
+    }
+
+    /* Grid de Selección de Opciones de Efectos */
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .opt-card {
+      background: #090e15;
+      border: 1px solid #1c2b3d;
+      border-radius: 6px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.22s ease;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .opt-card:hover {
+      border-color: #385577;
+      background: #0d1522;
+      transform: translateY(-2px);
+    }
+
+    .opt-card.selected {
+      border-color: var(--accent-orange);
+      background: rgba(255, 106, 0, 0.08);
+      box-shadow: 0 0 20px rgba(255, 106, 0, 0.25), inset 0 0 12px rgba(255, 106, 0, 0.1);
+    }
+
+    .opt-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .opt-tag {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--accent-orange);
+      background: rgba(255, 106, 0, 0.15);
+      padding: 2px 8px;
+      border-radius: 3px;
+      border: 1px solid rgba(255, 106, 0, 0.3);
+    }
+
+    .opt-title {
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .opt-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    .opt-preview-box {
+      height: 90px;
+      background: #040609;
+      border: 1px solid #182432;
+      border-radius: 4px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+      background-image: radial-gradient(circle, #101c2a 1px, transparent 1px);
+      background-size: 12px 12px;
+    }
+
+    .opt-preview-box img {
+      image-rendering: pixelated;
+    }
+
+    /* Panel Lateral de Mecánicas */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .stat-box {
+      background: rgba(9, 14, 22, 0.85);
+      border: 1px solid #1f3144;
+      border-radius: 6px;
+      padding: 14px;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 13px;
+    }
+
+    .stat-row:last-child {
+      border-bottom: none;
+    }
+
+    .stat-label {
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+
+    .stat-val {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .stat-val.highlight {
+      color: var(--accent-orange);
+    }
+
+    .stat-val.good {
+      color: var(--accent-green);
+    }
+
+    /* Tabla de Escalado de Armadura */
+    .scale-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 12px;
+      font-family: var(--font-mono);
+    }
+
+    .scale-table th {
+      background: #121c27;
+      color: var(--accent-cyan);
+      padding: 6px 8px;
+      text-align: left;
+      border: 1px solid #23374d;
+    }
+
+    .scale-table td {
+      padding: 6px 8px;
+      border: 1px solid #182838;
+      color: var(--text-main);
+    }
+
+    .scale-table tr:nth-child(even) {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* Botón de Acción */
+    .btn-action-main {
+      width: 100%;
+      background: linear-gradient(180deg, #ff7a18 0%, #cf4000 100%);
+      border: 1px solid #ffaa44;
+      color: #fff;
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 0 4px 18px rgba(255, 106, 0, 0.4);
+      transition: all 0.2s;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-action-main:hover {
+      box-shadow: 0 6px 24px rgba(255, 106, 0, 0.7);
+      transform: translateY(-1px);
+    }
+
+    .btn-action-main:active {
+      transform: translateY(1px);
+    }
+
+    /* Toast emergente de confirmación */
+    .toast-msg {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #111a24;
+      border: 1px solid var(--accent-orange);
+      box-shadow: 0 0 20px rgba(255, 106, 0, 0.4);
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      padding: 10px 20px;
+      border-radius: 6px;
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 9999;
+    }
+
+    .toast-msg.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="badge-sub">EXPEDICIÓN TÁCTICA // INGENIERÍA DE ARMAS SC-SURVIVORS</div>
+    <h1>MECÁNICA & EFECTOS DE QUEMADO <span>[FIREBAT / LANZALLAMAS]</span></h1>
+    <p class="subtitle">
+      Explora en vivo los diferentes efectos visuales para representar la combustión biológica y la reducción de armadura en los enemigos Zerg. Selecciona tu combinación favorita para implementarla directamente en Godot 4.
+    </p>
+  </header>
+
+  <div class="container">
+    
+    <!-- ÁREA PRINCIPAL: SIMULADOR VISUAL -->
+    <main style="display: flex; flex-direction: column; gap: 20px;">
+      
+      <div class="sc-panel">
+        <div class="sc-panel-header">
+          <div class="sc-panel-title">
+            <span style="color: var(--accent-orange);">🔥</span> SIMULADOR EN TIEMPO REAL: ENEMIGO DEBUF FEADO
+          </div>
+          <div style="font-family: var(--font-mono); font-size: 12px; color: var(--accent-amber);" id="active-effect-name">
+            EFECTO: COMBO HÍBRIDO (RECOMENDADO)
+          </div>
+        </div>
+
+        <div class="sc-panel-body">
+          
+          <!-- Escenario de Prueba -->
+          <div class="stage-wrapper" id="stage">
+            <div class="stage-grid-overlay"></div>
+            <div class="stage-vignette"></div>
+
+            <!-- Contenedor de la Unidad con todas sus capas -->
+            <div class="unit-container" id="unit-container">
+              
+              <!-- Barra de Vida y Armadura -->
+              <div class="unit-health-bar">
+                <div class="armor-badge-mini shredded" id="armor-badge-mini">
+                  <span id="armor-icon">🛡️</span> <span id="armor-text">ARMADURA: -3 [DERRETIDA]</span>
+                </div>
+                <div class="hp-track">
+                  <div class="hp-fill" id="hp-fill"></div>
+                </div>
+              </div>
+
+              <!-- Capa 1: Fuego a los pies -->
+              <img src="showcase_assets/flame_feet.gif" class="fx-layer-feet" id="fx-feet" alt="Feet Fire">
+
+              <!-- Capa 2: Sprite base del Zerg (Zergling / Hydralisk / Ultralisk) -->
+              <img src="showcase_assets/zergling_run.gif" class="unit-sprite burned" id="unit-sprite" alt="Zerg Unit">
+
+              <!-- Capa 3: Fuego en el torso / cuerpo -->
+              <img src="showcase_assets/flame_body.gif" class="fx-layer-body" id="fx-body" alt="Body Fire">
+
+              <!-- Capa 4: Fuego estilo Ragnarok Online -->
+              <img src="showcase_assets/ro_fire.gif" class="fx-layer-ro" id="fx-ro" alt="RO Fire">
+
+              <!-- Capa 5: Ascuas y Chispas Volátiles -->
+              <img src="showcase_assets/embers_burst.gif" class="fx-layer-embers" id="fx-embers" alt="Embers">
+
+              <!-- Capa 6: Badge Flotante de Escudo Roto -->
+              <img src="showcase_assets/armor_shred_icon.gif" class="fx-layer-badge" id="fx-badge" alt="Armor Shred Badge">
+
+            </div>
+          </div>
+
+          <!-- Barra de Controles Rápidos -->
+          <div class="stage-controls">
+            <div class="unit-selector">
+              <button class="btn-unit active" onclick="setUnit('zergling')">Zergling</button>
+              <button class="btn-unit" onclick="setUnit('hydralisk')">Hidralisco</button>
+              <button class="btn-unit" onclick="setUnit('ultralisk')">Ultralisco</button>
+            </div>
+
+            <div class="slider-group">
+              <span>INTENSIDAD TINTE:</span>
+              <input type="range" id="tint-slider" min="0" max="100" value="85" oninput="updateTintIntensity(this.value)">
+              <span id="tint-val">85%</span>
+            </div>
+
+            <div style="display: flex; gap: 8px;">
+              <button class="btn-unit" id="btn-toggle-burn" onclick="toggleBurnState()" style="border-color: #ff5533; color: #ff8866;">
+                TOGGLE: DEBUFF ON
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- CATÁLOGO DE OPCIONES DE EFECTOS -->
+      <div class="sc-panel">
+        <div class="sc-panel-header">
+          <div class="sc-panel-title">
+            <span>📋</span> OPCIONES DE ESTILO DE EFECTO (SELECCIONA PARA PROBAR)
+          </div>
+          <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-muted);">
+            HAZ CLIC EN CUALQUIER TARJETA
+          </span>
+        </div>
+
+        <div class="sc-panel-body">
+          <div class="options-grid">
+            
+            <!-- OPCIÓN 1: Tinte Térmico Naranja (Sin sprites extra) -->
+            <div class="opt-card" id="card-opt1" onclick="selectEffectPreset('tint')">
+              <div class="opt-header">
+                <span class="opt-tag">OPCIÓN 1</span>
+                <span style="color: var(--accent-orange); font-size: 18px;">✨</span>
+              </div>
+              <div class="opt-title">Tinte Térmico Naranja (Modulate)</div>
+              <div class="opt-desc">
+                Colorea al Zerg con un tinte naranja ígneo pulsante (`Color(1.8, 0.7, 0.2)`). 100% libre de sprites extra, ultraliviano y perfecto para enjambres masivos de 200+ zergs.
+              </div>
+              <div class="opt-preview-box">
+                <img src="showcase_assets/zergling_run.gif" style="filter: drop-shadow(0 0 14px rgba(255,90,0,0.8)) brightness(1.3) sepia(0.9) saturate(3.5) hue-rotate(-22deg);" width="70" alt="Tint Preview">
+              </div>
+            </div>
+
+            <!-- OPCIÓN 2: Mini-Llamas a los Pies -->
+            <div class="opt-card" id="card-opt2" onclick="selectEffectPreset('feet')">
+              <div class="opt-header">
+                <span class="opt-tag">OPCIÓN 2</span>
+                <span style="color: var(--accent-orange); font-size: 18px;">🔥</span>
+              </div>
+              <div class="opt-title">Llamitas a los Pies (Ground Fire)</div>
+              <div class="opt-desc">
+                Pequeñas llamaradas pixel art animadas danzando en la base del enemigo como si sus patas y el suelo ardieran. Excelente legibilidad sin tapar el modelo.
+              </div>
+              <div class="opt-preview-box">
+                <img src="showcase_assets/flame_feet.gif" width="60" alt="Feet Flame Preview">
+              </div>
+            </div>
+
+            <!-- OPCIÓN 3: Fuego Voraz en el Cuerpo -->
+            <div class="opt-card" id="card-opt3" onclick="selectEffectPreset('body')">
+              <div class="opt-header">
+                <span class="opt-tag">OPCIÓN 3</span>
+                <span style="color: var(--accent-red); font-size: 18px;">💥</span>
+              </div>
+              <div class="opt-title">Fuego Corporal (Torso Overlay)</div>
+              <div class="opt-desc">
+                Llamas intensas envolviendo el centro de masa del enemigo. Muestra una combustión voraz y agresiva, ideal para dar sensación de alto calor y calcinación.
+              </div>
+              <div class="opt-preview-box">
+                <img src="showcase_assets/flame_body.gif" width="65" alt="Body Fire Preview">
+              </div>
+            </div>
+
+            <!-- OPCIÓN 4: Ascuas y Chispas Flotantes -->
+            <div class="opt-card" id="card-opt4" onclick="selectEffectPreset('embers')">
+              <div class="opt-header">
+                <span class="opt-tag">OPCIÓN 4</span>
+                <span style="color: var(--accent-amber); font-size: 18px;">✨</span>
+              </div>
+              <div class="opt-title">Ascuas y Chispas Volátiles</div>
+              <div class="opt-desc">
+                Chispas incandescentes amarillas y naranjas que se desprenden hacia arriba. Efecto elegante, sutil y táctico de fundición de armadura residual.
+              </div>
+              <div class="opt-preview-box">
+                <img src="showcase_assets/embers_burst.gif" width="55" alt="Embers Preview">
+              </div>
+            </div>
+
+            <!-- OPCIÓN 5: Ícono Flotante de Escudo Derretido -->
+            <div class="opt-card" id="card-opt5" onclick="selectEffectPreset('badge')">
+              <div class="opt-header">
+                <span class="opt-tag">OPCIÓN 5</span>
+                <span style="color: var(--accent-cyan); font-size: 18px;">🛡️</span>
+              </div>
+              <div class="opt-title">Ícono Táctico de Armadura Rota</div>
+              <div class="opt-desc">
+                Escudo agrietado incandescente flotando sobre la cabeza con flechas hacia abajo estilo RTS clásico. Comunica de forma 100% matemática que el enemigo tiene menos armadura.
+              </div>
+              <div class="opt-preview-box">
+                <img src="showcase_assets/armor_shred_icon.gif" width="48" alt="Badge Preview">
+              </div>
+            </div>
+
+            <!-- OPCIÓN 6: Llamarada Estilo Ragnarok Online -->
+            <div class="opt-card" id="card-opt6" onclick="selectEffectPreset('ro')">
+              <div class="opt-header">
+                <span class="opt-tag">OPCIÓN 6 (RAGNAROK)</span>
+                <span style="color: var(--accent-orange); font-size: 18px;">⚔️</span>
+              </div>
+              <div class="opt-title">Llamarada Estilo Ragnarok Online</div>
+              <div class="opt-desc">
+                Columna vertical de fuego ardiente continuo inspirado en el estado "Burning" / "Fire Wall" de Ragnarok Online, a juego con el stun de estrellitas del Torrasque.
+              </div>
+              <div class="opt-preview-box">
+                <img src="showcase_assets/ro_fire.gif" width="44" alt="RO Fire Preview">
+              </div>
+            </div>
+
+            <!-- OPCIÓN 7: Combo Híbrido Recomendado -->
+            <div class="opt-card selected" id="card-opt7" onclick="selectEffectPreset('hybrid')">
+              <div class="opt-header">
+                <span class="opt-tag" style="background: var(--accent-orange); color: #fff;">RECOMENDADA</span>
+                <span style="color: #ffaa00; font-size: 18px;">⭐</span>
+              </div>
+              <div class="opt-title">Combo Híbrido (Tinte + Ascuas + Base)</div>
+              <div class="opt-desc">
+                La mejor combinación: modulación naranja pulsante en el Zerg + ascuas ascendentes y pequeñas llamitas a los pies. Máxima espectacularidad y claridad visual.
+              </div>
+              <div class="opt-preview-box">
+                <div style="position: relative; display: flex; align-items: center; justify-content: center;">
+                  <img src="showcase_assets/zergling_run.gif" style="filter: brightness(1.25) sepia(0.85) saturate(3) hue-rotate(-22deg);" width="56" alt="Zerg">
+                  <img src="showcase_assets/flame_feet.gif" style="position: absolute; bottom: -8px;" width="50" alt="Feet">
+                  <img src="showcase_assets/embers_burst.gif" style="position: absolute; top: -14px;" width="38" alt="Embers">
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- BARRA LATERAL: DISEÑO DE MECÁNICAS & NÚMEROS -->
+    <aside class="sidebar">
+      
+      <!-- Resumen del Rediseño del Firebat -->
+      <div class="sc-panel">
+        <div class="sc-panel-header">
+          <div class="sc-panel-title">
+            <span style="color: var(--accent-orange);">⚙️</span> NUEVAS MECÁNICAS
+          </div>
+        </div>
+        <div class="sc-panel-body" style="display: flex; flex-direction: column; gap: 14px;">
+          
+          <div class="stat-box">
+            <div style="font-family: var(--font-display); font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 6px;">
+              1. DAÑO DIRECTO INICIAL: <span style="color: var(--accent-amber);">MUY BAJO</span>
+            </div>
+            <p style="font-size: 13px; color: var(--text-muted); line-height: 1.4;">
+              El chorro inicial de napalm causa solo <strong>4.0 HP</strong> de impacto rápido (antes 24.0 HP). Su rol principal pasa a ser el control de área y aplicación del debuff.
+            </p>
+          </div>
+
+          <div class="stat-box">
+            <div style="font-family: var(--font-display); font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 6px;">
+              2. DAÑO POR TIEMPO (DoT): <span style="color: var(--accent-orange);">MODERADO</span>
+            </div>
+            <p style="font-size: 13px; color: var(--text-muted); line-height: 1.4;">
+              Aplica combustión biológica: <strong>2.0 HP cada 0.35s</strong> durante <strong>3.5s</strong> (~20 HP totales por quemadura). Mantiene a los Zergs bajo fuego continuo.
+            </p>
+          </div>
+
+          <div class="stat-box">
+            <div style="font-family: var(--font-display); font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 6px;">
+              3. REDUCCIÓN DE ARMADURA (SHRED): <span style="color: var(--accent-cyan);">ESCALABLE</span>
+            </div>
+            <p style="font-size: 13px; color: var(--text-muted); line-height: 1.4;">
+              La coraza se funde por el calor extremo. Cada nivel de mejora del Lanzallamas aumenta la reducción de armadura enemiga:
+            </p>
+
+            <table class="scale-table">
+              <thead>
+                <tr>
+                  <th>Nivel Fuego</th>
+                  <th>Reducción</th>
+                  <th>Duración</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Nivel 1</td>
+                  <td style="color: var(--accent-orange); font-weight: bold;">-1 Armadura</td>
+                  <td>3.5 s</td>
+                </tr>
+                <tr>
+                  <td>Nivel 2</td>
+                  <td style="color: var(--accent-orange); font-weight: bold;">-2 Armadura</td>
+                  <td>4.0 s</td>
+                </tr>
+                <tr>
+                  <td>Nivel 3+</td>
+                  <td style="color: var(--accent-red); font-weight: bold;">-3 Armadura</td>
+                  <td>5.0 s</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="stat-box" style="border-color: rgba(0, 229, 255, 0.4); background: rgba(0, 229, 255, 0.04);">
+            <div style="font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--accent-cyan); margin-bottom: 4px;">
+              🎯 SINERGIA CON RIFLE C-14
+            </div>
+            <p style="font-size: 12px; color: #b4d2e8; line-height: 1.4;">
+              Como el rifle dispara a altísima cadencia (12+ balas/s) y cada bala calcula <code>max(1, bala - armadura)</code>, bajarle 2 o 3 puntos de armadura a un Hidralisco (armadura 2) o Ultralisco (armadura 4) <strong>multiplica el DPS de tus balas hasta por 300%</strong>.
+            </p>
+          </div>
+
+          <button class="btn-action-main" onclick="copyChoiceToClipboard()">
+            <span>📋</span> COPIAR ELECCIÓN PARA EL CHAT
+          </button>
+
+        </div>
+      </div>
+
+    </aside>
+
+  </div>
+
+  <div class="toast-msg" id="toast">
+    ✓ Elección copiada al portapapeles. ¡Pégala en el chat!
+  </div>
+
+  <script>
+    // Estado interactivo
+    let currentUnit = 'zergling';
+    let currentPreset = 'hybrid';
+    let isBurned = true;
+    let tintIntensity = 85;
+
+    const unitSprites = {
+      zergling: 'showcase_assets/zergling_run.gif',
+      hydralisk: 'showcase_assets/hydralisk_walk.gif',
+      ultralisk: 'showcase_assets/ultralisk_walk.gif'
+    };
+
+    const unitScales = {
+      zergling: { scale: 1.8, yOffset: 15, barTop: -36 },
+      hydralisk: { scale: 1.8, yOffset: 10, barTop: -48 },
+      ultralisk: { scale: 1.3, yOffset: 5, barTop: -72 }
+    };
+
+    function setUnit(unit) {
+      currentUnit = unit;
+      document.querySelectorAll('.btn-unit').forEach(b => {
+        if (b.innerText.toLowerCase().includes(unit)) {
+          b.classList.add('active');
+        } else if (b.innerText.toLowerCase().includes('zergling') || b.innerText.toLowerCase().includes('hidralisco') || b.innerText.toLowerCase().includes('ultralisco')) {
+          b.classList.remove('active');
+        }
+      });
+
+      const sprite = document.getElementById('unit-sprite');
+      sprite.src = unitSprites[unit];
+
+      const cont = document.getElementById('unit-container');
+      cont.style.transform = `scale(${unitScales[unit].scale}) translateY(${unitScales[unit].yOffset}px)`;
+
+      const bar = document.querySelector('.unit-health-bar');
+      if (bar) {
+        bar.style.top = unitScales[unit].barTop + 'px';
+      }
+    }
+
+    function updateTintIntensity(val) {
+      tintIntensity = val;
+      document.getElementById('tint-val').innerText = val + '%';
+      applyPresetStyles();
+    }
+
+    function toggleBurnState() {
+      isBurned = !isBurned;
+      const btn = document.getElementById('btn-toggle-burn');
+      const badge = document.getElementById('armor-badge-mini');
+      const armorText = document.getElementById('armor-text');
+
+      if (isBurned) {
+        btn.innerText = 'TOGGLE: DEBUFF ON';
+        btn.style.borderColor = '#ff5533';
+        btn.style.color = '#ff8866';
+        badge.classList.add('shredded');
+        armorText.innerText = 'ARMADURA: -3 [DERRETIDA]';
+      } else {
+        btn.innerText = 'TOGGLE: DEBUFF OFF';
+        btn.style.borderColor = '#446688';
+        btn.style.color = '#88aacc';
+        badge.classList.remove('shredded');
+        armorText.innerText = 'ARMADURA: INTACTA';
+      }
+
+      applyPresetStyles();
+    }
+
+    function selectEffectPreset(preset) {
+      currentPreset = preset;
+      
+      // Actualizar tarjetas seleccionadas
+      document.querySelectorAll('.opt-card').forEach(c => c.classList.remove('selected'));
+      const cardMap = {
+        'tint': 'card-opt1',
+        'feet': 'card-opt2',
+        'body': 'card-opt3',
+        'embers': 'card-opt4',
+        'badge': 'card-opt5',
+        'ro': 'card-opt6',
+        'hybrid': 'card-opt7'
+      };
+      if (cardMap[preset]) {
+        document.getElementById(cardMap[preset]).classList.add('selected');
+      }
+
+      // Actualizar título de cabecera
+      const titles = {
+        'tint': 'EFECTO: 1. TINTE TÉRMICO NARANJA (MODULATE)',
+        'feet': 'EFECTO: 2. MINI-LLAMAS A LOS PIES (GROUND FIRE)',
+        'body': 'EFECTO: 3. FUEGO CORPORAL (TORSO OVERLAY)',
+        'embers': 'EFECTO: 4. ASCUAS Y CHISPAS VOLÁTILES',
+        'badge': 'EFECTO: 5. ÍCONO TÁCTICO DE ARMADURA ROTA',
+        'ro': 'EFECTO: 6. LLAMARADA RAGNAROK ONLINE (BURNING)',
+        'hybrid': 'EFECTO: 7. COMBO HÍBRIDO (RECOMENDADO)'
+      };
+      document.getElementById('active-effect-name').innerText = titles[preset] || 'EFECTO SELECCIONADO';
+
+      applyPresetStyles();
+    }
+
+    function applyPresetStyles() {
+      const sprite = document.getElementById('unit-sprite');
+      const fxFeet = document.getElementById('fx-feet');
+      const fxBody = document.getElementById('fx-body');
+      const fxRo = document.getElementById('fx-ro');
+      const fxEmbers = document.getElementById('fx-embers');
+      const fxBadge = document.getElementById('fx-badge');
+
+      // Ocultar todas las capas inicialmente
+      [fxFeet, fxBody, fxRo, fxEmbers, fxBadge].forEach(el => el.style.display = 'none');
+      sprite.classList.remove('burned');
+      sprite.style.filter = '';
+
+      if (!isBurned) {
+        return;
+      }
+
+      // Configurar según el preset
+      const tintFactor = tintIntensity / 100;
+
+      switch(currentPreset) {
+        case 'tint':
+          sprite.classList.add('burned');
+          sprite.style.filter = `drop-shadow(0 0 ${16 * tintFactor}px rgba(255,90,0,${0.85 * tintFactor})) brightness(${1 + 0.3 * tintFactor}) sepia(${0.9 * tintFactor}) saturate(${1 + 2.5 * tintFactor}) hue-rotate(-22deg)`;
+          break;
+
+        case 'feet':
+          fxFeet.style.display = 'block';
+          break;
+
+        case 'body':
+          fxBody.style.display = 'block';
+          break;
+
+        case 'embers':
+          fxEmbers.style.display = 'block';
+          break;
+
+        case 'badge':
+          fxBadge.style.display = 'block';
+          break;
+
+        case 'ro':
+          fxRo.style.display = 'block';
+          break;
+
+        case 'hybrid':
+          sprite.classList.add('burned');
+          sprite.style.filter = `drop-shadow(0 0 ${16 * tintFactor}px rgba(255,90,0,${0.85 * tintFactor})) brightness(${1 + 0.3 * tintFactor}) sepia(${0.9 * tintFactor}) saturate(${1 + 2.5 * tintFactor}) hue-rotate(-22deg)`;
+          fxFeet.style.display = 'block';
+          fxEmbers.style.display = 'block';
+          break;
+      }
+    }
+
+    function copyChoiceToClipboard() {
+      const presetNames = {
+        'tint': 'Opción 1: Tinte Térmico Naranja Pulsante (Solo colorear naranjo sobre el sprite, sin capas extra)',
+        'feet': 'Opción 2: Llamitas a los pies / base (Ground Fire)',
+        'body': 'Opción 3: Fuego corporal envolvente en el torso',
+        'embers': 'Opción 4: Ascuas y chispas flotantes que suben',
+        'badge': 'Opción 5: Ícono táctico flotante de escudo derretido / armadura rota',
+        'ro': 'Opción 6: Llamarada estilo Ragnarok Online (Burning)',
+        'hybrid': 'Opción 7: Combo Híbrido Recomendado (Tinte Naranja + Llamita a los pies + Ascuas flotantes)'
+      };
+
+      const text = `Me gusta la "${presetNames[currentPreset]}". Procede a implementarla junto con la mecánica de bajo daño inicial, DoT y reducción de armadura escalable para el Firebat.`;
+      navigator.clipboard.writeText(text).then(() => {
+        showToast();
+      }).catch(() => {
+        showToast();
+      });
+    }
+
+    function showToast() {
+      const toast = document.getElementById('toast');
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3500);
+    }
+
+    // Inicializar
+    setUnit('zergling');
+    selectEffectPreset('hybrid');
+  </script>
+</body>
+</html>
