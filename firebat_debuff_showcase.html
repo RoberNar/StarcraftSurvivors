@@ -3,20 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StarCraft Survivors - Catálogo Visual de Efectos de Fuego y Debuff (Firebat)</title>
+  <title>StarCraft Survivors - Efectos Originales de Habilidades de StarCraft 1 (Paleta Oficial)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg-dark: #06090e;
-      --panel-bg: rgba(13, 20, 30, 0.92);
+      --panel-bg: rgba(13, 20, 30, 0.94);
       --panel-border: #22374d;
       --accent-orange: #ff6a00;
       --accent-amber: #ffaa00;
       --accent-red: #ff2a14;
       --accent-cyan: #00e5ff;
       --accent-green: #2ecc71;
+      --accent-purple: #c044fe;
       --text-main: #e2ecf5;
       --text-muted: #8397aa;
       --font-display: 'Rajdhani', sans-serif;
@@ -34,8 +35,8 @@
     body {
       background-color: var(--bg-dark);
       background-image: 
-        radial-gradient(circle at 50% 0%, rgba(255, 90, 0, 0.12) 0%, transparent 60%),
-        radial-gradient(circle at 10% 30%, rgba(0, 180, 255, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 50% 0%, rgba(255, 90, 0, 0.14) 0%, transparent 60%),
+        radial-gradient(circle at 15% 40%, rgba(192, 68, 254, 0.08) 0%, transparent 50%),
         linear-gradient(180deg, #070b10 0%, #030507 100%);
       color: var(--text-main);
       font-family: var(--font-body);
@@ -47,7 +48,6 @@
       overflow-x: hidden;
     }
 
-    /* Scanlines CRT overlay */
     body::before {
       content: " ";
       display: block;
@@ -57,12 +57,12 @@
       z-index: 999;
       background-size: 100% 3px, 6px 100%;
       pointer-events: none;
-      opacity: 0.7;
+      opacity: 0.65;
     }
 
     header {
       width: 100%;
-      max-width: 1200px;
+      max-width: 1240px;
       margin-bottom: 24px;
       display: flex;
       flex-direction: column;
@@ -70,7 +70,6 @@
       text-align: center;
       border-bottom: 2px solid var(--panel-border);
       padding-bottom: 18px;
-      position: relative;
     }
 
     .badge-sub {
@@ -89,12 +88,12 @@
 
     h1 {
       font-family: var(--font-display);
-      font-size: 38px;
+      font-size: 36px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 2px;
       color: #fff;
-      text-shadow: 0 0 20px rgba(255, 110, 0, 0.6);
+      text-shadow: 0 0 20px rgba(255, 110, 0, 0.5);
       margin-bottom: 6px;
     }
 
@@ -105,14 +104,13 @@
     .subtitle {
       font-size: 15px;
       color: var(--text-muted);
-      max-width: 820px;
+      max-width: 860px;
       line-height: 1.5;
     }
 
-    /* Layout principal */
     .container {
       width: 100%;
-      max-width: 1200px;
+      max-width: 1240px;
       display: grid;
       grid-template-columns: 1fr 340px;
       gap: 24px;
@@ -124,7 +122,6 @@
       }
     }
 
-    /* Panel Estilo StarCraft Metal */
     .sc-panel {
       background: var(--panel-bg);
       border: 1px solid var(--panel-border);
@@ -146,7 +143,7 @@
 
     .sc-panel-title {
       font-family: var(--font-display);
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 700;
       letter-spacing: 1.5px;
       text-transform: uppercase;
@@ -160,18 +157,18 @@
       padding: 20px;
     }
 
-    /* Escenario Interactivo Central */
+    /* Escenario central */
     .stage-wrapper {
       position: relative;
       background: #030508;
       border: 2px solid #1c2b3a;
       border-radius: 8px;
-      height: 380px;
+      height: 400px;
       overflow: hidden;
       display: flex;
       justify-content: center;
       align-items: center;
-      box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.9);
+      box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.95);
       background-image: url('showcase_assets/creep_bg.png');
       background-repeat: repeat;
       background-size: 128px 128px;
@@ -180,7 +177,7 @@
     .stage-vignette {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: radial-gradient(circle at center, transparent 35%, rgba(4, 7, 12, 0.95) 90%);
+      background: radial-gradient(circle at center, transparent 30%, rgba(3, 5, 8, 0.96) 88%);
       pointer-events: none;
     }
 
@@ -193,7 +190,6 @@
       pointer-events: none;
     }
 
-    /* Unidad y Capas de Efecto */
     .unit-container {
       position: relative;
       display: flex;
@@ -205,18 +201,15 @@
 
     .unit-sprite {
       image-rendering: pixelated;
-      image-rendering: -moz-crisp-edges;
-      image-rendering: crisp-edges;
       display: block;
       filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.85));
-      transition: filter 0.25s ease;
+      transition: filter 0.2s ease;
     }
 
-    /* Modulación Naranja Térmica (CSS Filter Emulando Godot Modulate) */
     .unit-sprite.burned {
       filter: 
-        drop-shadow(0 0 18px rgba(255, 90, 0, 0.75))
-        brightness(1.25)
+        drop-shadow(0 0 16px rgba(255, 90, 0, 0.75))
+        brightness(1.22)
         sepia(0.85)
         saturate(3.2)
         hue-rotate(-22deg);
@@ -228,76 +221,25 @@
         filter: drop-shadow(0 0 12px rgba(255, 70, 0, 0.6)) brightness(1.15) sepia(0.8) saturate(3.0) hue-rotate(-25deg);
       }
       100% {
-        filter: drop-shadow(0 0 24px rgba(255, 140, 0, 0.95)) brightness(1.4) sepia(0.9) saturate(3.8) hue-rotate(-18deg);
+        filter: drop-shadow(0 0 24px rgba(255, 140, 0, 0.95)) brightness(1.35) sepia(0.9) saturate(3.6) hue-rotate(-18deg);
       }
     }
 
-    /* Capa de Efecto a los Pies */
-    .fx-layer-feet {
-      position: absolute;
-      bottom: -12px;
-      left: 50%;
-      transform: translateX(-50%);
-      pointer-events: none;
-      image-rendering: pixelated;
-      display: none;
-      z-index: 12;
-      opacity: 0.95;
-    }
-
-    /* Capa de Efecto en el Cuerpo */
-    .fx-layer-body {
+    /* Capa de Efecto SC1 superpuesta */
+    .sc1-fx-overlay {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
       pointer-events: none;
       image-rendering: pixelated;
-      display: none;
-      z-index: 13;
-      mix-blend-mode: screen;
-      opacity: 0.9;
-    }
-
-    /* Capa de Efecto Ragnarok Online Fire */
-    .fx-layer-ro {
-      position: absolute;
-      bottom: -6px;
-      left: 50%;
-      transform: translateX(-50%);
-      pointer-events: none;
-      image-rendering: pixelated;
-      display: none;
-      z-index: 14;
-      mix-blend-mode: screen;
-    }
-
-    /* Capa de Ascuas / Partículas */
-    .fx-layer-embers {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -65%);
-      pointer-events: none;
-      image-rendering: pixelated;
-      display: none;
       z-index: 15;
+      mix-blend-mode: screen;
+      opacity: 0.95;
+      transition: all 0.2s ease;
     }
 
-    /* Capa de Ícono de Reducción de Armadura (Badge) */
-    .fx-layer-badge {
-      position: absolute;
-      top: -46px;
-      left: 50%;
-      transform: translateX(-50%);
-      pointer-events: none;
-      image-rendering: pixelated;
-      display: none;
-      z-index: 16;
-      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.8));
-    }
-
-    /* Barra de Vida y Armadura Flotante estilo SC1 */
+    /* Barra de Vida y Armadura */
     .unit-health-bar {
       position: absolute;
       top: -36px;
@@ -326,7 +268,6 @@
       height: 100%;
       background: linear-gradient(90deg, #ff3300, #ff8800);
       box-shadow: 0 0 6px #ff5500;
-      transition: width 0.3s;
     }
 
     .armor-badge-mini {
@@ -338,15 +279,8 @@
       display: flex;
       align-items: center;
       gap: 4px;
-      background: rgba(20, 30, 40, 0.85);
-      border: 1px solid #3d5872;
-      color: #92b8de;
-      transition: all 0.25s;
-    }
-
-    .armor-badge-mini.shredded {
       background: rgba(220, 40, 10, 0.85);
-      border-color: #ff5533;
+      border: 1px solid #ff5533;
       color: #fff;
       box-shadow: 0 0 10px rgba(255, 60, 20, 0.6);
       animation: pulse-badge 0.8s infinite alternate;
@@ -357,7 +291,6 @@
       to { transform: scale(1.08); }
     }
 
-    /* Controles de la Sala de Pruebas */
     .stage-controls {
       display: flex;
       justify-content: space-between;
@@ -402,24 +335,10 @@
       box-shadow: 0 0 12px rgba(255, 106, 0, 0.5);
     }
 
-    .slider-group {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-family: var(--font-mono);
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-
-    .slider-group input[type="range"] {
-      accent-color: var(--accent-orange);
-      cursor: pointer;
-    }
-
-    /* Grid de Selección de Opciones de Efectos */
+    /* Grid de Efectos Auténticos de SC1 */
     .options-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
       gap: 16px;
       margin-top: 20px;
     }
@@ -434,7 +353,7 @@
       position: relative;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
 
     .opt-card:hover {
@@ -457,10 +376,10 @@
 
     .opt-tag {
       font-family: var(--font-mono);
-      font-size: 11px;
+      font-size: 10px;
       color: var(--accent-orange);
       background: rgba(255, 106, 0, 0.15);
-      padding: 2px 8px;
+      padding: 2px 7px;
       border-radius: 3px;
       border: 1px solid rgba(255, 106, 0, 0.3);
     }
@@ -472,6 +391,12 @@
       color: #fff;
     }
 
+    .opt-source {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--accent-cyan);
+    }
+
     .opt-desc {
       font-size: 13px;
       color: var(--text-muted);
@@ -479,7 +404,7 @@
     }
 
     .opt-preview-box {
-      height: 90px;
+      height: 100px;
       background: #040609;
       border: 1px solid #182432;
       border-radius: 4px;
@@ -494,9 +419,9 @@
 
     .opt-preview-box img {
       image-rendering: pixelated;
+      max-height: 86px;
     }
 
-    /* Panel Lateral de Mecánicas */
     .sidebar {
       display: flex;
       flex-direction: column;
@@ -510,40 +435,6 @@
       padding: 14px;
     }
 
-    .stat-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 6px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      font-size: 13px;
-    }
-
-    .stat-row:last-child {
-      border-bottom: none;
-    }
-
-    .stat-label {
-      color: var(--text-muted);
-      font-family: var(--font-mono);
-      font-size: 12px;
-    }
-
-    .stat-val {
-      font-family: var(--font-mono);
-      font-weight: 700;
-      color: #fff;
-    }
-
-    .stat-val.highlight {
-      color: var(--accent-orange);
-    }
-
-    .stat-val.good {
-      color: var(--accent-green);
-    }
-
-    /* Tabla de Escalado de Armadura */
     .scale-table {
       width: 100%;
       border-collapse: collapse;
@@ -566,11 +457,6 @@
       color: var(--text-main);
     }
 
-    .scale-table tr:nth-child(even) {
-      background: rgba(255, 255, 255, 0.02);
-    }
-
-    /* Botón de Acción */
     .btn-action-main {
       width: 100%;
       background: linear-gradient(180deg, #ff7a18 0%, #cf4000 100%);
@@ -597,11 +483,6 @@
       transform: translateY(-1px);
     }
 
-    .btn-action-main:active {
-      transform: translateY(1px);
-    }
-
-    /* Toast emergente de confirmación */
     .toast-msg {
       position: fixed;
       bottom: 24px;
@@ -629,70 +510,55 @@
 <body>
 
   <header>
-    <div class="badge-sub">EXPEDICIÓN TÁCTICA // INGENIERÍA DE ARMAS SC-SURVIVORS</div>
-    <h1>MECÁNICA & EFECTOS DE QUEMADO <span>[FIREBAT / LANZALLAMAS]</span></h1>
+    <div class="badge-sub">ARCHIVOS OFICIALES STARCRAFT 1 // PALETA CANÓNICA SD 256C</div>
+    <h1>EFECTOS DE HABILIDADES Y DEBUFFS ORIGINALES <span>[STARCRAFT 1]</span></h1>
     <p class="subtitle">
-      Explora en vivo los diferentes efectos visuales para representar la combustión biológica y la reducción de armadura en los enemigos Zerg. Selecciona tu combinación favorita para implementarla directamente en Godot 4.
+      Extraídos directamente de los archivos <code>.grp</code> y paleta original <code>badlands.wpe</code> de StarCraft 1. Elige cuál de estas habilidades/efectos canónicos prefieres usar para representar el estado de quemadura y reducción de armadura del Lanzallamas.
     </p>
   </header>
 
   <div class="container">
     
-    <!-- ÁREA PRINCIPAL: SIMULADOR VISUAL -->
     <main style="display: flex; flex-direction: column; gap: 20px;">
       
+      <!-- SIMULADOR EN VIVO -->
       <div class="sc-panel">
         <div class="sc-panel-header">
           <div class="sc-panel-title">
-            <span style="color: var(--accent-orange);">🔥</span> SIMULADOR EN TIEMPO REAL: ENEMIGO DEBUF FEADO
+            <span style="color: var(--accent-orange);">🔥</span> SIMULADOR: ENEMIGO CON EFECTO ORIGINAL DE SC1
           </div>
           <div style="font-family: var(--font-mono); font-size: 12px; color: var(--accent-amber);" id="active-effect-name">
-            EFECTO: COMBO HÍBRIDO (RECOMENDADO)
+            EFECTO ACTIVO: 1. FUEGO ORIGINAL DE STARCRAFT (ofirec.grp)
           </div>
         </div>
 
         <div class="sc-panel-body">
-          
-          <!-- Escenario de Prueba -->
           <div class="stage-wrapper" id="stage">
             <div class="stage-grid-overlay"></div>
             <div class="stage-vignette"></div>
 
-            <!-- Contenedor de la Unidad con todas sus capas -->
             <div class="unit-container" id="unit-container">
               
               <!-- Barra de Vida y Armadura -->
               <div class="unit-health-bar">
-                <div class="armor-badge-mini shredded" id="armor-badge-mini">
-                  <span id="armor-icon">🛡️</span> <span id="armor-text">ARMADURA: -3 [DERRETIDA]</span>
+                <div class="armor-badge-mini" id="armor-badge-mini">
+                  <span>🛡️</span> <span id="armor-text">ARMADURA: -3 [DEBUFF SC1]</span>
                 </div>
                 <div class="hp-track">
-                  <div class="hp-fill" id="hp-fill"></div>
+                  <div class="hp-fill"></div>
                 </div>
               </div>
 
-              <!-- Capa 1: Fuego a los pies -->
-              <img src="showcase_assets/flame_feet.gif" class="fx-layer-feet" id="fx-feet" alt="Feet Fire">
-
-              <!-- Capa 2: Sprite base del Zerg (Zergling / Hydralisk / Ultralisk) -->
+              <!-- Sprite base del Zerg (Zergling / Hydralisk / Ultralisk) -->
               <img src="showcase_assets/zergling_run.gif" class="unit-sprite burned" id="unit-sprite" alt="Zerg Unit">
 
-              <!-- Capa 3: Fuego en el torso / cuerpo -->
-              <img src="showcase_assets/flame_body.gif" class="fx-layer-body" id="fx-body" alt="Body Fire">
-
-              <!-- Capa 4: Fuego estilo Ragnarok Online -->
-              <img src="showcase_assets/ro_fire.gif" class="fx-layer-ro" id="fx-ro" alt="RO Fire">
-
-              <!-- Capa 5: Ascuas y Chispas Volátiles -->
-              <img src="showcase_assets/embers_burst.gif" class="fx-layer-embers" id="fx-embers" alt="Embers">
-
-              <!-- Capa 6: Badge Flotante de Escudo Roto -->
-              <img src="showcase_assets/armor_shred_icon.gif" class="fx-layer-badge" id="fx-badge" alt="Armor Shred Badge">
+              <!-- Capa del efecto original de SC1 animado -->
+              <img src="showcase_assets/sc1_fire_original.gif" class="sc1-fx-overlay" id="sc1-fx" alt="SC1 Effect">
 
             </div>
           </div>
 
-          <!-- Barra de Controles Rápidos -->
+          <!-- Controles de la Sala -->
           <div class="stage-controls">
             <div class="unit-selector">
               <button class="btn-unit active" onclick="setUnit('zergling')">Zergling</button>
@@ -700,15 +566,14 @@
               <button class="btn-unit" onclick="setUnit('ultralisk')">Ultralisco</button>
             </div>
 
-            <div class="slider-group">
-              <span>INTENSIDAD TINTE:</span>
-              <input type="range" id="tint-slider" min="0" max="100" value="85" oninput="updateTintIntensity(this.value)">
-              <span id="tint-val">85%</span>
+            <div style="display: flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: 12px;">
+              <span>TINTE NARANJA EN ZERG:</span>
+              <button class="btn-unit active" id="btn-toggle-tint" onclick="toggleZergTint()">ACTIVADO</button>
             </div>
 
             <div style="display: flex; gap: 8px;">
-              <button class="btn-unit" id="btn-toggle-burn" onclick="toggleBurnState()" style="border-color: #ff5533; color: #ff8866;">
-                TOGGLE: DEBUFF ON
+              <button class="btn-unit" id="btn-toggle-fx" onclick="toggleFxVisibility()" style="border-color: #ff5533; color: #ff8866;">
+                EFECTO VISIBLE
               </button>
             </div>
           </div>
@@ -716,126 +581,145 @@
         </div>
       </div>
 
-      <!-- CATÁLOGO DE OPCIONES DE EFECTOS -->
+      <!-- CATÁLOGO DE EFECTOS ORIGINALES DE STARCRAFT 1 -->
       <div class="sc-panel">
         <div class="sc-panel-header">
           <div class="sc-panel-title">
-            <span>📋</span> OPCIONES DE ESTILO DE EFECTO (SELECCIONA PARA PROBAR)
+            <span>📋</span> CATÁLOGO DE HABILIDADES Y EFECTOS ORIGINALES DE STARCRAFT
           </div>
           <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-muted);">
-            HAZ CLIC EN CUALQUIER TARJETA
+            HAZ CLIC PARA PROBARLO EN EL SIMULADOR
           </span>
         </div>
 
         <div class="sc-panel-body">
           <div class="options-grid">
             
-            <!-- OPCIÓN 1: Tinte Térmico Naranja (Sin sprites extra) -->
-            <div class="opt-card" id="card-opt1" onclick="selectEffectPreset('tint')">
+            <!-- 1. Fuego Original de StarCraft (ofirec.grp) -->
+            <div class="opt-card selected" id="card-sc1-fire" onclick="selectSc1Effect('fire')">
               <div class="opt-header">
-                <span class="opt-tag">OPCIÓN 1</span>
-                <span style="color: var(--accent-orange); font-size: 18px;">✨</span>
-              </div>
-              <div class="opt-title">Tinte Térmico Naranja (Modulate)</div>
-              <div class="opt-desc">
-                Colorea al Zerg con un tinte naranja ígneo pulsante (`Color(1.8, 0.7, 0.2)`). 100% libre de sprites extra, ultraliviano y perfecto para enjambres masivos de 200+ zergs.
-              </div>
-              <div class="opt-preview-box">
-                <img src="showcase_assets/zergling_run.gif" style="filter: drop-shadow(0 0 14px rgba(255,90,0,0.8)) brightness(1.3) sepia(0.9) saturate(3.5) hue-rotate(-22deg);" width="70" alt="Tint Preview">
-              </div>
-            </div>
-
-            <!-- OPCIÓN 2: Mini-Llamas a los Pies -->
-            <div class="opt-card" id="card-opt2" onclick="selectEffectPreset('feet')">
-              <div class="opt-header">
-                <span class="opt-tag">OPCIÓN 2</span>
+                <span class="opt-tag">CANÓNICO SC1</span>
                 <span style="color: var(--accent-orange); font-size: 18px;">🔥</span>
               </div>
-              <div class="opt-title">Llamitas a los Pies (Ground Fire)</div>
+              <div class="opt-title">1. Fuego Auténtico de StarCraft</div>
+              <div class="opt-source">unit/thingy/ofirec.grp (24 frames)</div>
               <div class="opt-desc">
-                Pequeñas llamaradas pixel art animadas danzando en la base del enemigo como si sus patas y el suelo ardieran. Excelente legibilidad sin tapar el modelo.
+                La llamarada clásica de fuego y brasas que arde en StarCraft cuando una unidad o estructura sufre combustión. Paleta de amarillos y naranjas de 256 colores.
               </div>
               <div class="opt-preview-box">
-                <img src="showcase_assets/flame_feet.gif" width="60" alt="Feet Flame Preview">
+                <img src="showcase_assets/sc1_fire_original.gif" alt="SC1 Fire">
               </div>
             </div>
 
-            <!-- OPCIÓN 3: Fuego Voraz en el Cuerpo -->
-            <div class="opt-card" id="card-opt3" onclick="selectEffectPreset('body')">
+            <!-- 2. Acid Spores / Esporas Ácidas (sporehit.grp) -->
+            <div class="opt-card" id="card-sc1-acid" onclick="selectSc1Effect('acid')">
               <div class="opt-header">
-                <span class="opt-tag">OPCIÓN 3</span>
-                <span style="color: var(--accent-red); font-size: 18px;">💥</span>
+                <span class="opt-tag" style="background: rgba(192, 68, 254, 0.2); color: var(--accent-purple); border-color: rgba(192, 68, 254, 0.4);">REDUCCIÓN DE ARMADURA SC1</span>
+                <span style="color: var(--accent-purple); font-size: 18px;">☣️</span>
               </div>
-              <div class="opt-title">Fuego Corporal (Torso Overlay)</div>
+              <div class="opt-title">2. Esporas Ácidas (Acid Spores)</div>
+              <div class="opt-source">unit/thingy/sporehit.grp (Devourer)</div>
               <div class="opt-desc">
-                Llamas intensas envolviendo el centro de masa del enemigo. Muestra una combustión voraz y agresiva, ideal para dar sensación de alto calor y calcinación.
+                <strong>La habilidad original de StarCraft para reducir armadura</strong>. El Devourer impregna a la víctima con esporas corrosivas de color rosa-púrpura que aumentan el daño recibido de todas las balas.
               </div>
               <div class="opt-preview-box">
-                <img src="showcase_assets/flame_body.gif" width="65" alt="Body Fire Preview">
+                <img src="showcase_assets/sc1_acid_spores.gif" alt="Acid Spores">
               </div>
             </div>
 
-            <!-- OPCIÓN 4: Ascuas y Chispas Flotantes -->
-            <div class="opt-card" id="card-opt4" onclick="selectEffectPreset('embers')">
+            <!-- 3. Ensnare / Limo Ácido (ensnare.grp) -->
+            <div class="opt-card" id="card-sc1-ensnare" onclick="selectSc1Effect('ensnare')">
               <div class="opt-header">
-                <span class="opt-tag">OPCIÓN 4</span>
-                <span style="color: var(--accent-amber); font-size: 18px;">✨</span>
+                <span class="opt-tag" style="background: rgba(46, 204, 113, 0.2); color: var(--accent-green); border-color: rgba(46, 204, 113, 0.4);">BABA ÁCIDA SC1</span>
+                <span style="color: var(--accent-green); font-size: 18px;">🧪</span>
               </div>
-              <div class="opt-title">Ascuas y Chispas Volátiles</div>
+              <div class="opt-title">3. Limo Corrosivo (Ensnare)</div>
+              <div class="opt-source">unit/thingy/ensnare.grp (Queen)</div>
               <div class="opt-desc">
-                Chispas incandescentes amarillas y naranjas que se desprenden hacia arriba. Efecto elegante, sutil y táctico de fundición de armadura residual.
+                La baba verde-ácida corrosiva de la Reina Zerg que cubre por completo el cuerpo del enemigo, chorreando ácido que derrite exoesqueletos y armaduras.
               </div>
               <div class="opt-preview-box">
-                <img src="showcase_assets/embers_burst.gif" width="55" alt="Embers Preview">
+                <img src="showcase_assets/sc1_ensnare.gif" alt="Ensnare">
               </div>
             </div>
 
-            <!-- OPCIÓN 5: Ícono Flotante de Escudo Derretido -->
-            <div class="opt-card" id="card-opt5" onclick="selectEffectPreset('badge')">
+            <!-- 4. Irradiate / Irradiar (eradlrg.grp) -->
+            <div class="opt-card" id="card-sc1-irradiate" onclick="selectSc1Effect('irradiate')">
               <div class="opt-header">
-                <span class="opt-tag">OPCIÓN 5</span>
-                <span style="color: var(--accent-cyan); font-size: 18px;">🛡️</span>
+                <span class="opt-tag" style="background: rgba(0, 229, 255, 0.15); color: var(--accent-cyan); border-color: rgba(0, 229, 255, 0.3);">DAÑO BIOLÓGICO SC1</span>
+                <span style="color: var(--accent-cyan); font-size: 18px;">☢️</span>
               </div>
-              <div class="opt-title">Ícono Táctico de Armadura Rota</div>
+              <div class="opt-title">4. Nube Tóxica (Irradiate)</div>
+              <div class="opt-source">unit/thingy/eradlrg.grp (Science Vessel)</div>
               <div class="opt-desc">
-                Escudo agrietado incandescente flotando sobre la cabeza con flechas hacia abajo estilo RTS clásico. Comunica de forma 100% matemática que el enemigo tiene menos armadura.
+                La nube de radiación verde radioactiva del Science Vessel. En StarCraft es el efecto de daño continuo por tiempo (DoT) biológico por excelencia.
               </div>
               <div class="opt-preview-box">
-                <img src="showcase_assets/armor_shred_icon.gif" width="48" alt="Badge Preview">
+                <img src="showcase_assets/sc1_irradiate.gif" alt="Irradiate">
               </div>
             </div>
 
-            <!-- OPCIÓN 6: Llamarada Estilo Ragnarok Online -->
-            <div class="opt-card" id="card-opt6" onclick="selectEffectPreset('ro')">
+            <!-- 5. Fuego de Suelo / Combustión Baja (eldfire.grp) -->
+            <div class="opt-card" id="card-sc1-eldfire" onclick="selectSc1Effect('eldfire')">
               <div class="opt-header">
-                <span class="opt-tag">OPCIÓN 6 (RAGNAROK)</span>
-                <span style="color: var(--accent-orange); font-size: 18px;">⚔️</span>
+                <span class="opt-tag">FUEGO COMPACTO SC1</span>
+                <span style="color: var(--accent-amber); font-size: 18px;">🔥</span>
               </div>
-              <div class="opt-title">Llamarada Estilo Ragnarok Online</div>
+              <div class="opt-title">5. Fuego de Combustión Baja</div>
+              <div class="opt-source">unit/thingy/eldfire.grp (17 frames)</div>
               <div class="opt-desc">
-                Columna vertical de fuego ardiente continuo inspirado en el estado "Burning" / "Fire Wall" de Ragnarok Online, a juego con el stun de estrellitas del Torrasque.
+                Llama más compacta y centrada extraída de las explosiones de combustible de StarCraft 1. Ideal para no tapar en exceso el sprite del enemigo pero mantener el fuego visible.
               </div>
               <div class="opt-preview-box">
-                <img src="showcase_assets/ro_fire.gif" width="44" alt="RO Fire Preview">
+                <img src="showcase_assets/sc1_eldfire.gif" alt="SC1 Eldfire">
               </div>
             </div>
 
-            <!-- OPCIÓN 7: Combo Híbrido Recomendado -->
-            <div class="opt-card selected" id="card-opt7" onclick="selectEffectPreset('hybrid')">
+            <!-- 6. Maelstrom / Vórtice Psiónico (MaelHit.grp) -->
+            <div class="opt-card" id="card-sc1-maelstrom" onclick="selectSc1Effect('maelstrom')">
               <div class="opt-header">
-                <span class="opt-tag" style="background: var(--accent-orange); color: #fff;">RECOMENDADA</span>
-                <span style="color: #ffaa00; font-size: 18px;">⭐</span>
+                <span class="opt-tag" style="background: rgba(255, 42, 20, 0.15); color: var(--accent-red); border-color: rgba(255, 42, 20, 0.3);">VÓRTICE PSÍONICO SC1</span>
+                <span style="color: var(--accent-red); font-size: 18px;">🌀</span>
               </div>
-              <div class="opt-title">Combo Híbrido (Tinte + Ascuas + Base)</div>
+              <div class="opt-title">6. Vórtice de Maelstrom</div>
+              <div class="opt-source">unit/thingy/MaelHit.grp (Dark Archon)</div>
               <div class="opt-desc">
-                La mejor combinación: modulación naranja pulsante en el Zerg + ascuas ascendentes y pequeñas llamitas a los pies. Máxima espectacularidad y claridad visual.
+                El remolino psiónico de color púrpura y carmesí del Dark Archon que envuelve a la criatura biológica y la paraliza/debuffea con energía pura.
               </div>
               <div class="opt-preview-box">
-                <div style="position: relative; display: flex; align-items: center; justify-content: center;">
-                  <img src="showcase_assets/zergling_run.gif" style="filter: brightness(1.25) sepia(0.85) saturate(3) hue-rotate(-22deg);" width="56" alt="Zerg">
-                  <img src="showcase_assets/flame_feet.gif" style="position: absolute; bottom: -8px;" width="50" alt="Feet">
-                  <img src="showcase_assets/embers_burst.gif" style="position: absolute; top: -14px;" width="38" alt="Embers">
-                </div>
+                <img src="showcase_assets/sc1_maelstrom.gif" alt="Maelstrom">
+              </div>
+            </div>
+
+            <!-- 7. Lockdown / Descarga Eléctrica (elect02.grp) -->
+            <div class="opt-card" id="card-sc1-lockdown" onclick="selectSc1Effect('lockdown')">
+              <div class="opt-header">
+                <span class="opt-tag">CHISPAS ELÉCTRICAS SC1</span>
+                <span style="color: #fff; font-size: 18px;">⚡</span>
+              </div>
+              <div class="opt-title">7. Descarga Eléctrica (Lockdown)</div>
+              <div class="opt-source">unit/thingy/elect02.grp (Ghost)</div>
+              <div class="opt-desc">
+                Arcos voltaicos de chispas electromagnéticas blancas y azuladas del disparo de Bloqueo del Fantasma Terran.
+              </div>
+              <div class="opt-preview-box">
+                <img src="showcase_assets/sc1_lockdown.gif" alt="Lockdown">
+              </div>
+            </div>
+
+            <!-- 8. Goteo Cáustico de Plasma (plasdrip.grp) -->
+            <div class="opt-card" id="card-sc1-plasdrip" onclick="selectSc1Effect('plasdrip')">
+              <div class="opt-header">
+                <span class="opt-tag">GOTEO CÁUSTICO SC1</span>
+                <span style="color: var(--accent-orange); font-size: 18px;">💧</span>
+              </div>
+              <div class="opt-title">8. Goteo de Plasma / Resíduo Ardiente</div>
+              <div class="opt-source">unit/thingy/plasdrip.grp (Plasma Drip)</div>
+              <div class="opt-desc">
+                Gotas incandescentes cayendo continuamente del cuerpo del enemigo tras ser impactado por fuego de napalm y plasma biológico.
+              </div>
+              <div class="opt-preview-box">
+                <img src="showcase_assets/sc1_plasdrip.gif" alt="Plasma Drip">
               </div>
             </div>
 
@@ -845,10 +729,8 @@
 
     </main>
 
-    <!-- BARRA LATERAL: DISEÑO DE MECÁNICAS & NÚMEROS -->
+    <!-- BARRA LATERAL -->
     <aside class="sidebar">
-      
-      <!-- Resumen del Rediseño del Firebat -->
       <div class="sc-panel">
         <div class="sc-panel-header">
           <div class="sc-panel-title">
@@ -859,30 +741,26 @@
           
           <div class="stat-box">
             <div style="font-family: var(--font-display); font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 6px;">
-              1. DAÑO DIRECTO INICIAL: <span style="color: var(--accent-amber);">MUY BAJO</span>
+              1. DAÑO DIRECTO INICIAL: <span style="color: var(--accent-amber);">4.0 HP</span>
             </div>
             <p style="font-size: 13px; color: var(--text-muted); line-height: 1.4;">
-              El chorro inicial de napalm causa solo <strong>4.0 HP</strong> de impacto rápido (antes 24.0 HP). Su rol principal pasa a ser el control de área y aplicación del debuff.
+              Impacto directo muy bajo (reducido desde 24.0 HP). Su rol es debilitar corazas y prender en llamas.
             </p>
           </div>
 
           <div class="stat-box">
             <div style="font-family: var(--font-display); font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 6px;">
-              2. DAÑO POR TIEMPO (DoT): <span style="color: var(--accent-orange);">MODERADO</span>
+              2. DoT DE QUEMADURA: <span style="color: var(--accent-orange);">2.0 HP / 0.35s</span>
             </div>
             <p style="font-size: 13px; color: var(--text-muted); line-height: 1.4;">
-              Aplica combustión biológica: <strong>2.0 HP cada 0.35s</strong> durante <strong>3.5s</strong> (~20 HP totales por quemadura). Mantiene a los Zergs bajo fuego continuo.
+              Combustión prolongada de 3.5 segundos (~20 HP totales por quemadura).
             </p>
           </div>
 
           <div class="stat-box">
             <div style="font-family: var(--font-display); font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 6px;">
-              3. REDUCCIÓN DE ARMADURA (SHRED): <span style="color: var(--accent-cyan);">ESCALABLE</span>
+              3. REDUCCIÓN DE ARMADURA (SHRED):
             </div>
-            <p style="font-size: 13px; color: var(--text-muted); line-height: 1.4;">
-              La coraza se funde por el calor extremo. Cada nivel de mejora del Lanzallamas aumenta la reducción de armadura enemiga:
-            </p>
-
             <table class="scale-table">
               <thead>
                 <tr>
@@ -911,22 +789,12 @@
             </table>
           </div>
 
-          <div class="stat-box" style="border-color: rgba(0, 229, 255, 0.4); background: rgba(0, 229, 255, 0.04);">
-            <div style="font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--accent-cyan); margin-bottom: 4px;">
-              🎯 SINERGIA CON RIFLE C-14
-            </div>
-            <p style="font-size: 12px; color: #b4d2e8; line-height: 1.4;">
-              Como el rifle dispara a altísima cadencia (12+ balas/s) y cada bala calcula <code>max(1, bala - armadura)</code>, bajarle 2 o 3 puntos de armadura a un Hidralisco (armadura 2) o Ultralisco (armadura 4) <strong>multiplica el DPS de tus balas hasta por 300%</strong>.
-            </p>
-          </div>
-
           <button class="btn-action-main" onclick="copyChoiceToClipboard()">
             <span>📋</span> COPIAR ELECCIÓN PARA EL CHAT
           </button>
 
         </div>
       </div>
-
     </aside>
 
   </div>
@@ -936,11 +804,10 @@
   </div>
 
   <script>
-    // Estado interactivo
     let currentUnit = 'zergling';
-    let currentPreset = 'hybrid';
-    let isBurned = true;
-    let tintIntensity = 85;
+    let currentSc1Effect = 'fire';
+    let isZergTinted = true;
+    let isFxVisible = true;
 
     const unitSprites = {
       zergling: 'showcase_assets/zergling_run.gif',
@@ -952,6 +819,73 @@
       zergling: { scale: 1.8, yOffset: 15, barTop: -36 },
       hydralisk: { scale: 1.8, yOffset: 10, barTop: -48 },
       ultralisk: { scale: 1.3, yOffset: 5, barTop: -72 }
+    };
+
+    const sc1Effects = {
+      'fire': {
+        file: 'showcase_assets/sc1_fire_original.gif',
+        title: '1. FUEGO ORIGINAL DE STARCRAFT (ofirec.grp)',
+        scale: 0.9,
+        yOffset: 0,
+        blend: 'screen',
+        badge: 'ARMADURA: -3 [FUEGO SC1]'
+      },
+      'acid': {
+        file: 'showcase_assets/sc1_acid_spores.gif',
+        title: '2. ESPORAS ÁCIDAS (Acid Spores - sporehit.grp)',
+        scale: 1.0,
+        yOffset: 0,
+        blend: 'screen',
+        badge: 'ARMADURA: -3 [ESPORAS SC1]'
+      },
+      'ensnare': {
+        file: 'showcase_assets/sc1_ensnare.gif',
+        title: '3. LIMO CORROSIVO (Ensnare - ensnare.grp)',
+        scale: 0.8,
+        yOffset: 0,
+        blend: 'screen',
+        badge: 'ARMADURA: -3 [LIMO SC1]'
+      },
+      'irradiate': {
+        file: 'showcase_assets/sc1_irradiate.gif',
+        title: '4. NUBE TÓXICA (Irradiate - eradlrg.grp)',
+        scale: 0.85,
+        yOffset: -5,
+        blend: 'screen',
+        badge: 'ARMADURA: -3 [RADIACIÓN SC1]'
+      },
+      'eldfire': {
+        file: 'showcase_assets/sc1_eldfire.gif',
+        title: '5. FUEGO DE COMBUSTIÓN BAJA (eldfire.grp)',
+        scale: 0.9,
+        yOffset: 5,
+        blend: 'screen',
+        badge: 'ARMADURA: -3 [FUEGO COMPACTO SC1]'
+      },
+      'maelstrom': {
+        file: 'showcase_assets/sc1_maelstrom.gif',
+        title: '6. VÓRTICE DE MAELSTROM (MaelHit.grp)',
+        scale: 0.8,
+        yOffset: 0,
+        blend: 'screen',
+        badge: 'ARMADURA: -3 [MAELSTROM SC1]'
+      },
+      'lockdown': {
+        file: 'showcase_assets/sc1_lockdown.gif',
+        title: '7. DESCARGA ELÉCTRICA (Lockdown - elect02.grp)',
+        scale: 0.85,
+        yOffset: 0,
+        blend: 'screen',
+        badge: 'ARMADURA: -3 [DESCARGA SC1]'
+      },
+      'plasdrip': {
+        file: 'showcase_assets/sc1_plasdrip.gif',
+        title: '8. GOTEO DE PLASMA ARDIENTE (plasdrip.grp)',
+        scale: 1.0,
+        yOffset: 0,
+        blend: 'screen',
+        badge: 'ARMADURA: -3 [PLASMA DRIP SC1]'
+      }
     };
 
     function setUnit(unit) {
@@ -976,135 +910,72 @@
       }
     }
 
-    function updateTintIntensity(val) {
-      tintIntensity = val;
-      document.getElementById('tint-val').innerText = val + '%';
-      applyPresetStyles();
+    function toggleZergTint() {
+      isZergTinted = !isZergTinted;
+      const btn = document.getElementById('btn-toggle-tint');
+      const sprite = document.getElementById('unit-sprite');
+      if (isZergTinted) {
+        btn.innerText = 'ACTIVADO';
+        btn.classList.add('active');
+        sprite.classList.add('burned');
+      } else {
+        btn.innerText = 'DESACTIVADO';
+        btn.classList.remove('active');
+        sprite.classList.remove('burned');
+      }
     }
 
-    function toggleBurnState() {
-      isBurned = !isBurned;
-      const btn = document.getElementById('btn-toggle-burn');
-      const badge = document.getElementById('armor-badge-mini');
-      const armorText = document.getElementById('armor-text');
-
-      if (isBurned) {
-        btn.innerText = 'TOGGLE: DEBUFF ON';
+    function toggleFxVisibility() {
+      isFxVisible = !isFxVisible;
+      const btn = document.getElementById('btn-toggle-fx');
+      const fx = document.getElementById('sc1-fx');
+      if (isFxVisible) {
+        btn.innerText = 'EFECTO VISIBLE';
         btn.style.borderColor = '#ff5533';
         btn.style.color = '#ff8866';
-        badge.classList.add('shredded');
-        armorText.innerText = 'ARMADURA: -3 [DERRETIDA]';
+        fx.style.display = 'block';
       } else {
-        btn.innerText = 'TOGGLE: DEBUFF OFF';
+        btn.innerText = 'EFECTO OCULTO';
         btn.style.borderColor = '#446688';
         btn.style.color = '#88aacc';
-        badge.classList.remove('shredded');
-        armorText.innerText = 'ARMADURA: INTACTA';
+        fx.style.display = 'none';
       }
-
-      applyPresetStyles();
     }
 
-    function selectEffectPreset(preset) {
-      currentPreset = preset;
+    function selectSc1Effect(effectKey) {
+      currentSc1Effect = effectKey;
       
-      // Actualizar tarjetas seleccionadas
       document.querySelectorAll('.opt-card').forEach(c => c.classList.remove('selected'));
       const cardMap = {
-        'tint': 'card-opt1',
-        'feet': 'card-opt2',
-        'body': 'card-opt3',
-        'embers': 'card-opt4',
-        'badge': 'card-opt5',
-        'ro': 'card-opt6',
-        'hybrid': 'card-opt7'
+        'fire': 'card-sc1-fire',
+        'acid': 'card-sc1-acid',
+        'ensnare': 'card-sc1-ensnare',
+        'irradiate': 'card-sc1-irradiate',
+        'eldfire': 'card-sc1-eldfire',
+        'maelstrom': 'card-sc1-maelstrom',
+        'lockdown': 'card-sc1-lockdown',
+        'plasdrip': 'card-sc1-plasdrip'
       };
-      if (cardMap[preset]) {
-        document.getElementById(cardMap[preset]).classList.add('selected');
+      if (cardMap[effectKey]) {
+        document.getElementById(cardMap[effectKey]).classList.add('selected');
       }
 
-      // Actualizar título de cabecera
-      const titles = {
-        'tint': 'EFECTO: 1. TINTE TÉRMICO NARANJA (MODULATE)',
-        'feet': 'EFECTO: 2. MINI-LLAMAS A LOS PIES (GROUND FIRE)',
-        'body': 'EFECTO: 3. FUEGO CORPORAL (TORSO OVERLAY)',
-        'embers': 'EFECTO: 4. ASCUAS Y CHISPAS VOLÁTILES',
-        'badge': 'EFECTO: 5. ÍCONO TÁCTICO DE ARMADURA ROTA',
-        'ro': 'EFECTO: 6. LLAMARADA RAGNAROK ONLINE (BURNING)',
-        'hybrid': 'EFECTO: 7. COMBO HÍBRIDO (RECOMENDADO)'
-      };
-      document.getElementById('active-effect-name').innerText = titles[preset] || 'EFECTO SELECCIONADO';
-
-      applyPresetStyles();
-    }
-
-    function applyPresetStyles() {
-      const sprite = document.getElementById('unit-sprite');
-      const fxFeet = document.getElementById('fx-feet');
-      const fxBody = document.getElementById('fx-body');
-      const fxRo = document.getElementById('fx-ro');
-      const fxEmbers = document.getElementById('fx-embers');
-      const fxBadge = document.getElementById('fx-badge');
-
-      // Ocultar todas las capas inicialmente
-      [fxFeet, fxBody, fxRo, fxEmbers, fxBadge].forEach(el => el.style.display = 'none');
-      sprite.classList.remove('burned');
-      sprite.style.filter = '';
-
-      if (!isBurned) {
-        return;
-      }
-
-      // Configurar según el preset
-      const tintFactor = tintIntensity / 100;
-
-      switch(currentPreset) {
-        case 'tint':
-          sprite.classList.add('burned');
-          sprite.style.filter = `drop-shadow(0 0 ${16 * tintFactor}px rgba(255,90,0,${0.85 * tintFactor})) brightness(${1 + 0.3 * tintFactor}) sepia(${0.9 * tintFactor}) saturate(${1 + 2.5 * tintFactor}) hue-rotate(-22deg)`;
-          break;
-
-        case 'feet':
-          fxFeet.style.display = 'block';
-          break;
-
-        case 'body':
-          fxBody.style.display = 'block';
-          break;
-
-        case 'embers':
-          fxEmbers.style.display = 'block';
-          break;
-
-        case 'badge':
-          fxBadge.style.display = 'block';
-          break;
-
-        case 'ro':
-          fxRo.style.display = 'block';
-          break;
-
-        case 'hybrid':
-          sprite.classList.add('burned');
-          sprite.style.filter = `drop-shadow(0 0 ${16 * tintFactor}px rgba(255,90,0,${0.85 * tintFactor})) brightness(${1 + 0.3 * tintFactor}) sepia(${0.9 * tintFactor}) saturate(${1 + 2.5 * tintFactor}) hue-rotate(-22deg)`;
-          fxFeet.style.display = 'block';
-          fxEmbers.style.display = 'block';
-          break;
+      const conf = sc1Effects[effectKey];
+      if (conf) {
+        document.getElementById('active-effect-name').innerText = 'EFECTO ACTIVO: ' + conf.title;
+        const fx = document.getElementById('sc1-fx');
+        fx.src = conf.file;
+        fx.style.transform = `translate(-50%, calc(-50% + ${conf.yOffset}px)) scale(${conf.scale})`;
+        fx.style.mixBlendMode = conf.blend;
+        document.getElementById('armor-text').innerText = conf.badge;
       }
     }
 
     function copyChoiceToClipboard() {
-      const presetNames = {
-        'tint': 'Opción 1: Tinte Térmico Naranja Pulsante (Solo colorear naranjo sobre el sprite, sin capas extra)',
-        'feet': 'Opción 2: Llamitas a los pies / base (Ground Fire)',
-        'body': 'Opción 3: Fuego corporal envolvente en el torso',
-        'embers': 'Opción 4: Ascuas y chispas flotantes que suben',
-        'badge': 'Opción 5: Ícono táctico flotante de escudo derretido / armadura rota',
-        'ro': 'Opción 6: Llamarada estilo Ragnarok Online (Burning)',
-        'hybrid': 'Opción 7: Combo Híbrido Recomendado (Tinte Naranja + Llamita a los pies + Ascuas flotantes)'
-      };
-
-      const text = `Me gusta la "${presetNames[currentPreset]}". Procede a implementarla junto con la mecánica de bajo daño inicial, DoT y reducción de armadura escalable para el Firebat.`;
+      const conf = sc1Effects[currentSc1Effect];
+      const tintStr = isZergTinted ? "con tinte naranja sobre el enemigo" : "sin tinte naranja (solo el sprite SC1)";
+      const text = `Quiero usar el efecto original de StarCraft: "${conf.title}" (${tintStr}). Por favor impleméntalo para el fuego del Firebat junto con el daño bajo inicial, DoT y reducción de armadura escalable.`;
+      
       navigator.clipboard.writeText(text).then(() => {
         showToast();
       }).catch(() => {
@@ -1122,7 +993,7 @@
 
     // Inicializar
     setUnit('zergling');
-    selectEffectPreset('hybrid');
+    selectSc1Effect('fire');
   </script>
 </body>
 </html>
