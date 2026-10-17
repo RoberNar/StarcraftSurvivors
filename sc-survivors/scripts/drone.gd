@@ -50,6 +50,10 @@ func _ready() -> void:
 	angle_jitter = randf_range(-0.4, 0.4)
 	
 	player = get_tree().get_first_node_in_group("player")
+	
+	# Gracia de ataque al nacer para evitar daño instantáneo al jugador
+	attack_timer = randf_range(0.6, 0.9)
+	
 	_apply_skin()
 	
 	var sm = get_node_or_null("/root/SkinManager")
@@ -97,7 +101,15 @@ func _physics_process(delta: float) -> void:
 	var move_dir = Vector2.from_angle(angle_to_player)
 	
 	if dist > 850.0:
-		global_position = player.global_position + Vector2.from_angle(randf() * TAU) * 440.0
+		var edge = randi() % 4
+		var rel_pos = Vector2.ZERO
+		match edge:
+			0: rel_pos = Vector2(randf_range(-580.0, 580.0), -360.0 - randf_range(0.0, 80.0))
+			1: rel_pos = Vector2(randf_range(-580.0, 580.0), 360.0 + randf_range(0.0, 80.0))
+			2: rel_pos = Vector2(-580.0 - randf_range(0.0, 80.0), randf_range(-340.0, 340.0))
+			3: rel_pos = Vector2(580.0 + randf_range(0.0, 80.0), randf_range(-340.0, 340.0))
+		global_position = player.global_position + rel_pos
+		attack_timer = 0.8
 		return
 	
 	const ATTACK_RANGE: float = 24.0

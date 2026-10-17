@@ -585,52 +585,51 @@ theme_override_font_sizes/font_size = 12
 text = "0"
 
 [node name="ConsoleRect" type="TextureRect" parent="CanvasLayer"]
-texture_filter = 0
-anchors_preset = 7
-anchor_left = 0.5
+texture_filter = 1
+anchors_preset = 12
 anchor_top = 1.0
-anchor_right = 0.5
+anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -320.0
-offset_top = -188.0
-offset_right = 320.0
+offset_top = -175.0
+offset_right = 0.0
 offset_bottom = 0.0
 grow_horizontal = 2
 grow_vertical = 0
 texture = ExtResource("18_tconsole")
+expand_mode = 1
 
 [node name="BaseMinimap" type="Control" parent="CanvasLayer/ConsoleRect"]
 layout_mode = 0
-offset_left = 6.0
-offset_top = 56.0
-offset_right = 134.0
-offset_bottom = 184.0
+offset_left = 113.0
+offset_top = 46.0
+offset_right = 241.0
+offset_bottom = 172.0
 script = ExtResource("17_minimap")
 
 [node name="WireframeRect" type="TextureRect" parent="CanvasLayer/ConsoleRect"]
-texture_filter = 0
+texture_filter = 1
 layout_mode = 0
-offset_left = 166.0
-offset_top = 108.0
-offset_right = 226.0
-offset_bottom = 154.0
+offset_left = 356.0
+offset_top = 92.0
+offset_right = 416.0
+offset_bottom = 138.0
 expand_mode = 1
 stretch_mode = 5
 
 [node name="SCHealthBar" type="Control" parent="CanvasLayer/ConsoleRect"]
 layout_mode = 0
-offset_left = 162.0
-offset_top = 158.0
-offset_right = 230.0
-offset_bottom = 166.0
+offset_left = 354.0
+offset_top = 142.0
+offset_right = 418.0
+offset_bottom = 150.0
 script = ExtResource("19_hpbar")
 
 [node name="HpLabel" type="Label" parent="CanvasLayer/ConsoleRect"]
 layout_mode = 0
-offset_left = 162.0
-offset_top = 168.0
-offset_right = 230.0
-offset_bottom = 182.0
+offset_left = 354.0
+offset_top = 152.0
+offset_right = 418.0
+offset_bottom = 166.0
 theme_override_colors/font_color = Color(0.25, 1, 0.35, 1)
 theme_override_font_sizes/font_size = 10
 text = "80 / 80"
@@ -638,10 +637,10 @@ horizontal_alignment = 1
 
 [node name="UnitInfo" type="VBoxContainer" parent="CanvasLayer/ConsoleRect"]
 layout_mode = 0
-offset_left = 238.0
-offset_top = 106.0
-offset_right = 398.0
-offset_bottom = 184.0
+offset_left = 422.0
+offset_top = 88.0
+offset_right = 580.0
+offset_bottom = 168.0
 theme_override_constants/separation = 1
 
 [node name="UnitNameLabel" type="Label" parent="CanvasLayer/ConsoleRect/UnitInfo"]
@@ -670,10 +669,10 @@ text = "Armadura: 0"
 
 [node name="PortraitControl" type="Control" parent="CanvasLayer/ConsoleRect"]
 layout_mode = 0
-offset_left = 413.0
-offset_top = 113.0
-offset_right = 473.0
-offset_bottom = 169.0
+offset_left = 626.0
+offset_top = 110.0
+offset_right = 688.0
+offset_bottom = 168.0
 script = ExtResource("16_portrait")
 auto_scale_to_fill = true
 
@@ -847,6 +846,18 @@ theme_override_font_sizes/font_size = 10
 text = "Volumen Efectos: 90%"
 
 [node name="SfxSlider" type="HSlider" parent="CanvasLayer/PausePanel/VBox"]
+layout_mode = 2
+max_value = 1.0
+step = 0.05
+value = 0.9
+
+[node name="VoiceLabel" type="Label" parent="CanvasLayer/PausePanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 10
+text = "Volumen Voces: 90%"
+
+[node name="VoiceSlider" type="HSlider" parent="CanvasLayer/PausePanel/VBox"]
 layout_mode = 2
 max_value = 1.0
 step = 0.05

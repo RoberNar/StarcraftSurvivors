@@ -123,6 +123,7 @@ La pelea final del Acto 1 transcurre en una caverna subterránea claustrofóbica
    - Durante `CHASE`, el Torrasque tiene `is_armored = true`. Cualquier bala o daño recibido no reduce sus puntos de vida; se transfiere a `armor_heat` (0.0 a 100.0) a razón de `damage * 0.95`.
    - El sprite del jefe modula cromáticamente de blanco/metálico hasta un naranja ígneo intenso conforme sube la temperatura.
    - Al llegar a 100% de calor, ruge y comienza el casteo de 3 segundos de embestida.
+   - **Aturdimiento y Efecto Ragnarok Online**: Al colisionar contra un pilar, el Torrasque entra en estado `STUNNED` durante 4.0s: reproduce el efecto de sonido oficial de aturdimiento de Ragnarok Online (`boss_stun.wav`) y activa la corona de estrellitas doradas giratorias sobre su cabeza (`ro_stun_sheet.png`, 32 fotogramas en ciclo suave a 25 FPS).
 
 4. **Las 6 Barras de Vida Consecutivas**:
    - El jefe cuenta con `TOTAL_HEALTH_BARS = 6`, cada una con `BAR_MAX_HEALTH = 250.0` HP (salud total combinada: 1500 HP).
@@ -154,25 +155,42 @@ La pelea final del Acto 1 transcurre en una caverna subterránea claustrofóbica
 - **`F9`**: Salto directo a la arena del jefe (funciona tanto desde la base de operaciones como durante la incursión de combate).
 - **`F10`**: Derrota instantánea del Torrasque en la cueva para verificar la extracción y cinemáticas de fin de misión.
 
-
-
 ---
 
-## 3. 📻 Sistema de Comunicación de Radio Táctico (Briefing Style)
+## 3. 📻 Sistema de Comunicación de Radio Táctico y Voces (Briefing Style)
 
 Implementado en [`scenes/transmission_comm.tscn`](scenes/transmission_comm.tscn) y [`scripts/transmission_comm.gd`](scripts/transmission_comm.gd):
 - **Diseño Visual**:
-  - **Monitor de Cámara (Izquierda)**: Chasis metálico cuadrado oficial (`tframe_comm.png` derivado de `tframe1`) con retrato animado en tiempo real (`sc_portrait.gd`) con sincronización labial y scanlines CRT del Capitán Hollis Voss (o emisor activo).
+  - **Monitor de Cámara (Izquierda)**: Chasis metálico cuadrado oficial (`tframe_comm.png` derivado de `tframe1`) con retrato animado en tiempo real (`sc_portrait.gd`, 60x56 px por cuadro, 10 cuadros de reposo y 20 de habla) con sincronización labial y scanlines CRT.
   - **Panel de Órdenes (Derecha)**: Marco de consola oficial de StarCraft (`comm_text_frame.png` derivado de `objterr` invertido horizontalmente) con brazo mecánico articulado que desciende desde el borde superior derecho.
   - **Tamaño Balanceado**: ~270x104 px anclado en la esquina superior derecha, permitiendo lectura cómoda sin tapar la acción ni la consola inferior.
 - **Despliegue y Funcionalidad**:
   - Deslizamiento lateral con amortiguación mecánica (`Tween.TRANS_BACK`) desde `x=660` a `x=368`.
   - Efecto de sonido oficial `transmission.wav` y reproducción de secuencias de diálogo en cola.
   - Omitible en cualquier momento mediante clic izquierdo sobre el panel o tecla de acción.
-- **Escenas Integradas**:
-  - **Prólogo**: Instrucciones de la nave de descenso y despegue, con barra de salud oficial de StarCraft (`SCHealthBar`).
-  - **Base Terran**: Diálogos narrativos de historia, órdenes del Capitán Hollis Voss y cinemáticas, reemplazando la ventana inferior genérica.
-  - **HUD de Incursión Exterior**: Diálogos del Marine, advertencias de estructuras de desove zerg y clímax de los 20 minutos.
+- **Diferenciación de Emisores y Actores**:
+  1. **Operadora Terran (Adjutant)** (`advisor_portrait.png` / `assets/voices/ADVISOR/`):
+     - Voz y alertas tácticas de combate durante las incursiones exteriores (`main.tscn`):
+       - Spawners Zerglings (`ADJ_01`), destrucción de estructuras (`ADJ_02`), Guarida de Hidras (`ADJ_03`), Espira de Mutas (`ADJ_04`).
+       - Oleadas sísmicas periódicas (`ADJ_05`, `ADJ_06`, `ADJ_07`, `ADJ_08`).
+       - Frenesí tectónico a los 15 minutos (`ADJ_09`).
+       - Clímax de los 20 minutos con emergencia del Canal Nydus colosal (`ADJ_10`).
+  2. **Capitán Hollis Voss** (`civilian_portrait.png` / `assets/voices/VOSS/`):
+     - Rescate inicial del prólogo bajo ataque (`VOSS_01`, `VOSS_02`).
+     - Presentación formal en la base (`VOSS_00`: *«Soy el Capitán Hollis Voss, oficial al mando de este puesto de avanzada»*).
+     - Diálogo presencial en base (`ARRIVAL_DIALOGUE`, `VOSS_03` a `VOSS_09`).
+     - Instrucciones tácticas de armadura y recursos (`VOSS_10`, `VOSS_11`).
+     - Reacciones ante derrotas y victorias (`VOSS_17` a `VOSS_21`, `VOSS_27`).
+     - Misiones del NPC en base y construcción del Cuartel/Bahía (`VOSS_22` a `VOSS_25`, `VOSS_28`).
+     - Extracción victoriosa tras abatir al Torrasque (`VOSS_26`).
+  3. **Protagonista (Civil / Marine CMC-300)** (`assets/voices/PROTAG/`):
+     - Reacciones de supervivencia en el prólogo (`PROTAG_01` a `PROTAG_05`).
+     - Diálogo de llegada e intercambio con Voss (`PROTAG_06` a `PROTAG_12`).
+     - Equiparse la armadura CMC (`PROTAG_13`) y asombro balístico al disparar (`PROTAG_14`).
+     - Respuestas de misión, construcción y retorno (`PROTAG_15` a `PROTAG_21`).
+- **Sistema de Audio (`scripts/audio_manager.gd`)**:
+  - Soporte automático para archivos Vorbis `.ogg`, `.mp3` y `.wav`.
+  - Mapeo directo y transparente de carpetas (`ADVISOR/`, `VOSS/`, `PROTAG/`) según el prefijo del ID.
 
 ---
 
@@ -256,9 +274,9 @@ Definidas en `BARRACKS_UPGRADES_DEF` en `scripts/game_manager.gd`:
 - **Banco de assets de origen**: `C:\Users\toffe\Desktop\SCsurvivors\`
 - **UI y Consola**:
   - `comm_text_frame.png`: Marco de órdenes invertido con brazo mecánico (215x104).
-  - `tframe_comm.png`: Chasis metálico cuadrado para cámara de radio (64x59).
-  - `tconsole.png`: Consola inferior completa de comando Terran (640x188).
-  - `briefing.png`: Sala de briefing de operaciones (640x480).
+  - `tconsole.png`: Consola inferior oficial StarCraft: Remastered Widescreen (16:9, 960x175 / 1920x350) con radar a la izquierda, estado táctico al centro y panel de mando a la derecha.
+  - `title.png`: Pantalla de título oficial StarCraft: Remastered Widescreen (16:9, 960x540).
+  - `briefing.png`: Sala de briefing de operaciones.
 - **Iconos de Armas (`sprites/weapon_icons.png`)**:
   - Slot 0: Rifle Gauss C-14
   - Slot 1: Lanza-llamas Firebat

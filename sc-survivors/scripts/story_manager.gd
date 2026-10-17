@@ -27,7 +27,7 @@ const MISSIONS = {
 	},
 	2: {
 		"title": "Misión 2: Limpieza de los Páramos",
-		"desc": "Sobrevive 20 minutos frente al Enjambre para limpiar los páramos y forzar la emergencia de la amenaza.",
+		"desc": "Sobrevive 20 minutos ahí abajo para limpiar los páramos y forzar la emergencia de la amenaza.",
 		"type": "survival",
 		"target": 1200,
 		"reward_text": "Emergencia del Canal Nydus",

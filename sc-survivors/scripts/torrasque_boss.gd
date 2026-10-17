@@ -69,6 +69,7 @@ var is_attacking: bool = false
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 @onready var telegraph_line: Line2D = $TelegraphLine
 @onready var stun_indicator: Node2D = $StunIndicator
+@onready var stun_stars_sprite: Sprite2D = get_node_or_null("StunIndicator/StarsSprite")
 @onready var charge_particles: CPUParticles2D = get_node_or_null("ChargeParticles")
 
 var player: Player = null
@@ -106,6 +107,12 @@ func _apply_skin() -> void:
 		sprite.hframes = 17
 		sprite.vframes = 16
 		scale = Vector2(1.5, 1.5)
+	
+	if stun_stars_sprite:
+		var stex = SkinManager.get_sprite("stun_stars")
+		if stex:
+			stun_stars_sprite.texture = stex
+		stun_stars_sprite.hframes = 32
 
 func _enter_intro() -> void:
 	current_state = State.INTRO
@@ -407,14 +414,18 @@ func enter_stunned_state() -> void:
 		telegraph_line.visible = false
 	if stun_indicator:
 		stun_indicator.visible = true
+		stun_indicator.rotation = 0.0
+	if stun_stars_sprite:
+		stun_stars_sprite.frame = 0
 	
 	AudioManager.play_sfx("boss_stun", 0.0, 4.0)
 	_set_sprite_frame(facing_column)
 
 func _process_stunned(delta: float) -> void:
 	stun_timer -= delta
-	if stun_indicator:
-		stun_indicator.rotation += delta * 6.0
+	if stun_stars_sprite:
+		# Animación continua de estrellitas girando a 25 FPS (40 ms por frame, 32 frames)
+		stun_stars_sprite.frame = int((STUN_DURATION - stun_timer) * 25.0) % 32
 	
 	# Si se agota el tiempo de stun sin vaciar la barra, se recupera
 	if stun_timer <= 0.0:

@@ -37,7 +37,7 @@ func _setup_mission_intro() -> void:
 func _play_unarmored_intro(player: Player) -> void:
 	var hud_node = get_tree().get_first_node_in_group("hud")
 	if hud_node and hud_node.has_method("show_transmission"):
-		hud_node.show_transmission("CAPITÁN HOLLIS VOSS", load("res://assets/skins/sd/portrait/civilian_portrait.png"), "«¡Estúpido! ¡Tenías que ponerte la armadura antes de bajar!»", 5.0)
+		hud_node.show_transmission("CAPITÁN HOLLIS VOSS", load("res://assets/skins/sd/portrait/civilian_portrait.png"), "«¡Estúpido! ¡Tenías que ponerte la armadura antes de bajar!»", 5.0, Callable(), "VOSS_10")
 
 func _play_mission_1_landing_intro(player: Player) -> void:
 	AudioManager.play_sfx("ship_liftoff")
@@ -70,7 +70,7 @@ func _play_mission_1_landing_intro(player: Player) -> void:
 	tw.tween_callback(func():
 		var hud_node = get_tree().get_first_node_in_group("hud")
 		if hud_node and hud_node.has_method("show_transmission"):
-			hud_node.show_transmission("??????", SkinManager.get_portrait("marine"), "«¡¿WOW... yo hice eso?!»", 4.5)
+			hud_node.show_transmission("??????", SkinManager.get_portrait("marine"), "«¡¿WOW... yo hice eso?!»", 4.5, Callable(), "PROTAG_14")
 	)
 	
 	# Delay de 5 segundos antes de la respuesta del Capitán Voss
@@ -78,7 +78,7 @@ func _play_mission_1_landing_intro(player: Player) -> void:
 	tw.tween_callback(func():
 		var hud_node = get_tree().get_first_node_in_group("hud")
 		if hud_node and hud_node.has_method("show_transmission"):
-			hud_node.show_transmission("CAPITÁN HOLLIS VOSS", load("res://assets/skins/sd/portrait/civilian_portrait.png"), "«Tranquilo, novato. Es el sistema de tiro automático del traje. Apunta y calcula solo. Junta 20 minerales y regresa a la nave.»", 5.5)
+			hud_node.show_transmission("CAPITÁN HOLLIS VOSS", load("res://assets/skins/sd/portrait/civilian_portrait.png"), "«Tranquilo, novato. Es el sistema de tiro automático del traje. Apunta y calcula solo. Junta 20 minerales y regresa a la nave.»", 5.5, Callable(), "VOSS_11")
 	)
 
 func _process(delta: float) -> void:

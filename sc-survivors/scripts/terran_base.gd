@@ -34,6 +34,8 @@ extends Node2D
 @onready var pause_music_lbl: Label = $CanvasLayer/PausePanel/VBox/MusicLabel
 @onready var pause_sfx_slider: HSlider = $CanvasLayer/PausePanel/VBox/SfxSlider
 @onready var pause_sfx_lbl: Label = $CanvasLayer/PausePanel/VBox/SfxLabel
+@onready var pause_voice_slider: HSlider = $CanvasLayer/PausePanel/VBox/VoiceSlider
+@onready var pause_voice_lbl: Label = $CanvasLayer/PausePanel/VBox/VoiceLabel
 @onready var pause_fullscreen_check: CheckButton = $CanvasLayer/PausePanel/VBox/FullscreenCheck
 @onready var pause_resume_btn: Button = $CanvasLayer/PausePanel/VBox/ResumeBtn
 @onready var pause_quit_btn: Button = $CanvasLayer/PausePanel/VBox/QuitBtn
@@ -47,78 +49,93 @@ var story_dialogue_finished_callback: Callable
 const ARRIVAL_DIALOGUE: Array[Dictionary] = [
 	{
 		"speaker": "CAPITÁN HOLLIS VOSS",
+		"text": "Soy el Capitán Hollis Voss, oficial al mando de este puesto de avanzada.",
+		"is_voss": true,
+		"voice_id": "VOSS_00"
+	},
+	{
+		"speaker": "CAPITÁN HOLLIS VOSS",
 		"text": "Bienvenido a la base. Bueno, a lo que queda de ella.",
-		"is_voss": true
+		"is_voss": true,
+		"voice_id": "VOSS_03"
 	},
 	{
 		"speaker": "??????",
-		"text": "...Gracias. Me salvaste la vida en el páramo.",
-		"is_voss": false
+		"text": "...Gracias. Me salvaste la vida Ahí abajo.",
+		"is_voss": false,
+		"voice_id": "PROTAG_06"
 	},
 	{
 		"speaker": "CAPITÁN HOLLIS VOSS",
 		"text": "Así es. Y costó caro: consumí casi todo el combustible que me quedaba para llegar a tiempo. A esa nave le quedan pocos viajes de transporte.",
-		"is_voss": true
+		"is_voss": true,
+		"voice_id": "VOSS_04"
 	},
 	{
 		"speaker": "??????",
 		"text": "¿Dónde estamos exactamente? ¿Qué es este lugar?",
-		"is_voss": false
+		"is_voss": false,
+		"voice_id": "PROTAG_07"
 	},
 	{
 		"speaker": "CAPITÁN HOLLIS VOSS",
 		"text": "Un puesto de avanzada en ruinas. No es un sitio seguro para civiles.",
-		"is_voss": true
+		"is_voss": true,
+		"voice_id": "VOSS_05"
 	},
 	{
 		"speaker": "??????",
-		"text": "¿Y esas criaturas zerg? ¿De dónde provienen?",
-		"is_voss": false
+		"text": "¿Y esos zerg? ¿De dónde llegaron?",
+		"is_voss": false,
+		"voice_id": "PROTAG_08"
 	},
 	{
 		"speaker": "CAPITÁN HOLLIS VOSS",
 		"text": "De todas direcciones. Si queremos seguir con vida, necesitaremos suministros urgentes. Minerales, para comenzar.",
-		"is_voss": true
+		"is_voss": true,
+		"voice_id": "VOSS_06"
 	},
 	{
 		"speaker": "??????",
 		"text": "Comprendo... ¿cuál es el plan?",
-		"is_voss": false
+		"is_voss": false,
+		"voice_id": "PROTAG_09"
 	},
 	{
 		"speaker": "CAPITÁN HOLLIS VOSS",
 		"text": "El plan es sencillo: tengo una armadura de combate CMC en el soporte. Te la equipas, desciendes en la nave y extraes minerales.",
-		"is_voss": true
+		"is_voss": true,
+		"voice_id": "VOSS_07"
 	},
 	{
 		"speaker": "??????",
 		"text": "¿Por qué no vas tú mismo?",
-		"is_voss": false
+		"is_voss": false,
+		"voice_id": "PROTAG_10"
 	},
 	{
 		"speaker": "CAPITÁN HOLLIS VOSS",
 		"text": "Porque alguien debe coordinar las defensas de la base. Y además, así saldas tu deuda conmigo.",
-		"is_voss": true
+		"is_voss": true,
+		"voice_id": "VOSS_08"
 	},
 	{
 		"speaker": "??????",
 		"text": "...De acuerdo, es razonable. Aunque no poseo entrenamiento militar ni sé maniobrar con esa tecnología.",
-		"is_voss": false
+		"is_voss": false,
+		"voice_id": "PROTAG_11"
 	},
 	{
 		"speaker": "CAPITÁN HOLLIS VOSS",
-		"text": "Descuida. La computadora de tiro de la armadura se encargará del cálculo balístico. Una vez en el terreno lo entenderás.",
-		"is_voss": true
+		"text": "Descuida. La computadora de tiro de la armadura se encargará del cálculo balístico. Una vez en el terreno lo entenderás. Reúne 20 minerales en el exterior. La nave está lista para el despegue.",
+		"is_voss": true,
+		"voice_id": "VOSS_09"
 	},
 	{
 		"speaker": "??????",
 		"text": "Espero que tengas razón.",
-		"is_voss": false
-	},
-	{
-		"speaker": "CAPITÁN HOLLIS VOSS",
-		"text": "Reúne 20 minerales en el exterior. La nave está lista para el despegue.",
-		"is_voss": true
+		"is_voss": false,
+		"voice_id": "PROTAG_12"
 	}
 ]
 
@@ -127,22 +144,20 @@ const FIRST_DEATH_NO_MINERALS_DIALOGUE: Array[Dictionary] = [
 	{
 		"speaker": "??????",
 		"text": "Espera... ¿no estaba muerto? Juraría que sentí cómo esas bestias me destrozaban en el páramo...",
-		"is_voss": false
+		"is_voss": false,
+		"voice_id": "PROTAG_15"
 	},
 	{
 		"speaker": "CAPITÁN HOLLIS VOSS",
-		"text": "Tranquilo, muchacho. Estás entero y de una sola pieza aquí en la base. El protocolo médico y de rescate de emergencia de la nave te extrajo justo a tiempo.",
-		"is_voss": true
-	},
-	{
-		"speaker": "CAPITÁN HOLLIS VOSS",
-		"text": "Pero todavía no tenemos los recursos necesarios. Ahora ponte de pie, vuelve allá afuera y recupera esos minerales. Necesitamos 20 para reconstruir la base.",
-		"is_voss": true
+		"text": "Tranquilo, muchacho. Estás entero y de una sola pieza aquí en la base. La cápsula médica de emergencia te sacó de ahí antes de que fuera tarde... Pero todavía no tenemos los recursos necesarios. Ahora ponte de pie, vuelve allá afuera y recupera esos minerales. Necesitamos 20 para reconstruir la base.",
+		"is_voss": true,
+		"voice_id": "VOSS_19"
 	},
 	{
 		"speaker": "??????",
-		"text": "Entendido, Capitán. Volveré al páramo por ellos.",
-		"is_voss": false
+		"text": "Entendido, VOSS. Volveré al páramo por ellos.",
+		"is_voss": false,
+		"voice_id": "PROTAG_17"
 	}
 ]
 
@@ -151,46 +166,42 @@ const FIRST_DEATH_WITH_MINERALS_DIALOGUE: Array[Dictionary] = [
 	{
 		"speaker": "??????",
 		"text": "Espera... ¿no estaba muerto? Juraría que sentí cómo esas bestias me destrozaban en el páramo...",
-		"is_voss": false
+		"is_voss": false,
+		"voice_id": "PROTAG_15"
 	},
 	{
 		"speaker": "CAPITÁN HOLLIS VOSS",
-		"text": "Tranquilo, muchacho. Estás entero y de una sola pieza aquí en la base. La cápsula médica de emergencia te sacó de ahí antes de que fuera tarde... y afortunadamente tu armadura retuvo los minerales.",
-		"is_voss": true
-	},
-	{
-		"speaker": "CAPITÁN HOLLIS VOSS",
-		"text": "Conseguiste los 20 minerales requeridos. Ahora acércate al Centro de Mando y levanta el Cuartel y la Bahía de Ingeniería para asegurar nuestro perímetro.",
-		"is_voss": true
+		"text": "Tranquilo, muchacho. Estás entero y de una sola pieza aquí en la base. La cápsula médica de emergencia te sacó de ahí antes de que fuera tarde... y afortunadamente tu armadura retuvo los minerales. Conseguiste los 20 minerales requeridos. Ahora acércate al Centro de Mando y levanta el Cuartel y la Bahía de Ingeniería.",
+		"is_voss": true,
+		"voice_id": "VOSS_18"
 	},
 	{
 		"speaker": "??????",
-		"text": "Entendido, Capitán. Procederé con la construcción de inmediato.",
-		"is_voss": false
+		"text": "Entendido, VOSS . Comenzaré la construcción.",
+		"is_voss": false,
+		"voice_id": "PROTAG_20"
 	}
 ]
 
 # Condición 3: Te vas sin morir (completas la misión con vida)
 const MISSION_1_COMPLETED_ALIVE_DIALOGUE: Array[Dictionary] = [
 	{
-		"speaker": "CAPITÁN HOLLIS VOSS",
-		"text": "¡Excelente barrido táctico! Trajiste los recursos enteros e intactos a la base.",
-		"is_voss": true
-	},
-	{
 		"speaker": "??????",
-		"text": "Objetivo cumplido, Capitán. Traje los 20 minerales del exterior.",
-		"is_voss": false
+		"text": "Objetivo cumplido, VOSS. Traje los 20 minerales que me pediste.",
+		"is_voss": false,
+		"voice_id": "PROTAG_19"
 	},
 	{
 		"speaker": "CAPITÁN HOLLIS VOSS",
-		"text": "Bien hecho. Ahora acércate al Centro de Mando y levanta el Cuartel y la Bahía de Ingeniería para asegurar nuestro perímetro.",
-		"is_voss": true
+		"text": "¡Excelente trabajo! Trajiste los recursos que te pedí. Ahora acércate al Centro de Mando y levanta el Cuartel y la Bahía de Ingeniería.",
+		"is_voss": true,
+		"voice_id": "VOSS_17"
 	},
 	{
 		"speaker": "??????",
-		"text": "Entendido, Capitán. Comenzaré la construcción.",
-		"is_voss": false
+		"text": "Entendido, VOSS . Comenzaré la construcción.",
+		"is_voss": false,
+		"voice_id": "PROTAG_20"
 	}
 ]
 
@@ -199,22 +210,20 @@ const FIRST_DEATH_LATER_DIALOGUE: Array[Dictionary] = [
 	{
 		"speaker": "??????",
 		"text": "Espera... ¿no estaba muerto? Juraría que sentí cómo esas bestias me destrozaban en el páramo...",
-		"is_voss": false
+		"is_voss": false,
+		"voice_id": "PROTAG_15"
 	},
 	{
 		"speaker": "CAPITÁN HOLLIS VOSS",
-		"text": "Tranquilo, muchacho. Estás entero y de una sola pieza aquí en la base. El sistema de telemetría médica de emergencia te extrajo justo a tiempo.",
-		"is_voss": true
-	},
-	{
-		"speaker": "CAPITÁN HOLLIS VOSS",
-		"text": "El enjambre zerg allá afuera es implacable. Reabastécete en el Cuartel y la Bahía de Ingeniería antes de tu próximo despliegue.",
-		"is_voss": true
+		"text": "Tranquilo, muchacho. Estás entero y de una sola pieza aquí en la base. La cápsula médica de emergencia te sacó de ahí antes de que fuera tarde... Los enemigos ahí abajo son implacables. Reabastécete en el Cuartel y la Bahía de Ingeniería antes de tu próximo despliegue.",
+		"is_voss": true,
+		"voice_id": "VOSS_20"
 	},
 	{
 		"speaker": "??????",
-		"text": "Entendido, Capitán. Tendré mucho más cuidado allá afuera.",
-		"is_voss": false
+		"text": "Entendido, VOSS. Tendré mucho más cuidado allá afuera.",
+		"is_voss": false,
+		"voice_id": "PROTAG_18"
 	}
 ]
 
@@ -374,17 +383,20 @@ func _ready() -> void:
 				{
 					"speaker": "CAPITÁN HOLLIS VOSS",
 					"text": compl_text,
-					"is_voss": true
+					"is_voss": true,
+					"voice_id": "VOSS_21"
 				},
 				{
 					"speaker": "??????",
-					"text": "Objetivo cumplido, Capitán. Traje los recursos del terreno a la base.",
-					"is_voss": false
+					"text": "Objetivo cumplido, VOSS. Traje los recursos del terreno a la base.",
+					"is_voss": false,
+					"voice_id": "PROTAG_21"
 				},
 				{
 					"speaker": "CAPITÁN HOLLIS VOSS",
 					"text": "Bien hecho. Usa los recursos que recolectaste para prepararte. Te asignaré el siguiente vector de despliegue.",
-					"is_voss": true
+					"is_voss": true,
+					"voice_id": "VOSS_27"
 				}
 			]
 			_start_story_dialogue(compl_queue, func():
@@ -520,6 +532,10 @@ func _open_pause_menu() -> void:
 	pause_sfx_slider.value = AudioManager.sfx_volume
 	pause_music_lbl.text = "Volumen Música: %d%%" % int(AudioManager.music_volume * 100)
 	pause_sfx_lbl.text = "Volumen Efectos: %d%%" % int(AudioManager.sfx_volume * 100)
+	if pause_voice_slider:
+		pause_voice_slider.value = AudioManager.voice_volume
+	if pause_voice_lbl:
+		pause_voice_lbl.text = "Volumen Voces: %d%%" % int(AudioManager.voice_volume * 100)
 	pause_fullscreen_check.button_pressed = (DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN)
 
 func _close_pause_menu() -> void:
@@ -805,7 +821,7 @@ func _on_armor_equip_midpoint() -> void:
 	AudioManager.play_sfx("marine_ready")
 	if player_node and player_node.has_method("set_suit_equipped"):
 		player_node.set_suit_equipped(true)
-		player_node.show_bubble("Pesa más de lo que parece...", 2.5)
+		player_node.show_bubble("Pesa más de lo que parece...", 2.5, "PROTAG_13")
 
 func _update_armor_stand_state() -> void:
 	if not armor_stand_sprite or not armor_stand_hint:
@@ -898,6 +914,11 @@ func _connect_signals() -> void:
 		AudioManager.set_sfx_volume(val)
 		pause_sfx_lbl.text = "Volumen Efectos: %d%%" % int(val * 100)
 	)
+	if pause_voice_slider and pause_voice_lbl:
+		pause_voice_slider.value_changed.connect(func(val):
+			AudioManager.set_voice_volume(val)
+			pause_voice_lbl.text = "Volumen Voces: %d%%" % int(val * 100)
+		)
 	pause_fullscreen_check.toggled.connect(func(toggled_on):
 		AudioManager.play_sfx("button")
 		if toggled_on:
@@ -1015,23 +1036,29 @@ func _open_mission() -> void:
 	var dialog_text: String = ""
 	var req_text: String = ""
 	
+	var voice_id: String = ""
 	if not StoryManager.is_engineering_bay_built():
 		if has_completed_initial:
 			dialog_text = "«Sobreviviste a la incursión y aseguraste la zona. Dirígete a la terminal del Centro de Mando para autorizar el despliegue de la Bahía de Ingeniería.»"
 			req_text = "Objetivo: Construir Bahía de Ingeniería en el Centro de Mando"
+			voice_id = "VOSS_23"
 		else:
-			dialog_text = "«Bienvenido a Sigma-4. Te dejé la armadura en el soporte. Baja al exterior con la nave, elimina Zerglings y vuelve entero antes de que el Enjambre te devore.»"
+			dialog_text = "«Bienvenido. Te dejé la armadura en el soporte. Baja al exterior con la nave, elimina a los Zergs y vuelve entero antes de que te destrozen.»"
 			req_text = "Objetivo: Sobrevivir en el exterior y purgar Zerglings"
+			voice_id = "VOSS_22"
 	elif not StoryManager.is_barracks_built():
 		if has_completed_initial:
 			dialog_text = "«La Bahía de Ingeniería está operativa. Ve a la terminal del Centro de Mando para autorizar el aterrizaje del Cuartel.»"
 			req_text = "Objetivo: Construir Cuartel en el Centro de Mando"
+			voice_id = "VOSS_24"
 		else:
-			dialog_text = "«La Bahía de Ingeniería está en pie. Nuestra siguiente prioridad es el Cuartel: despliégate al exterior para habilitar el reclutamiento de infantería militar.»"
+			dialog_text = "«La Bahía de Ingeniería está en pie. Nuestra siguiente prioridad es el Cuartel.»"
 			req_text = "Objetivo: Incursión en el exterior"
+			voice_id = "VOSS_28"
 	else:
-		dialog_text = "«%s»" % m.get("desc", "")
+		dialog_text = "«Sobrevive 20 minutos ahí abajo para limpiar los páramos y forzar la emergencia de la amenaza.»"
 		req_text = "Misión: %s" % m.get("title", "")
+		voice_id = "VOSS_25"
 	
 	var voss_tex = load("res://assets/skins/sd/portrait/civilian_portrait.png")
 	if face_to_face_dialog:
@@ -1045,7 +1072,7 @@ func _open_mission() -> void:
 				GameManager.claim_mission_reward()
 				AudioManager.play_sfx("upgrade")
 				_update_top_bar()
-		)
+		, voice_id)
 	mission_modal.visible = false
 
 func _populate_academy_upgrades() -> void:

@@ -29,6 +29,9 @@ func _ready() -> void:
 	move_speed = base_speed
 	player = get_tree().get_first_node_in_group("player")
 	
+	# Gracia de ataque al aparecer
+	attack_timer = 1.0
+	
 	# Rugido amenazante de aparicion
 	AudioManager.play_sfx("ultra_roar")
 	

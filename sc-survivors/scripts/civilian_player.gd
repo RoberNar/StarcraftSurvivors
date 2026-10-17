@@ -149,11 +149,16 @@ func take_damage(amount: float) -> void:
 		current_health = 18.0
 		emit_signal("critical_hp_reached")
 
-func show_bubble(text: String, duration: float = 3.0) -> void:
+func show_bubble(text: String, duration: float = 3.0, voice_id: String = "") -> void:
 	if not bubble or not bubble_label:
 		return
 	bubble_label.text = text
 	bubble.visible = true
+	var voice_dur = 0.0
+	if voice_id != "" and has_node("/root/AudioManager"):
+		voice_dur = AudioManager.play_voice(voice_id)
+		if voice_dur > 0.0:
+			duration = max(duration, voice_dur + 0.4)
 	var tw = create_tween()
 	tw.tween_interval(duration)
 	tw.tween_callback(func():

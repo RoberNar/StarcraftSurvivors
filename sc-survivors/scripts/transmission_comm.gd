@@ -21,18 +21,23 @@ var on_finished_callback: Callable = Callable()
 var current_on_finish: Callable = Callable()
 var is_active: bool = false
 
-# Posición fuera de pantalla y posición en pantalla
-const POS_OFFSCREEN_X: float = 660.0
-const POS_ONSCREEN_X: float = 368.0
+func get_pos_offscreen_x() -> float:
+	return get_viewport_rect().size.x + 20.0
+
+func get_pos_onscreen_x() -> float:
+	return get_viewport_rect().size.x - 272.0
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	visible = false
-	position.x = POS_OFFSCREEN_X
+	position.x = get_pos_offscreen_x()
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	gui_input.connect(_on_gui_input)
 
-func show_transmission(speaker: String, portrait_tex: Texture2D, message: String, duration: float = 4.5, on_finish: Callable = Callable()) -> void:
+func show_transmission(speaker: String, portrait_tex: Texture2D, message: String, duration: float = 4.5, on_finish: Callable = Callable(), voice_id: String = "") -> void:
+	if has_node("/root/AudioManager"):
+		AudioManager.stop_voice()
+	
 	is_active = true
 	current_on_finish = on_finish
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -42,6 +47,13 @@ func show_transmission(speaker: String, portrait_tex: Texture2D, message: String
 	if body_label:
 		body_label.text = message
 	
+	# Reproducir voz si existe
+	var voice_dur = 0.0
+	if voice_id != "" and has_node("/root/AudioManager"):
+		voice_dur = AudioManager.play_voice(voice_id)
+		if voice_dur > 0.0:
+			duration = max(duration, voice_dur + 0.8)
+	
 	# Si no se proporciona textura de retrato, usar el Capitán Hollis Voss por defecto
 	var final_tex = portrait_tex
 	if not final_tex:
@@ -49,7 +61,7 @@ func show_transmission(speaker: String, portrait_tex: Texture2D, message: String
 	
 	if portrait_control and final_tex:
 		portrait_control.set_portrait(final_tex)
-		portrait_control.trigger_talk(duration)
+		portrait_control.trigger_talk(voice_dur if voice_dur > 0.0 else duration)
 	
 	# Sonido auténtico de radio/transmisión de StarCraft
 	if has_node("/root/AudioManager"):
@@ -57,7 +69,9 @@ func show_transmission(speaker: String, portrait_tex: Texture2D, message: String
 	
 	visible = true
 	
-	var already_onscreen = (position.x <= POS_ONSCREEN_X + 20.0 and position.x >= POS_ONSCREEN_X - 20.0)
+	var pos_off = get_pos_offscreen_x()
+	var pos_on = get_pos_onscreen_x()
+	var already_onscreen = (position.x <= pos_on + 20.0 and position.x >= pos_on - 20.0)
 	
 	if current_tween and current_tween.is_valid():
 		current_tween.kill()
@@ -65,14 +79,16 @@ func show_transmission(speaker: String, portrait_tex: Texture2D, message: String
 	
 	current_tween = create_tween().set_parallel(false).set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	if not already_onscreen:
-		position.x = POS_OFFSCREEN_X
-		current_tween.tween_property(self, "position:x", POS_ONSCREEN_X, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		position.x = pos_off
+		current_tween.tween_property(self, "position:x", pos_on, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	else:
-		position.x = POS_ONSCREEN_X
+		position.x = pos_on
 		
 	current_tween.tween_interval(duration)
-	current_tween.tween_property(self, "position:x", POS_OFFSCREEN_X, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	current_tween.tween_property(self, "position:x", pos_off, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	current_tween.tween_callback(func():
+		if has_node("/root/AudioManager"):
+			AudioManager.stop_voice()
 		visible = false
 		is_active = false
 		emit_signal("transmission_finished")
@@ -115,9 +131,13 @@ func _play_next_in_queue() -> void:
 	
 	var msg = item.get("message", item.get("text", ""))
 	var dur = item.get("duration", 5.0)
-	show_transmission(spk, tex, msg, dur, Callable(self, "_play_next_in_queue"))
+	var v_id = item.get("voice_id", "")
+	show_transmission(spk, tex, msg, dur, Callable(self, "_play_next_in_queue"), v_id)
 
 func skip_transmission() -> void:
+	if has_node("/root/AudioManager"):
+		AudioManager.stop_voice()
+	
 	if is_active:
 		if current_tween and current_tween.is_valid():
 			current_tween.kill()
@@ -139,3 +159,12 @@ func skip_transmission() -> void:
 func _on_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		skip_transmission()
+		accept_event()
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not is_active or not visible:
+		return
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_SPACE or event.keycode == KEY_ENTER or event.keycode == KEY_E:
+			skip_transmission()
+			get_viewport().set_input_as_handled()

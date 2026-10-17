@@ -4,8 +4,12 @@ var music_player: AudioStreamPlayer
 var sfx_pool: Array[AudioStreamPlayer] = []
 var max_sfx_voices: int = 16
 
-var music_volume: float = 0.20
-var sfx_volume: float = 0.20
+var music_volume: float = 0.50
+var sfx_volume: float = 0.80
+var voice_volume: float = 0.90
+
+var voice_player: AudioStreamPlayer = null
+var voice_cache: Dictionary = {}
 
 var current_music_name: String = ""
 var current_music_loop: bool = true
@@ -18,6 +22,11 @@ func _ready() -> void:
 	music_player.volume_db = _vol_to_db(music_volume)
 	music_player.finished.connect(_on_music_finished)
 	add_child(music_player)
+	
+	voice_player = AudioStreamPlayer.new()
+	voice_player.bus = "Master"
+	voice_player.volume_db = _vol_to_db(voice_volume)
+	add_child(voice_player)
 	
 	for i in range(max_sfx_voices):
 		var p = AudioStreamPlayer.new()
@@ -45,6 +54,91 @@ func set_sfx_volume(val: float) -> void:
 	var db = _vol_to_db(sfx_volume)
 	for p in sfx_pool:
 		p.volume_db = db
+
+func set_voice_volume(val: float) -> void:
+	voice_volume = clamp(val, 0.0, 1.0)
+	if voice_player:
+		voice_player.volume_db = _vol_to_db(voice_volume)
+
+func get_voice_stream(voice_id: String) -> AudioStream:
+	var id_clean = voice_id.strip_edges().to_upper()
+	if voice_cache.has(id_clean):
+		return voice_cache[id_clean]
+	
+	var subfolder = "VOSS"
+	if id_clean.begins_with("PROTAG"):
+		subfolder = "PROTAG"
+	elif id_clean.begins_with("ADJ") or id_clean.begins_with("ADVISOR") or id_clean.begins_with("OPERA"):
+		subfolder = "ADVISOR"
+	
+	var formatted_id = id_clean
+	var parts = id_clean.split("_")
+	if parts.size() == 2 and parts[1].is_valid_int():
+		formatted_id = "%s_%02d" % [parts[0], int(parts[1])]
+	
+	var candidate_paths = [
+		"res://assets/voices/%s/%s.ogg" % [subfolder, formatted_id],
+		"res://assets/voices/%s/%s.ogg" % [subfolder, id_clean],
+		"res://assets/voices/%s/%s.mp3" % [subfolder, formatted_id],
+		"res://assets/voices/%s/%s.mp3" % [subfolder, id_clean],
+		"res://assets/voices/%s/%s.wav" % [subfolder, formatted_id],
+		"res://assets/voices/%s/%s.wav" % [subfolder, id_clean],
+		"res://assets/voices/ADVISOR/%s.ogg" % formatted_id,
+		"res://assets/voices/ADVISOR/%s.mp3" % formatted_id,
+		"res://assets/voices/VOSS/%s.ogg" % formatted_id,
+		"res://assets/voices/PROTAG/%s.ogg" % formatted_id
+	]
+	
+	for path in candidate_paths:
+		if ResourceLoader.exists(path):
+			var res = load(path)
+			if res is AudioStream:
+				voice_cache[id_clean] = res
+				return res
+		if FileAccess.file_exists(path):
+			if path.ends_with(".ogg"):
+				var stream = AudioStreamOggVorbis.load_from_file(path)
+				if stream:
+					stream.loop = false
+					voice_cache[id_clean] = stream
+					return stream
+				var file_bytes = FileAccess.get_file_as_bytes(path)
+				if file_bytes.size() > 0:
+					var stream_buf = AudioStreamOggVorbis.load_from_buffer(file_bytes)
+					if stream_buf:
+						stream_buf.loop = false
+						voice_cache[id_clean] = stream_buf
+						return stream_buf
+			elif path.ends_with(".mp3"):
+				var file_bytes = FileAccess.get_file_as_bytes(path)
+				if file_bytes.size() > 0:
+					var stream = AudioStreamMP3.new()
+					stream.data = file_bytes
+					stream.loop = false
+					voice_cache[id_clean] = stream
+					return stream
+	return null
+
+func play_voice(voice_id: String) -> float:
+	if voice_id.is_empty():
+		return 0.0
+	var stream = get_voice_stream(voice_id)
+	if stream == null:
+		return 0.0
+	if voice_player:
+		voice_player.stop()
+		voice_player.stream = stream
+		voice_player.volume_db = _vol_to_db(voice_volume)
+		voice_player.play()
+		return stream.get_length()
+	return 0.0
+
+func stop_voice() -> void:
+	if voice_player and voice_player.playing:
+		voice_player.stop()
+
+func is_voice_playing() -> bool:
+	return voice_player != null and voice_player.playing
 
 func play_music(music_name: String, loop: bool = true, force_restart: bool = false) -> void:
 	if not force_restart and current_music_name == music_name and music_player.playing:

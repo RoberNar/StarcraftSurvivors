@@ -50,6 +50,8 @@ extends CanvasLayer
 @onready var music_slider: HSlider = $PausePanel/MainHBox/VBox/MusicSlider
 @onready var sfx_label: Label = $PausePanel/MainHBox/VBox/SfxLabel
 @onready var sfx_slider: HSlider = $PausePanel/MainHBox/VBox/SfxSlider
+@onready var voice_label: Label = $PausePanel/MainHBox/VBox/VoiceLabel
+@onready var voice_slider: HSlider = $PausePanel/MainHBox/VBox/VoiceSlider
 @onready var fullscreen_check: CheckButton = $PausePanel/MainHBox/VBox/FullscreenCheck
 @onready var resume_btn: Button = $PausePanel/MainHBox/VBox/ResumeBtn
 @onready var restart_btn: Button = $PausePanel/MainHBox/VBox/RestartBtn
@@ -302,9 +304,9 @@ func _ready() -> void:
 		portrait_control.trigger_talk(2.0)
 
 # Muestra el panel desplegable de transmisión de radio estilo StarCraft (a la derecha)
-func show_transmission(speaker: String, portrait_tex: Texture2D, message: String, duration: float = 4.5, on_finish: Callable = Callable()) -> void:
+func show_transmission(speaker: String, portrait_tex: Texture2D, message: String, duration: float = 4.5, on_finish: Callable = Callable(), voice_id: String = "") -> void:
 	if transmission_comm:
-		transmission_comm.show_transmission(speaker, portrait_tex, message, duration, on_finish)
+		transmission_comm.show_transmission(speaker, portrait_tex, message, duration, on_finish, voice_id)
 		return
 	if on_finish.is_valid():
 		on_finish.call()
@@ -450,7 +452,7 @@ func _setup_inventory_slots() -> void:
 	
 	for i in range(9):
 		var p = Panel.new()
-		p.custom_minimum_size = Vector2(38, 36)
+		p.custom_minimum_size = Vector2(37, 34)
 		p.mouse_filter = Control.MOUSE_FILTER_PASS
 		p.process_mode = Node.PROCESS_MODE_ALWAYS
 		
@@ -769,6 +771,14 @@ func _setup_pause_menu() -> void:
 		sfx_label.text = "Volumen Efectos: %d%%" % int(val * 100)
 	)
 	
+	if voice_slider and voice_label:
+		voice_slider.value = AudioManager.voice_volume
+		voice_label.text = "Volumen Voces: %d%%" % int(AudioManager.voice_volume * 100)
+		voice_slider.value_changed.connect(func(val):
+			AudioManager.set_voice_volume(val)
+			voice_label.text = "Volumen Voces: %d%%" % int(val * 100)
+		)
+	
 	var is_fs = (DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN)
 	fullscreen_check.button_pressed = is_fs
 	fullscreen_check.toggled.connect(func(pressed):
@@ -889,6 +899,10 @@ func pause_game() -> void:
 	get_tree().paused = true
 	music_slider.value = AudioManager.music_volume
 	sfx_slider.value = AudioManager.sfx_volume
+	if voice_slider:
+		voice_slider.value = AudioManager.voice_volume
+	if voice_label:
+		voice_label.text = "Volumen Voces: %d%%" % int(AudioManager.voice_volume * 100)
 	var is_fs = (DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN)
 	fullscreen_check.set_pressed_no_signal(is_fs)
 	_populate_pause_achievements()

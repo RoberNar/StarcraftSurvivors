@@ -520,14 +520,14 @@ func _on_zerg_spawn_tick() -> void:
 	var hydra_count = randi_range(2, 3) + broken_pillars_count
 	var muta_count = 1 if randf() < 0.70 else 0
 	
+	var player = get_tree().get_first_node_in_group("player")
+	
 	# 1. Zerglings Tier 8 (Masa Crítica, 2400 HP, 20 armadura, 1.65x) y Tier 7 (1600 HP, 16 armadura)
 	for i in range(zerg_count):
 		if minion_count >= 34:
 			break
 		var z = z_scene.instantiate()
-		var ang = randf() * TAU
-		var dist = randf_range(340.0, 420.0)
-		z.global_position = ARENA_CENTER + Vector2(cos(ang) * dist, sin(ang) * dist)
+		z.global_position = _get_safe_cave_spawn_pos(player, 340.0, 420.0)
 		add_child(z)
 		
 		var tier_to_set = 8 if randf() < 0.65 else 7
@@ -541,9 +541,7 @@ func _on_zerg_spawn_tick() -> void:
 			if minion_count >= 34:
 				break
 			var h = h_scene.instantiate()
-			var ang = randf() * TAU
-			var dist = randf_range(350.0, 420.0)
-			h.global_position = ARENA_CENTER + Vector2(cos(ang) * dist, sin(ang) * dist)
+			h.global_position = _get_safe_cave_spawn_pos(player, 350.0, 420.0)
 			add_child(h)
 			
 			var tier_to_set = 5 if randf() < 0.60 else 4
@@ -555,14 +553,30 @@ func _on_zerg_spawn_tick() -> void:
 	if m_scene and muta_count > 0 and minion_count < 34:
 		for i in range(muta_count):
 			var m = m_scene.instantiate()
-			var ang = randf() * TAU
-			var dist = randf_range(360.0, 420.0)
-			m.global_position = ARENA_CENTER + Vector2(cos(ang) * dist, sin(ang) * dist)
+			m.global_position = _get_safe_cave_spawn_pos(player, 360.0, 420.0)
 			add_child(m)
 			
 			if m.has_method("set_tier"):
 				m.set_tier(5)
 			minion_count += 1
+
+func _get_safe_cave_spawn_pos(player: Node2D, min_d: float, max_d: float) -> Vector2:
+	const MIN_PLAYER_EXCLUSION: float = 220.0
+	for attempt in range(8):
+		var ang = randf() * TAU
+		var dist = randf_range(min_d, max_d)
+		var pos = ARENA_CENTER + Vector2(cos(ang) * dist, sin(ang) * dist)
+		if player and is_instance_valid(player):
+			if pos.distance_to(player.global_position) >= MIN_PLAYER_EXCLUSION:
+				return pos
+		else:
+			return pos
+	if player and is_instance_valid(player):
+		var away_dir = (ARENA_CENTER - player.global_position).normalized()
+		if away_dir == Vector2.ZERO:
+			away_dir = Vector2.RIGHT.rotated(randf() * TAU)
+		return player.global_position + away_dir * MIN_PLAYER_EXCLUSION
+	return ARENA_CENTER + Vector2.RIGHT * min_d
 
 # ==============================================================================
 # VICTORIA Y EXTRACCIÓN
@@ -599,7 +613,8 @@ func _on_boss_died() -> void:
 		
 		_send_voss_radio(
 			"«¡CONFIRMACIÓN DE IMPACTO FATAL! ¡EL TITÁN HA CAÍDO! Nave de extracción balizada en el centro de la cueva. ¡Entra a la baliza para regresar a la base!»",
-			7.0
+			7.0,
+			"VOSS_26"
 		)
 	)
 
@@ -613,13 +628,15 @@ func _trigger_camera_shake(intensity: float) -> void:
 		tw.tween_property(target_cam, "offset", offset, 0.04)
 	tw.tween_property(target_cam, "offset", Vector2.ZERO, 0.04)
 
-func _send_voss_radio(msg: String, dur: float) -> void:
+func _send_voss_radio(msg: String, dur: float, voice_id: String = "") -> void:
 	if transmission_comm:
 		transmission_comm.show_transmission(
 			"CAPITÁN HOLLIS VOSS",
 			load("res://assets/skins/sd/portrait/civilian_portrait.png"),
 			msg,
-			dur
+			dur,
+			Callable(),
+			voice_id
 		)
 
 func _unhandled_input(event: InputEvent) -> void:

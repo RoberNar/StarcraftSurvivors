@@ -634,15 +634,33 @@ func _handle_world_events() -> void:
 		event_mutalisk_spire_spawned = true
 		_spawn_spawner_structure("mutalisk_spire")
 
-func _send_voss_transmission(msg: String, duration: float = 5.5) -> void:
-	AudioManager.play_voss_greeting()
+func _send_voss_transmission(msg: String, duration: float = 5.5, voice_id: String = "") -> void:
+	if voice_id == "":
+		AudioManager.play_voss_greeting()
 	for hud in get_tree().get_nodes_in_group("hud"):
 		if hud and hud.has_method("show_transmission"):
 			hud.show_transmission(
 				"CAPITÁN HOLLIS VOSS",
 				load("res://assets/skins/sd/portrait/civilian_portrait.png"),
 				msg,
-				duration
+				duration,
+				Callable(),
+				voice_id
+			)
+
+func _send_adjutant_transmission(msg: String, duration: float = 5.5, voice_id: String = "") -> void:
+	var adv_tex = SkinManager.get_portrait("advisor")
+	if not adv_tex:
+		adv_tex = load("res://assets/skins/sd/portrait/advisor_portrait.png")
+	for hud in get_tree().get_nodes_in_group("hud"):
+		if hud and hud.has_method("show_transmission"):
+			hud.show_transmission(
+				"OPERADORA TERRAN",
+				adv_tex,
+				msg,
+				duration,
+				Callable(),
+				voice_id
 			)
 
 func _spawn_spawner_structure(type: String) -> void:
@@ -667,15 +685,19 @@ func _spawn_spawner_structure(type: String) -> void:
 		main_scene.add_child(spawner)
 	
 	var msg = ""
+	var v_id = ""
 	match type:
 		"zergling_pool":
-			msg = "«¡ALERTA TÁCTICA! Detectamos un Pozo de Desove Zerg activo en el sector. ¡Destrúyelo para detener el torrente de Zerglings!»"
+			msg = "«Alerta: Pozo de desove Zerg detectado en el sector. Destruir la bio-estructura para detener el torrente de Zerglings.»"
+			v_id = "ADJ_01"
 		"hydralisk_den":
-			msg = "«¡EMERGENCIA BIOLÓGICA! Ha brotado una Guarida de Hidraliscos masiva. ¡Elimina la estructura y frena las ráfagas de espinas!»"
+			msg = "«Alerta: Guarida de Hidraliscos masiva detectada. Destruir la bio-estructura de inmediato.»"
+			v_id = "ADJ_03"
 		"mutalisk_spire":
-			msg = "«¡CÓDIGO ROJO! Una Espira de Mutaliscos domina el cielo. ¡Derríbala para cortar el asalto aéreo del enjambre!»"
+			msg = "«Alerta aérea: Espira de Mutaliscos localizada. Derríbarla de inmediato.»"
+			v_id = "ADJ_04"
 	
-	_send_voss_transmission(msg, 5.5)
+	_send_adjutant_transmission(msg, 5.5, v_id)
 
 func _trigger_20min_climax() -> void:
 	has_triggered_20min_climax = true
@@ -702,10 +724,11 @@ func _trigger_20min_climax() -> void:
 	
 	AudioManager.play_sfx("nydus_emerge", 0.0, 5.0)
 	
-	# 3. Transmisión del Capitán Voss
-	_send_voss_transmission(
-		"«¡SUPERVIVENCIA DE 20 MINUTOS COMPLETADA! ¡UN CANAL NYDUS COLOSAL HA EMERGIDO! ¡PREPÁRATE PARA LA BATALLA DEFINITIVA!»",
-		7.0
+	# 3. Transmisión táctica de la Operadora Terran
+	_send_adjutant_transmission(
+		"«Alerta máxima: Perturbación biológica colosal detectada. Un Canal Nydus masivo ha emergido en sus coordenadas. ¡Prepárese para el combate!»",
+		7.0,
+		"ADJ_10"
 	)
 	
 	# 4. Quitar la nave de evacuación: la única vía es el Canal Nydus
@@ -754,21 +777,26 @@ func _trigger_lurker_event_wave(mark: float) -> void:
 		return
 	
 	var msg = ""
+	var v_id = ""
 	var line_count = 3
 	if mark <= 185.0:
-		msg = "«¡ALERTA SÍSMICA! ¡Sensores geológicos detectan movimientos en el subsuelo! ¡El Enjambre despliega espinas subterráneas, mantén la movilidad!»"
+		msg = "«Alerta sísmica: Sensores geológicos registran anomalías en el subsuelo. Despliegue de espinas subterráneas detectado.»"
+		v_id = "ADJ_05"
 		line_count = 3
 	elif mark <= 365.0:
-		msg = "«¡CUIDADO CON EL TERRENO! ¡Erupciones subterráneas detectadas en tu sector! ¡Evita las trayectorias marcadas antes de que broten las púas!»"
+		msg = "«Advertencia Sísmica: Erupciones subterráneas detectadas en su sector.»"
+		v_id = "ADJ_06"
 		line_count = 4
 	elif mark <= 545.0:
-		msg = "«¡ACTIVIDAD SÍSMICA EN AUMENTO! ¡Oleadas de espinas subterráneas cruzando el campo de batalla! ¡Vigila tus pasos, soldado!»"
+		msg = "«Alerta sísmica: Incremento en la actividad sísmica subterránea. Múltiples vectores de púas cruzando el cuadrante.»"
+		v_id = "ADJ_07"
 		line_count = 5
 	else:
-		msg = "«¡RADAR GEOLÓGICO SATURADO! ¡Múltiples líneas de espinas de acechador perforando la superficie en masa!»"
+		msg = "«Emergencia sísmica: Radar geológico saturado. Despliegue masivo de espinas.»"
+		v_id = "ADJ_08"
 		line_count = 6
 	
-	_send_voss_transmission(msg, 5.0)
+	_send_adjutant_transmission(msg, 5.0, v_id)
 	
 	for i in range(line_count):
 		get_tree().create_timer(float(i) * 0.40).timeout.connect(func():
@@ -778,8 +806,8 @@ func _trigger_lurker_event_wave(mark: float) -> void:
 		)
 
 func _trigger_lurker_frenzy_warning() -> void:
-	var msg = "«¡EMERGENCIA CRÍTICA! ¡TEMBLOR ZERG MASIVO! ¡EL SUELO SE ESTÁ DESGARRANDO POR TODAS PARTES, NO DEJES DE MOVERTE HASTA QUE SE CUMPLAN LOS 20 MINUTOS!»"
-	_send_voss_transmission(msg, 6.0)
+	var msg = "«Emergencia crítica general: El Enjambre fractura la superficie en masa. Mantenga maniobras evasivas continuas.»"
+	_send_adjutant_transmission(msg, 6.0, "ADJ_09")
 
 func _spawn_tactical_lurker_line(center_pos: Vector2) -> void:
 	if not lurker_hazard_scene:
@@ -840,7 +868,7 @@ func _spawn_ultralisk(cycle: int = 1) -> void:
 		return
 	
 	var angle = randf() * TAU
-	var spawn_pos = player.global_position + Vector2(cos(angle), sin(angle)) * 480.0
+	var spawn_pos = player.global_position + Vector2(cos(angle), sin(angle)) * 580.0
 	
 	if ultralisk_scene:
 		var boss = ultralisk_scene.instantiate()
@@ -868,9 +896,22 @@ func _spawn_enemy() -> void:
 	if player == null or not is_instance_valid(player):
 		return
 	
-	var angle = randf() * TAU
-	var dist = randf_range(360.0, 450.0)
-	var spawn_pos = player.global_position + Vector2(cos(angle), sin(angle)) * dist
+	# Spawn perimetral garantizado fuera de la pantalla en widescreen (960x540)
+	# Half-screen: 480x270. Margen exterior: ~80-140px adicionales.
+	var edge = randi() % 4
+	var rel_pos = Vector2.ZERO
+	match edge:
+		0: rel_pos = Vector2(randf_range(-580.0, 580.0), -360.0 - randf_range(0.0, 90.0)) # Arriba
+		1: rel_pos = Vector2(randf_range(-580.0, 580.0), 360.0 + randf_range(0.0, 90.0))  # Abajo
+		2: rel_pos = Vector2(-580.0 - randf_range(0.0, 90.0), randf_range(-350.0, 350.0)) # Izquierda
+		3: rel_pos = Vector2(580.0 + randf_range(0.0, 90.0), randf_range(-350.0, 350.0))  # Derecha
+	
+	var spawn_pos = player.global_position + rel_pos
+	
+	# Verificación estricta de distancia mínima de exclusión alrededor del jugador (mínimo 360 px)
+	const MIN_SPAWN_EXCLUSION_RADIUS: float = 360.0
+	if spawn_pos.distance_to(player.global_position) < MIN_SPAWN_EXCLUSION_RADIUS:
+		spawn_pos = player.global_position + (spawn_pos - player.global_position).normalized() * MIN_SPAWN_EXCLUSION_RADIUS
 	
 	var picked = WaveConfig.pick_random_enemy(game_time)
 	var enemy_scene: PackedScene = null

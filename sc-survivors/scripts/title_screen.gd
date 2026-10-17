@@ -10,6 +10,8 @@ extends Control
 @onready var music_label: Label = $OptionsPanel/VBox/MusicLabel
 @onready var sfx_slider: HSlider = $OptionsPanel/VBox/SfxSlider
 @onready var sfx_label: Label = $OptionsPanel/VBox/SfxLabel
+@onready var voice_slider: HSlider = $OptionsPanel/VBox/VoiceSlider
+@onready var voice_label: Label = $OptionsPanel/VBox/VoiceLabel
 @onready var fullscreen_check: CheckButton = $OptionsPanel/VBox/FullscreenCheck
 @onready var close_options_btn: Button = $OptionsPanel/VBox/CloseBtn
 
@@ -62,6 +64,14 @@ func _ready() -> void:
 		AudioManager.set_sfx_volume(val)
 		sfx_label.text = "Volumen Efectos: %d%%" % int(val * 100)
 	)
+	
+	if voice_slider and voice_label:
+		voice_slider.value = AudioManager.voice_volume
+		voice_label.text = "Volumen Voces: %d%%" % int(AudioManager.voice_volume * 100)
+		voice_slider.value_changed.connect(func(val):
+			AudioManager.set_voice_volume(val)
+			voice_label.text = "Volumen Voces: %d%%" % int(val * 100)
+		)
 	
 	# Fullscreen
 	var is_fs = (DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN)
@@ -411,6 +421,10 @@ func _on_options_pressed() -> void:
 	armory_panel.visible = false
 	music_slider.value = AudioManager.music_volume
 	sfx_slider.value = AudioManager.sfx_volume
+	if voice_slider:
+		voice_slider.value = AudioManager.voice_volume
+	if voice_label:
+		voice_label.text = "Volumen Voces: %d%%" % int(AudioManager.voice_volume * 100)
 	var is_fs = (DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN)
 	fullscreen_check.set_pressed_no_signal(is_fs)
 	options_panel.visible = true

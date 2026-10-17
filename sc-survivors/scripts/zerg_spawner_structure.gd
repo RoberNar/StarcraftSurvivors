@@ -86,6 +86,24 @@ func _process(delta: float) -> void:
 		spawn_timer = 0.0
 		_spawn_wave()
 
+func _get_safe_minion_spawn_pos(player: Node2D, radius: float) -> Vector2:
+	var to_struct = global_position - player.global_position
+	var p_dist = to_struct.length()
+	
+	# Si el jugador está cerca o encima de la estructura, spawnear al lado OPUESTO
+	# de la estructura y garantizar una distancia de exclusión mínima de al menos 180 px.
+	const MIN_PLAYER_EXCLUSION: float = 180.0
+	if p_dist < MIN_PLAYER_EXCLUSION:
+		var away_dir = to_struct.normalized() if p_dist > 5.0 else Vector2.RIGHT.rotated(randf() * TAU)
+		var perp = Vector2(-away_dir.y, away_dir.x)
+		var spawn_pos = global_position + (away_dir * randf_range(radius + 40.0, radius + 90.0)) + (perp * randf_range(-35.0, 35.0))
+		if spawn_pos.distance_to(player.global_position) < MIN_PLAYER_EXCLUSION:
+			spawn_pos = player.global_position + (spawn_pos - player.global_position).normalized() * MIN_PLAYER_EXCLUSION
+		return spawn_pos
+	else:
+		var ang = randf() * TAU
+		return global_position + Vector2(cos(ang), sin(ang)) * randf_range(radius * 0.7, radius * 1.2)
+
 func _spawn_wave() -> void:
 	var player = get_tree().get_first_node_in_group("player")
 	if not player or not is_instance_valid(player):
@@ -101,8 +119,7 @@ func _spawn_wave() -> void:
 			if z_scene:
 				for i in range(3):
 					var z = z_scene.instantiate()
-					var offset = Vector2(randf_range(-40, 40), randf_range(-40, 40))
-					z.global_position = global_position + offset
+					z.global_position = _get_safe_minion_spawn_pos(player, 45.0)
 					if z.has_method("set_tier"):
 						z.set_tier(randi_range(2, 4))
 					main_scene.add_child(z)
@@ -111,16 +128,14 @@ func _spawn_wave() -> void:
 			if h_scene:
 				for i in range(2):
 					var h = h_scene.instantiate()
-					var offset = Vector2(randf_range(-45, 45), randf_range(-45, 45))
-					h.global_position = global_position + offset
+					h.global_position = _get_safe_minion_spawn_pos(player, 50.0)
 					main_scene.add_child(h)
 		"mutalisk_spire":
 			var m_scene = load("res://scenes/mutalisk.tscn")
 			if m_scene:
 				for i in range(3):
 					var m = m_scene.instantiate()
-					var offset = Vector2(randf_range(-50, 50), randf_range(-50, 50))
-					m.global_position = global_position + offset
+					m.global_position = _get_safe_minion_spawn_pos(player, 55.0)
 					main_scene.add_child(m)
 
 func take_damage(amount: float) -> void:
@@ -166,14 +181,19 @@ func die() -> void:
 			"mutalisk_spire":
 				SaveManager.unlock_achievement("destroy_mutalisk_spire")
 	
-	# Transmisión del Capitán Voss
+	# Transmisión de confirmación táctica de la Operadora Terran
+	var adv_tex = SkinManager.get_portrait("advisor")
+	if not adv_tex:
+		adv_tex = load("res://assets/skins/sd/portrait/advisor_portrait.png")
 	for hud in get_tree().get_nodes_in_group("hud"):
 		if hud and hud.has_method("show_transmission"):
 			hud.show_transmission(
-				"CAPITÁN HOLLIS VOSS",
-				load("res://assets/skins/sd/portrait/civilian_portrait.png"),
-				"«¡Excelente disparo, soldado! La bio-estructura zerg ha colapsado. ¡Ese sector está limpio!»",
-				4.5
+				"OPERADORA TERRAN",
+				adv_tex,
+				"«Confirmación de objetivo: Bio-estructura Zerg neutralizada.»",
+				4.5,
+				Callable(),
+				"ADJ_02"
 			)
 		if hud and hud.has_method("hide_event_boss_bar"):
 			hud.hide_event_boss_bar()

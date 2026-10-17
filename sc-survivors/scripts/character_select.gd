@@ -66,16 +66,16 @@ func _ready() -> void:
 	for n in anim_nodes:
 		orig_positions[n] = n.position
 	
-	# Posición fuera de pantalla antes de llegar
-	marine_monitor.position = Vector2(-160, orig_positions[marine_monitor].y)
+	# Posición fuera de pantalla antes de llegar según su brazo mecánico
+	marine_monitor.position = Vector2(-200, orig_positions[marine_monitor].y)
 	firebat_monitor.position = Vector2(orig_positions[firebat_monitor].x, -160)
 	ghost_monitor.position = Vector2(orig_positions[ghost_monitor].x, -160)
-	goliath_monitor.position = Vector2(660, orig_positions[goliath_monitor].y)
+	goliath_monitor.position = Vector2(1000, orig_positions[goliath_monitor].y)
 	center_panel.position = Vector2(orig_positions[center_panel].x, -260)
-	obj_header.position = Vector2(-260, orig_positions[obj_header].y)
-	obj_panel.position = Vector2(-260, orig_positions[obj_panel].y)
-	start_button.position = Vector2(orig_positions[start_button].x, 500)
-	cancel_button.position = Vector2(660, orig_positions[cancel_button].y)
+	obj_header.position = Vector2(-300, orig_positions[obj_header].y)
+	obj_panel.position = Vector2(-300, orig_positions[obj_panel].y)
+	start_button.position = Vector2(orig_positions[start_button].x, 560)
+	cancel_button.position = Vector2(orig_positions[cancel_button].x, 560)
 	
 	# Botones de monitores bloqueados con texto enigmático
 	marine_button.text = ""
@@ -154,15 +154,15 @@ func _play_exit_animation(on_complete: Callable) -> void:
 	AudioManager.play_sfx("liftoff")
 	var tw = create_tween().set_parallel(true)
 	var dur = 0.35
-	tw.tween_property(marine_monitor, "position", Vector2(-160, orig_positions[marine_monitor].y), dur).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	tw.tween_property(marine_monitor, "position", Vector2(-200, orig_positions[marine_monitor].y), dur).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
 	tw.tween_property(firebat_monitor, "position", Vector2(orig_positions[firebat_monitor].x, -160), dur).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
 	tw.tween_property(ghost_monitor, "position", Vector2(orig_positions[ghost_monitor].x, -160), dur).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
-	tw.tween_property(goliath_monitor, "position", Vector2(660, orig_positions[goliath_monitor].y), dur).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	tw.tween_property(goliath_monitor, "position", Vector2(1000, orig_positions[goliath_monitor].y), dur).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
 	tw.tween_property(center_panel, "position", Vector2(orig_positions[center_panel].x, -260), dur).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
-	tw.tween_property(obj_header, "position", Vector2(-260, orig_positions[obj_header].y), dur).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
-	tw.tween_property(obj_panel, "position", Vector2(-260, orig_positions[obj_panel].y), dur).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
-	tw.tween_property(start_button, "position", Vector2(orig_positions[start_button].x, 500), dur).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
-	tw.tween_property(cancel_button, "position", Vector2(660, orig_positions[cancel_button].y), dur).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	tw.tween_property(obj_header, "position", Vector2(-300, orig_positions[obj_header].y), dur).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	tw.tween_property(obj_panel, "position", Vector2(-300, orig_positions[obj_panel].y), dur).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	tw.tween_property(start_button, "position", Vector2(orig_positions[start_button].x, 560), dur).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	tw.tween_property(cancel_button, "position", Vector2(orig_positions[cancel_button].x, 560), dur).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
 	tw.chain().tween_callback(on_complete)
 
 func _unhandled_input(event: InputEvent) -> void:

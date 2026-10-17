@@ -64,15 +64,15 @@ func _start_intro_sequence() -> void:
 	tw.tween_property(black_fade, "color:a", 0.0, 1.8)
 	tw.tween_interval(0.6)
 	tw.tween_callback(func():
-		player.show_bubble("...Ugh. ¿Dónde me encuentro?", 3.5)
+		player.show_bubble("...Ugh. ¿Dónde me encuentro?", 3.5, "PROTAG_01")
 	)
 	tw.tween_interval(3.8)
 	tw.tween_callback(func():
-		player.show_bubble("No... no recuerdo nada. Ni cómo llegué aquí.", 4.0)
+		player.show_bubble("No... no recuerdo nada. Ni cómo llegué aquí.", 4.0, "PROTAG_02")
 	)
 	tw.tween_interval(4.3)
 	tw.tween_callback(func():
-		player.show_bubble("Calma. Primero lo primero: ponerse de pie.", 3.5)
+		player.show_bubble("Calma. Primero lo primero: ponerse de pie.", 3.5, "PROTAG_03")
 		_show_tutorial("Usa [W][A][S][D] o Flechas para moverte")
 		player.can_move = true
 	)
@@ -115,7 +115,7 @@ func _trigger_zerg_ambush() -> void:
 	zerg_spawned = true
 	
 	AudioManager.play_sfx("zergling_death")
-	player.show_bubble("¡¿Zergs?! ¡¿Aquí?! ¡CORRE!", 3.0)
+	player.show_bubble("¡¿Zergs?! ¡¿Aquí?! ¡Tengo que correr!", 4.0, "PROTAG_04")
 	_show_tutorial("¡CORRE! ¡NO TIENES ARMAS NI ESCUDOS!")
 	
 	var tw = create_tween()
@@ -145,7 +145,7 @@ func _on_critical_hp_reached() -> void:
 	rescued = true
 	
 	player.can_move = false
-	player.show_bubble("¡Es el final!... ¡No voy a sobrevivir a esto!", 3.0)
+	player.show_bubble("¡Es el final!... ¡No voy a sobrevivir a esto!", 3.5, "PROTAG_05")
 	
 	# Efecto de tensión
 	Engine.time_scale = 0.7
@@ -183,7 +183,8 @@ func _start_dropship_rescue() -> void:
 		_show_radio_message(
 			"CAPITÁN HOLLIS VOSS",
 			"«¡Oye, tú! ¡Sube a la nave de inmediato, no pienso esperar aquí!»",
-			3.6
+			3.6,
+			"VOSS_01"
 		)
 	)
 	
@@ -196,7 +197,8 @@ func _start_dropship_rescue() -> void:
 		_show_radio_message(
 			"CAPITÁN HOLLIS VOSS",
 			"«¡Sujétate bien! ¡Salimos de inmediato!»",
-			2.5
+			2.5,
+			"VOSS_02"
 		)
 	)
 	
@@ -215,7 +217,7 @@ func _start_dropship_rescue() -> void:
 		get_tree().change_scene_to_file("res://scenes/terran_base.tscn")
 	)
 
-func _show_radio_message(title: String, text: String, duration: float = 4.0) -> void:
+func _show_radio_message(title: String, text: String, duration: float = 4.0, voice_id: String = "") -> void:
 	if transmission_comm:
 		var voss_tex = load("res://assets/skins/sd/portrait/civilian_portrait.png")
-		transmission_comm.show_transmission(title, voss_tex, text, duration)
+		transmission_comm.show_transmission(title, voss_tex, text, duration, Callable(), voice_id)

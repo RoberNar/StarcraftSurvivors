@@ -77,8 +77,11 @@ script = ExtResource("1_script")
 
 [node name="TopBar" type="Panel" parent="."]
 custom_minimum_size = Vector2(0, 30)
-offset_right = 640.0
+anchors_preset = 10
+anchor_right = 1.0
+offset_right = 0.0
 offset_bottom = 30.0
+grow_horizontal = 2
 theme_override_styles/panel = SubResource("StyleBox_topbar")
 
 [node name="HBox" type="HBoxContainer" parent="TopBar"]
@@ -148,52 +151,62 @@ theme_override_font_sizes/font_size = 12
 text = "00:00"
 
 [node name="XpBar" type="ProgressBar" parent="."]
+anchors_preset = 10
+anchor_right = 1.0
 offset_top = 28.0
-offset_right = 640.0
+offset_right = 0.0
 offset_bottom = 33.0
+grow_horizontal = 2
 theme_override_styles/background = SubResource("StyleBox_xp_bg")
 theme_override_styles/fill = SubResource("StyleBox_xp_fill")
 show_percentage = false
 
 [node name="ConsoleRect" type="TextureRect" parent="."]
-texture_filter = 0
-offset_top = 292.0
-offset_right = 640.0
-offset_bottom = 480.0
+texture_filter = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -175.0
+offset_right = 0.0
+offset_bottom = 0.0
+grow_horizontal = 2
+grow_vertical = 0
 texture = ExtResource("6_tconsole")
+expand_mode = 1
 
 [node name="RadarControl" type="Control" parent="ConsoleRect"]
 layout_mode = 0
-offset_left = 6.0
-offset_top = 56.0
-offset_right = 134.0
-offset_bottom = 184.0
+offset_left = 113.0
+offset_top = 46.0
+offset_right = 241.0
+offset_bottom = 172.0
 script = ExtResource("2_radar")
 
 [node name="WireframeRect" type="TextureRect" parent="ConsoleRect"]
-texture_filter = 0
+texture_filter = 1
 layout_mode = 0
-offset_left = 166.0
-offset_top = 108.0
-offset_right = 226.0
-offset_bottom = 154.0
+offset_left = 356.0
+offset_top = 92.0
+offset_right = 416.0
+offset_bottom = 138.0
 expand_mode = 1
 stretch_mode = 5
 
 [node name="SCHealthBar" type="Control" parent="ConsoleRect"]
 layout_mode = 0
-offset_left = 162.0
-offset_top = 158.0
-offset_right = 230.0
-offset_bottom = 166.0
+offset_left = 354.0
+offset_top = 142.0
+offset_right = 418.0
+offset_bottom = 150.0
 script = ExtResource("3_hpbar")
 
 [node name="HpLabel" type="Label" parent="ConsoleRect"]
 layout_mode = 0
-offset_left = 162.0
-offset_top = 168.0
-offset_right = 230.0
-offset_bottom = 182.0
+offset_left = 354.0
+offset_top = 152.0
+offset_right = 418.0
+offset_bottom = 166.0
 theme = SubResource("Theme_sc")
 theme_override_colors/font_color = Color(0.25, 1, 0.35, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
@@ -205,10 +218,10 @@ horizontal_alignment = 1
 
 [node name="UnitInfo" type="VBoxContainer" parent="ConsoleRect"]
 layout_mode = 0
-offset_left = 236.0
-offset_top = 106.0
-offset_right = 348.0
-offset_bottom = 184.0
+offset_left = 422.0
+offset_top = 88.0
+offset_right = 548.0
+offset_bottom = 168.0
 mouse_filter = 2
 theme_override_constants/separation = 1
 
@@ -275,10 +288,10 @@ text = "STIM [T]: BLOQUEADO (ACADEMIA)"
 
 [node name="BaseWeaponSlot" type="Panel" parent="ConsoleRect"]
 layout_mode = 0
-offset_left = 348.0
-offset_top = 114.0
-offset_right = 392.0
-offset_bottom = 158.0
+offset_left = 552.0
+offset_top = 106.0
+offset_right = 588.0
+offset_bottom = 142.0
 mouse_filter = 0
 theme_override_styles/panel = SubResource("StyleBox_base_weapon")
 
@@ -324,20 +337,20 @@ vertical_alignment = 2
 
 [node name="PortraitControl" type="Control" parent="ConsoleRect"]
 layout_mode = 0
-offset_left = 413.0
-offset_top = 113.0
-offset_right = 473.0
-offset_bottom = 169.0
+offset_left = 626.0
+offset_top = 110.0
+offset_right = 688.0
+offset_bottom = 168.0
 script = ExtResource("4_portrait")
 
 [node name="CommandGrid" type="GridContainer" parent="ConsoleRect"]
 layout_mode = 0
-offset_left = 504.0
-offset_top = 64.0
-offset_right = 636.0
-offset_bottom = 180.0
-theme_override_constants/h_separation = 9
-theme_override_constants/v_separation = 4
+offset_left = 719.0
+offset_top = 56.0
+offset_right = 855.0
+offset_bottom = 172.0
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 6
 columns = 3
 
 [node name="LevelUpPanel" type="Panel" parent="."]
@@ -516,6 +529,19 @@ theme_override_font_sizes/font_size = 10
 text = "Volumen Efectos: 90%"
 
 [node name="SfxSlider" type="HSlider" parent="PausePanel/MainHBox/VBox"]
+layout_mode = 2
+max_value = 1.0
+step = 0.05
+value = 0.9
+
+[node name="VoiceLabel" type="Label" parent="PausePanel/MainHBox/VBox"]
+layout_mode = 2
+theme = SubResource("Theme_sc")
+theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 10
+text = "Volumen Voces: 90%"
+
+[node name="VoiceSlider" type="HSlider" parent="PausePanel/MainHBox/VBox"]
 layout_mode = 2
 max_value = 1.0
 step = 0.05

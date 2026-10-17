@@ -53,7 +53,7 @@ func _process(delta: float) -> void:
 			line_timer = 0.0
 			advance_or_close()
 
-func show_dialogue(speaker: String, portrait_tex: Texture2D, message: String, objective: String = "", on_finish: Callable = Callable()) -> void:
+func show_dialogue(speaker: String, portrait_tex: Texture2D, message: String, objective: String = "", on_finish: Callable = Callable(), voice_id: String = "") -> void:
 	is_active = true
 	current_on_finish = on_finish
 	queue.clear()
@@ -63,7 +63,7 @@ func show_dialogue(speaker: String, portrait_tex: Texture2D, message: String, ob
 	auto_advance_duration = 0.0
 	input_cooldown = 0.35
 	
-	_render_dialogue_line(speaker, portrait_tex, message, objective)
+	_render_dialogue_line(speaker, portrait_tex, message, objective, voice_id)
 	_open_window()
 
 func play_dialogue_queue(lines: Array[Dictionary], on_finish: Callable = Callable()) -> void:
@@ -92,6 +92,7 @@ func _advance_queue_line() -> void:
 	var speaker = item.get("speaker", "CAPITÁN HOLLIS VOSS" if is_voss else "??????")
 	var text = item.get("text", "")
 	var obj = item.get("objective", "")
+	var voice_id = item.get("voice_id", "")
 	
 	# Tiempo generoso de auto-avance (8 a 12 segundos según longitud) para evitar cualquier autoskip apresurado
 	auto_advance_duration = max(8.0, float(text.length()) * 0.08 + 3.0)
@@ -107,10 +108,13 @@ func _advance_queue_line() -> void:
 		else:
 			portrait_tex = SkinManager.get_sprite("wire_civilian")
 	
-	_render_dialogue_line(speaker, portrait_tex, text, obj)
+	_render_dialogue_line(speaker, portrait_tex, text, obj, voice_id)
 	queue_index += 1
 
-func _render_dialogue_line(speaker: String, portrait_tex: Texture2D, message: String, objective: String = "") -> void:
+func _render_dialogue_line(speaker: String, portrait_tex: Texture2D, message: String, objective: String = "", voice_id: String = "") -> void:
+	if has_node("/root/AudioManager"):
+		AudioManager.stop_voice()
+	
 	if header_label:
 		header_label.text = speaker
 		var is_voss = (speaker.find("VOSS") != -1 or speaker.find("HOLLIS") != -1 or speaker.find("COMANDANTE") != -1)
@@ -126,6 +130,13 @@ func _render_dialogue_line(speaker: String, portrait_tex: Texture2D, message: St
 		else:
 			objective_label.visible = false
 	
+	# Reproducir voz si está disponible
+	var voice_dur = 0.0
+	if voice_id != "" and has_node("/root/AudioManager"):
+		voice_dur = AudioManager.play_voice(voice_id)
+		if voice_dur > 0.0 and auto_advance_duration > 0.0:
+			auto_advance_duration = max(auto_advance_duration, voice_dur + 1.2)
+	
 	# Retrato y animación de habla
 	var final_tex = portrait_tex
 	if not final_tex:
@@ -133,7 +144,7 @@ func _render_dialogue_line(speaker: String, portrait_tex: Texture2D, message: St
 	
 	if portrait_control and final_tex:
 		portrait_control.set_portrait(final_tex)
-		portrait_control.trigger_talk(2.2)
+		portrait_control.trigger_talk(voice_dur if voice_dur > 0.0 else 2.2)
 	
 	# Efecto de resaltado en el marco del monitor
 	if chassis_rect:
@@ -167,6 +178,10 @@ func advance_or_close() -> void:
 	if input_cooldown > 0.0:
 		return
 	
+	# Cortar la voz si el jugador skipea o avanza
+	if has_node("/root/AudioManager"):
+		AudioManager.stop_voice()
+	
 	line_timer = 0.0
 	input_cooldown = 0.3
 	
@@ -178,6 +193,10 @@ func advance_or_close() -> void:
 func close_dialogue() -> void:
 	if not is_active and not visible:
 		return
+	
+	# Cortar la voz inmediatamente al cerrar el diálogo
+	if has_node("/root/AudioManager"):
+		AudioManager.stop_voice()
 	
 	is_active = false
 	if current_tween and current_tween.is_valid():

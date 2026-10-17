@@ -17,10 +17,20 @@ static func get_skin_path(category: String, filename: String, skin: String = "")
 static func get_sprite(name: String) -> Texture2D:
 	var path = get_skin_path("sprites", name + ".png")
 	if ResourceLoader.exists(path):
-		return load(path)
+		var res = load(path)
+		if res: return res
 	var fallback = get_skin_path("sprites", name + ".png", "sd")
 	if ResourceLoader.exists(fallback):
-		return load(fallback)
+		var res = load(fallback)
+		if res: return res
+	if FileAccess.file_exists(fallback):
+		var img = Image.load_from_file(fallback)
+		if img:
+			return ImageTexture.create_from_image(img)
+	if FileAccess.file_exists(path):
+		var img = Image.load_from_file(path)
+		if img:
+			return ImageTexture.create_from_image(img)
 	return null
 
 static func get_building(name: String) -> Texture2D:

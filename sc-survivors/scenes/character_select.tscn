@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3]
+[gd_scene load_steps=21 format=3]
 
 [ext_resource type="Script" path="res://scripts/character_select.gd" id="1_script"]
 [ext_resource type="FontFile" path="res://assets/skins/sd/fonts/eurostile.ttf" id="2_font"]
@@ -23,12 +23,26 @@ default_font_size = 11
 
 [sub_resource type="StyleBoxEmpty" id="StyleBox_empty"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBox_tactical_panel"]
+bg_color = Color(0.02, 0.05, 0.09, 0.88)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9, 0.55, 0.15, 0.85)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+shadow_color = Color(0, 0, 0, 0.6)
+shadow_size = 4
+
 [sub_resource type="StyleBoxFlat" id="StyleBox_btn_start"]
-bg_color = Color(0.03, 0.08, 0.04, 0.96)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
+bg_color = Color(0.03, 0.08, 0.04, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
 border_color = Color(0.2, 0.85, 0.35, 0.95)
 corner_radius_top_left = 3
 corner_radius_top_right = 3
@@ -36,11 +50,11 @@ corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_btn_cancel"]
-bg_color = Color(0.08, 0.03, 0.03, 0.96)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
+bg_color = Color(0.08, 0.03, 0.03, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
 border_color = Color(0.85, 0.2, 0.2, 0.95)
 corner_radius_top_left = 3
 corner_radius_top_right = 3
@@ -66,7 +80,7 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("3_bg")
 expand_mode = 1
-stretch_mode = 6
+stretch_mode = 0
 
 [node name="Monitors" type="Control" parent="."]
 layout_mode = 1
@@ -79,17 +93,17 @@ mouse_filter = 2
 
 [node name="MarineMonitor" type="Control" parent="Monitors"]
 layout_mode = 0
-offset_left = 33.0
-offset_top = 98.0
-offset_right = 161.0
-offset_bottom = 216.0
+offset_left = 168.0
+offset_top = 114.0
+offset_right = 296.0
+offset_bottom = 238.0
 
 [node name="Portrait" type="Control" parent="Monitors/MarineMonitor"]
 layout_mode = 0
-offset_left = 8.0
-offset_top = 7.0
+offset_left = 6.0
+offset_top = 6.0
 offset_right = 122.0
-offset_bottom = 111.0
+offset_bottom = 118.0
 script = ExtResource("16_portrait")
 portrait_texture = ExtResource("4_marine")
 auto_scale_to_fill = true
@@ -99,7 +113,7 @@ enable_click_to_talk = false
 texture_filter = 0
 layout_mode = 0
 offset_right = 128.0
-offset_bottom = 118.0
+offset_bottom = 124.0
 mouse_filter = 2
 texture = ExtResource("8_tframe1")
 
@@ -107,16 +121,16 @@ texture = ExtResource("8_tframe1")
 texture_filter = 0
 layout_mode = 0
 offset_right = 128.0
-offset_bottom = 118.0
+offset_bottom = 124.0
 mouse_filter = 2
 texture = ExtResource("12_tframeh1")
 
 [node name="Badge" type="Label" parent="Monitors/MarineMonitor"]
 layout_mode = 0
 offset_left = 14.0
-offset_top = 91.0
-offset_right = 116.0
-offset_bottom = 107.0
+offset_top = 96.0
+offset_right = 114.0
+offset_bottom = 114.0
 theme = SubResource("Theme_sc")
 theme_override_colors/font_color = Color(0.2, 1, 0.35, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
@@ -138,17 +152,17 @@ flat = true
 
 [node name="FirebatMonitor" type="Control" parent="Monitors"]
 layout_mode = 0
-offset_left = 183.0
-offset_top = 26.0
-offset_right = 311.0
-offset_bottom = 144.0
+offset_left = 333.0
+offset_top = 38.0
+offset_right = 465.0
+offset_bottom = 158.0
 
 [node name="Portrait" type="Control" parent="Monitors/FirebatMonitor"]
 layout_mode = 0
-offset_left = 8.0
-offset_top = 7.0
-offset_right = 122.0
-offset_bottom = 111.0
+offset_left = 6.0
+offset_top = 6.0
+offset_right = 126.0
+offset_bottom = 114.0
 script = ExtResource("16_portrait")
 portrait_texture = ExtResource("5_firebat")
 auto_scale_to_fill = true
@@ -156,18 +170,18 @@ enable_click_to_talk = false
 
 [node name="LockOverlay" type="ColorRect" parent="Monitors/FirebatMonitor"]
 layout_mode = 0
-offset_left = 8.0
-offset_top = 7.0
-offset_right = 122.0
-offset_bottom = 111.0
+offset_left = 6.0
+offset_top = 6.0
+offset_right = 126.0
+offset_bottom = 114.0
 mouse_filter = 2
 color = Color(0, 0, 0, 0.25)
 
 [node name="Chassis" type="TextureRect" parent="Monitors/FirebatMonitor"]
 texture_filter = 0
 layout_mode = 0
-offset_right = 128.0
-offset_bottom = 118.0
+offset_right = 132.0
+offset_bottom = 120.0
 mouse_filter = 2
 texture = ExtResource("9_tframe2")
 
@@ -175,17 +189,17 @@ texture = ExtResource("9_tframe2")
 visible = false
 texture_filter = 0
 layout_mode = 0
-offset_right = 128.0
-offset_bottom = 118.0
+offset_right = 132.0
+offset_bottom = 120.0
 mouse_filter = 2
 texture = ExtResource("13_tframeh2")
 
 [node name="Badge" type="Label" parent="Monitors/FirebatMonitor"]
 layout_mode = 0
 offset_left = 14.0
-offset_top = 91.0
-offset_right = 116.0
-offset_bottom = 107.0
+offset_top = 94.0
+offset_right = 118.0
+offset_bottom = 112.0
 theme = SubResource("Theme_sc")
 theme_override_colors/font_color = Color(1, 0.8, 0.2, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
@@ -207,17 +221,17 @@ flat = true
 
 [node name="GhostMonitor" type="Control" parent="Monitors"]
 layout_mode = 0
-offset_left = 338.0
-offset_top = 26.0
-offset_right = 466.0
-offset_bottom = 144.0
+offset_left = 504.0
+offset_top = 38.0
+offset_right = 636.0
+offset_bottom = 158.0
 
 [node name="Portrait" type="Control" parent="Monitors/GhostMonitor"]
 layout_mode = 0
 offset_left = 6.0
-offset_top = 7.0
-offset_right = 120.0
-offset_bottom = 111.0
+offset_top = 6.0
+offset_right = 126.0
+offset_bottom = 114.0
 script = ExtResource("16_portrait")
 portrait_texture = ExtResource("6_ghost")
 auto_scale_to_fill = true
@@ -226,17 +240,17 @@ enable_click_to_talk = false
 [node name="LockOverlay" type="ColorRect" parent="Monitors/GhostMonitor"]
 layout_mode = 0
 offset_left = 6.0
-offset_top = 7.0
-offset_right = 120.0
-offset_bottom = 111.0
+offset_top = 6.0
+offset_right = 126.0
+offset_bottom = 114.0
 mouse_filter = 2
 color = Color(0, 0, 0, 0.25)
 
 [node name="Chassis" type="TextureRect" parent="Monitors/GhostMonitor"]
 texture_filter = 0
 layout_mode = 0
-offset_right = 128.0
-offset_bottom = 118.0
+offset_right = 132.0
+offset_bottom = 120.0
 mouse_filter = 2
 texture = ExtResource("10_tframe3")
 
@@ -244,17 +258,17 @@ texture = ExtResource("10_tframe3")
 visible = false
 texture_filter = 0
 layout_mode = 0
-offset_right = 128.0
-offset_bottom = 118.0
+offset_right = 132.0
+offset_bottom = 120.0
 mouse_filter = 2
 texture = ExtResource("14_tframeh3")
 
 [node name="Badge" type="Label" parent="Monitors/GhostMonitor"]
 layout_mode = 0
 offset_left = 14.0
-offset_top = 91.0
-offset_right = 116.0
-offset_bottom = 107.0
+offset_top = 94.0
+offset_right = 118.0
+offset_bottom = 112.0
 theme = SubResource("Theme_sc")
 theme_override_colors/font_color = Color(1, 0.8, 0.2, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
@@ -276,17 +290,17 @@ flat = true
 
 [node name="GoliathMonitor" type="Control" parent="Monitors"]
 layout_mode = 0
-offset_left = 479.0
-offset_top = 98.0
-offset_right = 607.0
-offset_bottom = 216.0
+offset_left = 664.0
+offset_top = 118.0
+offset_right = 795.0
+offset_bottom = 240.0
 
 [node name="Portrait" type="Control" parent="Monitors/GoliathMonitor"]
 layout_mode = 0
 offset_left = 6.0
-offset_top = 7.0
-offset_right = 120.0
-offset_bottom = 111.0
+offset_top = 6.0
+offset_right = 125.0
+offset_bottom = 116.0
 script = ExtResource("16_portrait")
 portrait_texture = ExtResource("7_goliath")
 auto_scale_to_fill = true
@@ -295,17 +309,17 @@ enable_click_to_talk = false
 [node name="LockOverlay" type="ColorRect" parent="Monitors/GoliathMonitor"]
 layout_mode = 0
 offset_left = 6.0
-offset_top = 7.0
-offset_right = 120.0
-offset_bottom = 111.0
+offset_top = 6.0
+offset_right = 125.0
+offset_bottom = 116.0
 mouse_filter = 2
 color = Color(0, 0, 0, 0.25)
 
 [node name="Chassis" type="TextureRect" parent="Monitors/GoliathMonitor"]
 texture_filter = 0
 layout_mode = 0
-offset_right = 128.0
-offset_bottom = 118.0
+offset_right = 131.0
+offset_bottom = 122.0
 mouse_filter = 2
 texture = ExtResource("11_tframe4")
 
@@ -313,17 +327,17 @@ texture = ExtResource("11_tframe4")
 visible = false
 texture_filter = 0
 layout_mode = 0
-offset_right = 128.0
-offset_bottom = 118.0
+offset_right = 131.0
+offset_bottom = 122.0
 mouse_filter = 2
 texture = ExtResource("15_tframeh4")
 
 [node name="Badge" type="Label" parent="Monitors/GoliathMonitor"]
 layout_mode = 0
 offset_left = 14.0
-offset_top = 91.0
-offset_right = 116.0
-offset_bottom = 107.0
+offset_top = 96.0
+offset_right = 117.0
+offset_bottom = 114.0
 theme = SubResource("Theme_sc")
 theme_override_colors/font_color = Color(1, 0.8, 0.2, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
@@ -345,10 +359,10 @@ flat = true
 
 [node name="CenterPanel" type="Panel" parent="."]
 layout_mode = 0
-offset_left = 194.0
-offset_top = 174.0
-offset_right = 458.0
-offset_bottom = 376.0
+offset_left = 344.0
+offset_top = 192.0
+offset_right = 660.0
+offset_bottom = 354.0
 theme_override_styles/panel = SubResource("StyleBox_empty")
 
 [node name="VBox" type="VBoxContainer" parent="CenterPanel"]
@@ -356,6 +370,10 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 8.0
+offset_right = -10.0
+offset_bottom = -8.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 2
@@ -488,26 +506,26 @@ horizontal_alignment = 1
 
 [node name="ObjHeaderLabel" type="Label" parent="."]
 layout_mode = 0
-offset_left = 44.0
-offset_top = 308.0
-offset_right = 265.0
-offset_bottom = 326.0
+offset_left = 176.0
+offset_top = 356.0
+offset_right = 434.0
+offset_bottom = 376.0
 theme = SubResource("Theme_sc")
 theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
 theme_override_constants/shadow_outline_size = 2
-theme_override_font_sizes/font_size = 9
+theme_override_font_sizes/font_size = 11
 text = "EXPEDIENTE TÁCTICO"
 vertical_alignment = 1
 
 [node name="ObjectivesPanel" type="Panel" parent="."]
 layout_mode = 0
-offset_left = 56.0
-offset_top = 342.0
-offset_right = 266.0
-offset_bottom = 452.0
+offset_left = 176.0
+offset_top = 390.0
+offset_right = 434.0
+offset_bottom = 514.0
 theme_override_styles/panel = SubResource("StyleBox_empty")
 
 [node name="VBox" type="VBoxContainer" parent="ObjectivesPanel"]
@@ -515,9 +533,13 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = -4.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 5
 
 [node name="Obj1" type="Label" parent="ObjectivesPanel/VBox"]
 layout_mode = 2
@@ -578,10 +600,10 @@ autowrap_mode = 3
 
 [node name="StartButton" type="Button" parent="."]
 layout_mode = 0
-offset_left = 298.0
-offset_top = 404.0
-offset_right = 448.0
-offset_bottom = 434.0
+offset_left = 488.0
+offset_top = 473.0
+offset_right = 648.0
+offset_bottom = 507.0
 theme = SubResource("Theme_sc")
 theme_override_colors/font_color = Color(0.3, 1, 0.4, 1)
 theme_override_colors/font_focus_color = Color(0.5, 1, 0.6, 1)
@@ -596,10 +618,10 @@ text = "INICIAR MISIÓN"
 
 [node name="CancelButton" type="Button" parent="."]
 layout_mode = 0
-offset_left = 472.0
-offset_top = 414.0
-offset_right = 612.0
-offset_bottom = 448.0
+offset_left = 665.0
+offset_top = 514.0
+offset_right = 823.0
+offset_bottom = 538.0
 theme = SubResource("Theme_sc")
 theme_override_colors/font_color = Color(1, 0.35, 0.35, 1)
 theme_override_colors/font_focus_color = Color(1, 0.5, 0.5, 1)
@@ -607,7 +629,7 @@ theme_override_colors/font_hover_color = Color(1, 0.7, 0.7, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 10
 theme_override_styles/normal = SubResource("StyleBox_btn_cancel")
 theme_override_styles/hover = SubResource("StyleBox_btn_cancel")
 text = "CANCELAR"
