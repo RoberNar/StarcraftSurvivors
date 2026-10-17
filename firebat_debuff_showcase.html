@@ -539,10 +539,10 @@
 
             <div class="unit-container" id="unit-container">
               
-              <!-- Barra de Vida y Armadura -->
+              <!-- Barra de Vida y Estado de Quemadura -->
               <div class="unit-health-bar">
                 <div class="armor-badge-mini" id="armor-badge-mini">
-                  <span>🛡️</span> <span id="armor-text">ARMADURA: -3 [DEBUFF SC1]</span>
+                  <span id="badge-icon">🔥</span> <span id="armor-text">QUEMADO</span>
                 </div>
                 <div class="hp-track">
                   <div class="hp-fill"></div>
@@ -723,6 +723,38 @@
               </div>
             </div>
 
+            <!-- 9. Tormenta Psiónica (psistorm.grp) -->
+            <div class="opt-card" id="card-sc1-psistorm" onclick="selectSc1Effect('psistorm')">
+              <div class="opt-header">
+                <span class="opt-tag" style="background: rgba(0, 229, 255, 0.2); color: var(--accent-cyan); border-color: rgba(0, 229, 255, 0.4);">PODER PROTOSS</span>
+                <span style="color: var(--accent-cyan); font-size: 18px;">⚡</span>
+              </div>
+              <div class="opt-title">9. Tormenta Psiónica (Psionic Storm)</div>
+              <div class="opt-source">thingy/psistrm.grp (High Templar)</div>
+              <div class="opt-desc">
+                Descarga devastadora de relámpagos psiónicos de StarCraft 1. Genera campos erráticos de plasma puro en tu campo visual con daño devastador.
+              </div>
+              <div class="opt-preview-box">
+                <img src="showcase_assets/psistorm.gif" alt="Psionic Storm">
+              </div>
+            </div>
+
+            <!-- 10. Zumo de Limón (Easter Egg - Limo Corrosivo) -->
+            <div class="opt-card" id="card-sc1-lemon" onclick="selectSc1Effect('lemon')">
+              <div class="opt-header">
+                <span class="opt-tag" style="background: rgba(255, 238, 34, 0.2); color: #ffee22; border-color: rgba(255, 238, 34, 0.4);">EASTER EGG ÁCIDO</span>
+                <span style="color: #ffee22; font-size: 18px;">🍋</span>
+              </div>
+              <div class="opt-title">10. Zumo de Limón (Limo Corrosivo)</div>
+              <div class="opt-source">thingy/ensnare.grp (Queen - Recolor Amarillo Limón)</div>
+              <div class="opt-desc">
+                Mini-explosión de ataque parasitario en amarillo limón que deja al enemigo bañado en limo ácido: DoT severo (+8 HP/tick) y 10% ralentización.
+              </div>
+              <div class="opt-preview-box">
+                <img src="showcase_assets/lemon_ensnare.gif" alt="Zumo de Limon">
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
@@ -824,11 +856,12 @@
     const sc1Effects = {
       'fire': {
         file: 'showcase_assets/sc1_fire_original.gif',
-        title: '1. FUEGO ORIGINAL DE STARCRAFT (ofirec.grp)',
-        scale: 0.9,
+        title: '1. FUEGO AUTÉNTICO STARCRAFT 1 (12 frames limpios)',
+        scale: 0.60,
         yOffset: 0,
         blend: 'screen',
-        badge: 'ARMADURA: -3 [FUEGO SC1]'
+        badge: 'QUEMADO',
+        icon: '🔥'
       },
       'acid': {
         file: 'showcase_assets/sc1_acid_spores.gif',
@@ -836,7 +869,8 @@
         scale: 1.0,
         yOffset: 0,
         blend: 'screen',
-        badge: 'ARMADURA: -3 [ESPORAS SC1]'
+        badge: 'INFECTADO',
+        icon: '☣️'
       },
       'ensnare': {
         file: 'showcase_assets/sc1_ensnare.gif',
@@ -844,7 +878,8 @@
         scale: 0.8,
         yOffset: 0,
         blend: 'screen',
-        badge: 'ARMADURA: -3 [LIMO SC1]'
+        badge: 'RALENTIZADO',
+        icon: '🧪'
       },
       'irradiate': {
         file: 'showcase_assets/sc1_irradiate.gif',
@@ -852,15 +887,17 @@
         scale: 0.85,
         yOffset: -5,
         blend: 'screen',
-        badge: 'ARMADURA: -3 [RADIACIÓN SC1]'
+        badge: 'IRRADIADO',
+        icon: '☢️'
       },
       'eldfire': {
         file: 'showcase_assets/sc1_eldfire.gif',
         title: '5. FUEGO DE COMBUSTIÓN BAJA (eldfire.grp)',
-        scale: 0.9,
+        scale: 0.70,
         yOffset: 5,
         blend: 'screen',
-        badge: 'ARMADURA: -3 [FUEGO COMPACTO SC1]'
+        badge: 'QUEMADO',
+        icon: '🔥'
       },
       'maelstrom': {
         file: 'showcase_assets/sc1_maelstrom.gif',
@@ -868,7 +905,8 @@
         scale: 0.8,
         yOffset: 0,
         blend: 'screen',
-        badge: 'ARMADURA: -3 [MAELSTROM SC1]'
+        badge: 'VÓRTICE',
+        icon: '🌀'
       },
       'lockdown': {
         file: 'showcase_assets/sc1_lockdown.gif',
@@ -876,15 +914,35 @@
         scale: 0.85,
         yOffset: 0,
         blend: 'screen',
-        badge: 'ARMADURA: -3 [DESCARGA SC1]'
+        badge: 'DESCARGA',
+        icon: '⚡'
       },
       'plasdrip': {
         file: 'showcase_assets/sc1_plasdrip.gif',
         title: '8. GOTEO DE PLASMA ARDIENTE (plasdrip.grp)',
-        scale: 1.0,
+        scale: 0.90,
         yOffset: 0,
         blend: 'screen',
-        badge: 'ARMADURA: -3 [PLASMA DRIP SC1]'
+        badge: 'GOTEO CÁUSTICO',
+        icon: '💧'
+      },
+      'psistorm': {
+        file: 'showcase_assets/psistorm.gif',
+        title: '9. TORMENTA PSÍONICA (Poder Templar)',
+        scale: 0.85,
+        yOffset: 0,
+        blend: 'screen',
+        badge: 'ELECTROCUTADO',
+        icon: '⚡'
+      },
+      'lemon': {
+        file: 'showcase_assets/lemon_ensnare.gif',
+        title: '10. ZUMO DE LIMÓN (Limo Corrosivo Amarillo)',
+        scale: 0.70,
+        yOffset: 0,
+        blend: 'screen',
+        badge: 'BAÑADO EN ZUMO DE LIMÓN',
+        icon: '🍋'
       }
     };
 
@@ -954,7 +1012,9 @@
         'eldfire': 'card-sc1-eldfire',
         'maelstrom': 'card-sc1-maelstrom',
         'lockdown': 'card-sc1-lockdown',
-        'plasdrip': 'card-sc1-plasdrip'
+        'plasdrip': 'card-sc1-plasdrip',
+        'psistorm': 'card-sc1-psistorm',
+        'lemon': 'card-sc1-lemon'
       };
       if (cardMap[effectKey]) {
         document.getElementById(cardMap[effectKey]).classList.add('selected');
@@ -968,6 +1028,8 @@
         fx.style.transform = `translate(-50%, calc(-50% + ${conf.yOffset}px)) scale(${conf.scale})`;
         fx.style.mixBlendMode = conf.blend;
         document.getElementById('armor-text').innerText = conf.badge;
+        const iconEl = document.getElementById('badge-icon');
+        if (iconEl && conf.icon) iconEl.innerText = conf.icon;
       }
     }
 

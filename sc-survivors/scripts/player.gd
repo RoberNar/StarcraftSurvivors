@@ -56,6 +56,8 @@ var flame_timer: float = 0.0
 var mine_timer: float = 0.0
 var sniper_timer: float = 0.0
 var mutalisk_timer: float = 0.0
+var storm_timer: float = 0.0
+var lemon_timer: float = 0.0
 var mineral_check_timer: float = 0.0
 
 # Nodos
@@ -268,6 +270,24 @@ func _process_weapons(delta: float, target: Node2D) -> void:
 			mutalisk_timer = 0.0
 			_fire_glave_wurm(target)
 
+	# 6. Tormenta Psiónica (Invocación errática en campo visual)
+	if weapons.has("psionic_storm"):
+		var storm_lvl = weapons.get("psionic_storm", 1)
+		var storm_interval = max(1.8, 3.8 - (storm_lvl - 1) * 0.4) / (fire_rate_mult * stim_rate)
+		storm_timer += delta
+		if storm_timer >= storm_interval:
+			storm_timer = 0.0
+			_cast_psionic_storm()
+
+	# 7. Zumo de Limón (Easter Egg - Limo Corrosivo)
+	if weapons.has("lemon_juice"):
+		var lemon_lvl = weapons.get("lemon_juice", 1)
+		var lemon_interval = max(1.5, 3.2 - (lemon_lvl - 1) * 0.35) / (fire_rate_mult * stim_rate)
+		lemon_timer += delta
+		if lemon_timer >= lemon_interval:
+			lemon_timer = 0.0
+			_deploy_lemon_juice()
+
 func _update_direction(dir: Vector2) -> void:
 	if dir == Vector2.ZERO:
 		return
@@ -354,8 +374,10 @@ func _fire_flame(target: Node2D) -> void:
 	AudioManager.play_sfx("flame_fire", 0.05, 1.0)
 	
 	var flame_scene = load("res://scenes/flame.tscn")
-	var dmg = (20.0 + (firebat_power_lvl - 1) * 5.0) * damage_mult
-	var aoe = 1.0
+	var initial_dmg = 4.0 * damage_mult
+	var dot_dmg = (2.0 + (firebat_power_lvl - 1) * 0.5) * damage_mult
+	var armor_red = float(weapons.get("firebat_flame", 1))
+	var aoe = 1.0 + (firebat_power_lvl - 1) * 0.10
 	
 	var total_streams = firebat_streams + (multishot - 1)
 	var angles: Array[float] = [0.0]
@@ -374,7 +396,9 @@ func _fire_flame(target: Node2D) -> void:
 		var f = flame_scene.instantiate()
 		var flame_dir = dir.rotated(ang)
 		f.direction = flame_dir
-		f.damage = dmg
+		f.damage = initial_dmg
+		f.dot_damage = dot_dmg
+		f.armor_reduction = armor_red
 		f.aoe_mult = aoe * aoe_mult
 		f.scale = Vector2.ONE
 		f.global_position = global_position + flame_dir * 8.0
@@ -470,6 +494,42 @@ func _fire_glave_wurm(target: Node2D) -> void:
 		g.scale = Vector2(1.0, 1.0) * aoe_mult
 		g.global_position = global_position + spread_dir * 10.0
 		get_parent().add_child(g)
+
+func _cast_psionic_storm() -> void:
+	var storm_scene = load("res://scenes/psionic_storm.tscn")
+	if not storm_scene:
+		return
+	var lvl = weapons.get("psionic_storm", 1)
+	var count = 1 + (1 if lvl >= 4 else 0)
+	for i in range(count):
+		var s = storm_scene.instantiate()
+		s.damage_per_tick = (38.0 + (lvl - 1) * 14.0) * damage_mult
+		s.duration = 2.2 + (lvl - 1) * 0.2
+		var random_angle = randf_range(0.0, TAU)
+		var random_dist = randf_range(110.0, 360.0)
+		var spawn_pos = global_position + Vector2.from_angle(random_angle) * random_dist
+		var target = _find_nearest_enemy()
+		if target and is_instance_valid(target) and randf() < 0.65:
+			var jitter = Vector2(randf_range(-85.0, 85.0), randf_range(-85.0, 85.0))
+			spawn_pos = target.global_position + jitter
+		s.global_position = spawn_pos
+		s.scale = Vector2.ONE * aoe_mult
+		get_parent().add_child(s)
+
+func _deploy_lemon_juice() -> void:
+	var lemon_scene = load("res://scenes/lemon_juice_explosion.tscn")
+	if not lemon_scene:
+		return
+	var lvl = weapons.get("lemon_juice", 1)
+	var lj = lemon_scene.instantiate()
+	lj.splash_damage = (16.0 + (lvl - 1) * 6.0) * damage_mult
+	lj.dot_damage = (8.0 + (lvl - 1) * 3.0) * damage_mult
+	lj.slow_ratio = min(0.35, 0.10 + (lvl - 1) * 0.05)
+	lj.duration = 0.65
+	var offset = velocity.normalized() * 16.0 if velocity.length() > 5.0 else Vector2.ZERO
+	lj.global_position = global_position + offset
+	lj.scale = Vector2.ONE * (1.0 + (lvl - 1) * 0.12) * aoe_mult
+	get_parent().add_child(lj)
 
 func use_stimpack() -> void:
 	if current_health <= 10.0:
@@ -647,6 +707,10 @@ func apply_upgrade(type: String) -> void:
 		weapons["ghost_sniper"] = weapons.get("ghost_sniper", 0) + 1
 	elif type == "mutalisk_glave":
 		weapons["mutalisk_glave"] = weapons.get("mutalisk_glave", 0) + 1
+	elif type == "psionic_storm":
+		weapons["psionic_storm"] = weapons.get("psionic_storm", 0) + 1
+	elif type == "lemon_juice":
+		weapons["lemon_juice"] = weapons.get("lemon_juice", 0) + 1
 	
 	# Mejoras Pasivas (escalado porcentual acumulativo infinito)
 	elif type == "u238_shells":

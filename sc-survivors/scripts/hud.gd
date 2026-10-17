@@ -108,7 +108,7 @@ const WEAPON_INFO = {
 	"firebat_flame": {
 		"name": "Lanzallamas Perdition",
 		"type": "Arma Incendiaria de Área",
-		"desc": "Incinera enjambres completos con llamaradas de napalm continuo en un amplio cono frontal."
+		"desc": "Incinera hordas de zerg con napalm continuo. Aplica DoT de quemadura y reduce su armadura."
 	},
 	"spider_mine": {
 		"name": "Minas Araña Vulture",
@@ -124,6 +124,16 @@ const WEAPON_INFO = {
 		"name": "Glave Wurm Mutalisco",
 		"type": "Bio-Arma Zerg Parásita",
 		"desc": "Lanza un gusano voraz que rebota entre múltiples objetivos Zerg, causando daño masivo en cadena."
+	},
+	"psionic_storm": {
+		"name": "Tormenta Psiónica",
+		"type": "Poder Psiónico Ancestral",
+		"desc": "Genera descargas devastadoras de energía psiónica errática en tu campo visual."
+	},
+	"lemon_juice": {
+		"name": "Zumo de Limón",
+		"type": "Easter Egg // Limo Corrosivo",
+		"desc": "Estallido de ácido cítrico concentrado que cubre al enemigo en limo corrosivo, causando DoT severo y ralentización."
 	}
 }
 
@@ -200,9 +210,10 @@ func _format_weapon_stats(w_id: String, lvl: int, p: Player) -> String:
 		"firebat_flame":
 			var pow_lvl = p.firebat_power_lvl if p else lvl
 			var streams = p.firebat_streams if p else 1
-			var dmg = (20.0 + (pow_lvl - 1) * 4.0) * (p.damage_mult if p else 1.0)
-			var aoe_pct = (pow_lvl - 1) * 10.0
-			return "• Potencia térmica: Nivel %d\n• Llamaradas: %d en abanico\n• Daño: %.1f (+%.0f%% AoE)\n• Corto alcance devastador" % [pow_lvl, streams, dmg, aoe_pct]
+			var init_dmg = 4.0 * (p.damage_mult if p else 1.0)
+			var dot_dmg = (2.0 + (pow_lvl - 1) * 0.5) * (p.damage_mult if p else 1.0)
+			var shred = lvl
+			return "• Reducción de Armadura: -%d\n• Daño directo: %.1f\n• DoT Quemadura: %.1f / 0.35s\n• Llamaradas: %d en abanico" % [shred, init_dmg, dot_dmg, streams]
 		"spider_mine":
 			var dmg = (75.0 + (lvl - 1) * 25.0) * (p.damage_mult if p else 1.0)
 			return "• Nivel de arma: %d\n• Minas por ciclo: %d\n• Daño de detonación: %.1f\n• Despliegue cada 4.0s" % [lvl, lvl, dmg]
@@ -216,6 +227,14 @@ func _format_weapon_stats(w_id: String, lvl: int, p: Player) -> String:
 			var spd = 340.0 + (lvl - 1) * 35.0
 			var mult = p.multishot if p else 1
 			return "• Nivel de arma: %d\n• Daño base: %.1f\n• Rebotes en cadena: %d\n• Vel. proyectil: %.0f px/s\n• Proyectiles: %d simultáneos" % [lvl, dmg, bounces, spd, mult]
+		"psionic_storm":
+			var dmg = (38.0 + (lvl - 1) * 14.0) * (p.damage_mult if p else 1.0)
+			var storm_cnt = 2 if lvl >= 4 else 1
+			return "• Nivel de habilidad: %d\n• Daño por pulso: %.1f\n• Frecuencia: Pulsos cada 0.28s\n• Tormentas: %d simultáneas" % [lvl, dmg, storm_cnt]
+		"lemon_juice":
+			var dot_dmg = (8.0 + (lvl - 1) * 3.0) * (p.damage_mult if p else 1.0)
+			var slow_pct = 10 + (lvl - 1) * 5
+			return "• Nivel secreto: %d\n• DoT Ácido cítrico: %.1f / 0.35s\n• Ralentización Zerg: %d%%\n• Estallido de limo corrosivo" % [lvl, dot_dmg, slow_pct]
 	return ""
 
 func _format_passive_stats(p_id: String, stacks: int, _p: Player) -> String:
@@ -652,6 +671,8 @@ func _update_inventory_display(weapons: Dictionary, passives: Dictionary) -> voi
 		"spider_mine": 2,
 		"ghost_sniper": 3,
 		"mutalisk_glave": 4,
+		"psionic_storm": 5,
+		"lemon_juice": 6,
 		"aux_weapon": 0
 	}
 	

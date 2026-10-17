@@ -2,7 +2,9 @@ class_name FlameAttack
 extends Area2D
 
 @export var speed: float = 70.0
-@export var damage: float = 24.0
+@export var damage: float = 4.0 # Daño inicial muy bajo
+@export var dot_damage: float = 2.0 # DoT de quemadura bajo
+@export var armor_reduction: float = 1.0 # Reducción de armadura que escala con mejoras
 @export var lifetime: float = 0.32
 @export var aoe_mult: float = 1.0
 
@@ -38,3 +40,5 @@ func _on_body_entered(body: Node2D) -> void:
 		hit_enemies[body.get_instance_id()] = true
 		if body.has_method("take_damage"):
 			body.take_damage(damage)
+		if body.has_method("apply_burn"):
+			body.apply_burn(dot_damage, 3.5, armor_reduction)

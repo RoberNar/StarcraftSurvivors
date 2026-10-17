@@ -236,12 +236,14 @@ Cada 2 minutos (`game_time / 120.0`), la biología Zerg muta a un nuevo escalón
 
 ## 5. ⚔️ Arsenal, Pasivas y Mejoras de la Base
 
-### A. Armas en la Run (Hasta 3 simultáneas)
-1. **Rifle Gauss C-14 (`c14_rifle`)**: Proyectiles automáticos de alta cadencia.
-2. **Lanza-llamas Firebat (`firebat_flame`)**: Conos de fuego continuo en abanico con daño en área.
-3. **Minas Araña Vulture (`spider_mine`)**: Minas móviles terrestres que persiguen y explotan en racimo.
+### A. Armas en la Run (Hasta 3 secundarias simultáneas más Rifle principal)
+1. **Rifle Gauss C-14 (`c14_rifle`)**: Arma balística principal. Proyectiles automáticos con auto-apuntado y saturación por multishot.
+2. **Lanza-llamas Firebat (`firebat_flame`)**: Rediseño táctico de debuff: impacto directo muy bajo (4.0 HP), DoT de combustión prolongada (2.0 HP/0.35s durante 3.5s) y **reducción de armadura acumulativa** (-1 a -3+ según nivel). Utiliza el sprite auténtico de 12 frames de StarCraft 1 (`sc1_fire_loop.png`) limpio de errores de croma.
+3. **Minas Araña Vulture (`spider_mine`)**: Minas móviles terrestres que persiguen y explotan en racimo con gran daño táctico.
 4. **Rifle Francotirador Ghost C-10 (`ghost_sniper`)**: Balas balísticas de 25mm con penetración lineal y retícula animada.
 5. **Glave Wurm Mutalisco (`mutalisk_glave`)**: Proyectiles parásitos bio-zerg con rebotes orgánicos entre objetivos.
+6. **Tormenta Psiónica (`psionic_storm`)**: Descargas de energía psiónica errática que se desatan en la línea de visión del jugador. Alto daño masivo de área (38 HP/tick durante 2.2s) para compensar su dispersión imprecisa. Sprites auténticos de 14 frames de High Templar (`psistorm.png`) y SFX original (`psistorm.wav`).
+7. **Easter Egg: Zumo de Limón (`lemon_juice`)**: Mini-explosión de ácido cítrico concentrado alrededor del jugador utilizando la animación de ataque parasitario de la Reina Zerg recoloreada a amarillo limón (`lemon_splash.png`). Deja al enemigo impregnado en baba corrosiva de Ensnare amarilla (`lemon_ensnare.png`) con DoT severo (8.0 HP/tick, 4x más fuerte que el fuego) y ralentización del 10% (escalable con mejoras).
 
 ### B. Pasivas en la Run (Hasta 6 simultáneas)
 - `u238_shells` (+15% Daño balístico global y +1 penetración)

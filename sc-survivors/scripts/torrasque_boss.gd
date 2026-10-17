@@ -74,6 +74,19 @@ var is_attacking: bool = false
 
 var player: Player = null
 
+# Sistema de debuffs (Quemadura / Zumo de Limón)
+var burn_timer: float = 0.0
+var burn_tick_timer: float = 0.0
+var burn_dot_damage: float = 0.0
+var burn_armor_shred: float = 0.0
+var burn_fx: Sprite2D = null
+
+var lemon_timer: float = 0.0
+var lemon_tick_timer: float = 0.0
+var lemon_dot_damage: float = 0.0
+var lemon_slow_ratio: float = 0.0
+var lemon_fx: Sprite2D = null
+
 func _ready() -> void:
 	add_to_group("enemies")
 	add_to_group("bosses")
@@ -144,6 +157,8 @@ func _physics_process(delta: float) -> void:
 	if current_state == State.DEAD:
 		return
 	
+	_process_debuffs(delta)
+	
 	if not is_instance_valid(player):
 		player = get_tree().get_first_node_in_group("player") as Player
 	
@@ -191,7 +206,8 @@ func _process_chase(delta: float) -> void:
 			_melee_attack()
 			attack_cooldown_timer = ATTACK_COOLDOWN
 	
-	var target_speed = current_speed if dist > 62.0 else current_speed * 0.4
+	var eff_speed = current_speed * (1.0 - lemon_slow_ratio if lemon_timer > 0.0 else 1.0)
+	var target_speed = eff_speed if dist > 62.0 else eff_speed * 0.4
 	velocity = move_dir * target_speed
 	move_and_slide()
 	
@@ -276,6 +292,78 @@ func _get_heat_color() -> Color:
 	var heat_ratio = armor_heat / MAX_ARMOR_HEAT
 	# De gris metálico a naranja ardiente
 	return Color(1.0 + heat_ratio * 1.5, 1.0 + heat_ratio * 0.4, 1.0 - heat_ratio * 0.5, 1.0)
+
+func apply_burn(dot: float, duration: float, armor_shred: float) -> void:
+	if current_state == State.DEAD: return
+	burn_dot_damage = dot
+	burn_armor_shred = armor_shred
+	burn_timer = max(burn_timer, duration)
+	_update_debuff_visuals()
+
+func apply_lemon_juice(dot: float, duration: float, slow_ratio: float) -> void:
+	if current_state == State.DEAD: return
+	lemon_dot_damage = dot
+	lemon_slow_ratio = slow_ratio
+	lemon_timer = max(lemon_timer, duration)
+	_update_debuff_visuals()
+
+func _process_debuffs(delta: float) -> void:
+	if current_state == State.DEAD: return
+	
+	if burn_timer > 0.0:
+		burn_timer -= delta
+		burn_tick_timer += delta
+		if burn_tick_timer >= 0.35:
+			burn_tick_timer = 0.0
+			take_damage(burn_dot_damage)
+		if burn_timer <= 0.0:
+			_update_debuff_visuals()
+			
+	if lemon_timer > 0.0:
+		lemon_timer -= delta
+		lemon_tick_timer += delta
+		if lemon_tick_timer >= 0.35:
+			lemon_tick_timer = 0.0
+			take_damage(lemon_dot_damage)
+		if lemon_timer <= 0.0:
+			_update_debuff_visuals()
+			
+	if burn_fx and burn_fx.visible:
+		burn_fx.frame = int(Time.get_ticks_msec() / 70.0) % 12
+	if lemon_fx and lemon_fx.visible:
+		lemon_fx.frame = int(Time.get_ticks_msec() / 75.0) % 15
+
+func _update_debuff_visuals() -> void:
+	if current_state == State.DEAD:
+		if burn_fx: burn_fx.visible = false
+		if lemon_fx: lemon_fx.visible = false
+		return
+		
+	if burn_timer > 0.0:
+		if not burn_fx:
+			burn_fx = Sprite2D.new()
+			burn_fx.texture = SkinManager.get_sprite("sc1_fire_loop")
+			burn_fx.hframes = 12
+			burn_fx.scale = Vector2(1.15, 1.15)
+			burn_fx.position = Vector2(0, -18)
+			burn_fx.z_index = 1
+			add_child(burn_fx)
+		burn_fx.visible = true
+	elif burn_fx:
+		burn_fx.visible = false
+
+	if lemon_timer > 0.0:
+		if not lemon_fx:
+			lemon_fx = Sprite2D.new()
+			lemon_fx.texture = SkinManager.get_sprite("lemon_ensnare")
+			lemon_fx.hframes = 15
+			lemon_fx.scale = Vector2(1.2, 1.2)
+			lemon_fx.position = Vector2(0, -15)
+			lemon_fx.z_index = 2
+			add_child(lemon_fx)
+		lemon_fx.visible = true
+	elif lemon_fx:
+		lemon_fx.visible = false
 
 # ==============================================================================
 # CASTEO DE EMBESTIDA (3 SEGUNDOS SIGUIENDO AL JUGADOR)
@@ -521,6 +609,10 @@ func die() -> void:
 		stun_indicator.visible = false
 	if charge_particles:
 		charge_particles.emitting = false
+	if burn_fx:
+		burn_fx.visible = false
+	if lemon_fx:
+		lemon_fx.visible = false
 	
 	AudioManager.play_sfx("ultra_death", 0.0, 5.0)
 	GameManager.add_kill()

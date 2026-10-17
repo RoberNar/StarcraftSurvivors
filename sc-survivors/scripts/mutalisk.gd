@@ -27,6 +27,19 @@ var armor: float = 0.0
 var custom_tint: Color = Color(1, 1, 1, 1)
 var custom_scale: float = 1.0
 
+# Sistema de debuffs (Quemadura / Zumo de Limón)
+var burn_timer: float = 0.0
+var burn_tick_timer: float = 0.0
+var burn_dot_damage: float = 0.0
+var burn_armor_shred: float = 0.0
+var burn_fx: Sprite2D = null
+
+var lemon_timer: float = 0.0
+var lemon_tick_timer: float = 0.0
+var lemon_dot_damage: float = 0.0
+var lemon_slow_ratio: float = 0.0
+var lemon_fx: Sprite2D = null
+
 func set_tier(t: int) -> void:
 	tier = t
 	var stats = WaveConfig.get_enemy_stats("mutalisk", t)
@@ -115,13 +128,17 @@ func _physics_process(delta: float) -> void:
 	
 	const ATTACK_RANGE: float = 28.0
 	
+	_process_debuffs(delta)
+	
+	var cur_speed = move_speed * (1.0 - lemon_slow_ratio if lemon_timer > 0.0 else 1.0)
+	
 	if dist <= ATTACK_RANGE:
 		velocity = Vector2.ZERO
 		_update_direction(to_player.normalized())
 		if attack_timer <= 0.0:
 			_attack_player()
 	else:
-		velocity = move_dir * move_speed
+		velocity = move_dir * cur_speed
 		move_and_slide()
 		_update_direction(move_dir)
 
@@ -157,16 +174,102 @@ func _attack_player() -> void:
 	if player and player.has_method("take_damage"):
 		player.take_damage(damage_per_hit)
 
+func apply_burn(dot: float, duration: float, armor_shred: float) -> void:
+	if is_dead: return
+	burn_dot_damage = dot
+	burn_armor_shred = armor_shred
+	burn_timer = max(burn_timer, duration)
+	_update_debuff_visuals()
+
+func apply_lemon_juice(dot: float, duration: float, slow_ratio: float) -> void:
+	if is_dead: return
+	lemon_dot_damage = dot
+	lemon_slow_ratio = slow_ratio
+	lemon_timer = max(lemon_timer, duration)
+	_update_debuff_visuals()
+
+func _process_debuffs(delta: float) -> void:
+	if is_dead: return
+	
+	if burn_timer > 0.0:
+		burn_timer -= delta
+		burn_tick_timer += delta
+		if burn_tick_timer >= 0.35:
+			burn_tick_timer = 0.0
+			take_damage(burn_dot_damage)
+		if burn_timer <= 0.0:
+			_update_debuff_visuals()
+			
+	if lemon_timer > 0.0:
+		lemon_timer -= delta
+		lemon_tick_timer += delta
+		if lemon_tick_timer >= 0.35:
+			lemon_tick_timer = 0.0
+			take_damage(lemon_dot_damage)
+		if lemon_timer <= 0.0:
+			_update_debuff_visuals()
+			
+	if burn_fx and burn_fx.visible:
+		burn_fx.frame = int(Time.get_ticks_msec() / 70.0) % 12
+	if lemon_fx and lemon_fx.visible:
+		lemon_fx.frame = int(Time.get_ticks_msec() / 75.0) % 15
+
+func _get_current_tint() -> Color:
+	if lemon_timer > 0.0:
+		return Color(1.5, 1.45, 0.25, 1.0)
+	elif burn_timer > 0.0:
+		return Color(1.6, 0.75, 0.25, 1.0)
+	return custom_tint
+
+func _update_debuff_visuals() -> void:
+	if is_dead:
+		if burn_fx: burn_fx.visible = false
+		if lemon_fx: lemon_fx.visible = false
+		return
+		
+	if burn_timer > 0.0:
+		if not burn_fx:
+			burn_fx = Sprite2D.new()
+			burn_fx.texture = SkinManager.get_sprite("sc1_fire_loop")
+			burn_fx.hframes = 12
+			burn_fx.scale = Vector2(0.65, 0.65)
+			burn_fx.position = Vector2(0, -6)
+			burn_fx.z_index = 1
+			add_child(burn_fx)
+		burn_fx.visible = true
+	elif burn_fx:
+		burn_fx.visible = false
+
+	if lemon_timer > 0.0:
+		if not lemon_fx:
+			lemon_fx = Sprite2D.new()
+			lemon_fx.texture = SkinManager.get_sprite("lemon_ensnare")
+			lemon_fx.hframes = 15
+			lemon_fx.scale = Vector2(0.70, 0.70)
+			lemon_fx.position = Vector2(0, -4)
+			lemon_fx.z_index = 2
+			add_child(lemon_fx)
+		lemon_fx.visible = true
+	elif lemon_fx:
+		lemon_fx.visible = false
+
+	if sprite:
+		sprite.modulate = _get_current_tint()
+
 func take_damage(amount: float) -> void:
 	if is_dead:
 		return
-	var net_dmg = max(1.0, amount - armor)
+	var eff_armor = armor
+	if burn_timer > 0.0:
+		eff_armor = max(0.0, eff_armor - burn_armor_shred)
+	var net_dmg = max(1.0, amount - eff_armor)
 	current_health -= net_dmg
 	
 	if sprite:
+		var target_tint = _get_current_tint()
 		var tw = create_tween()
 		tw.tween_property(sprite, "modulate", Color(2.5, 2.5, 2.5, 1), 0.04)
-		tw.tween_property(sprite, "modulate", custom_tint, 0.08)
+		tw.tween_property(sprite, "modulate", target_tint, 0.08)
 	
 	if current_health <= 0.0:
 		die()
@@ -175,6 +278,8 @@ func die() -> void:
 	if is_dead:
 		return
 	is_dead = true
+	if burn_fx: burn_fx.visible = false
+	if lemon_fx: lemon_fx.visible = false
 	set_physics_process(false)
 	z_index = -2
 	z_as_relative = false

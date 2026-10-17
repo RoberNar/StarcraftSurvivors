@@ -227,7 +227,7 @@ const WEAPONS_DEF = [
 		"id": "firebat_flame",
 		"type": "weapon",
 		"name": "Lanza-llamas Firebat",
-		"desc": "Arma adicional: Dispara conos de fuego\n+1 Llamarada en abanico y +28% AoE",
+		"desc": "Arma incendiaria: Quema enemigos con DoT prolongado\ny reduce su armadura de forma acumulativa",
 		"weapon_idx": 1
 	},
 	{
@@ -250,6 +250,20 @@ const WEAPONS_DEF = [
 		"name": "Glave Wurm Mutalisco",
 		"desc": "Bio-arma Zerg: Proyectiles voraces que rebotan\nentre múltiples objetivos (+2 rebotes por nivel)",
 		"weapon_idx": 4
+	},
+	{
+		"id": "psionic_storm",
+		"type": "weapon",
+		"name": "Tormenta Psiónica",
+		"desc": "Poder Protoss: Descargas de energía psiónica erráticas\nen tu campo visual con daño devastador de área",
+		"weapon_idx": 5
+	},
+	{
+		"id": "lemon_juice",
+		"type": "weapon",
+		"name": "Zumo de Limón (Easter Egg)",
+		"desc": "Estallido de ácido cítrico concentrado:\nDoT corrosivo severo y ralentización de movimiento",
+		"weapon_idx": 6
 	}
 ]
 
@@ -1142,6 +1156,46 @@ func _get_available_upgrade_choices() -> Array:
 				"desc": "Proyectil biológico zerg con rebote en cadena\n(Daño y velocidad aumentan con mejoras)",
 				"weapon_idx": 4
 			})
+	
+	# 5. Tormenta Psiónica (Invocación de daño masivo en línea de visión)
+	if player_weapons.has("psionic_storm"):
+		var lvl = player_weapons["psionic_storm"] + 1
+		if lvl <= 6:
+			weapon_pool.append({
+				"id": "psionic_storm",
+				"type": "weapon",
+				"name": "Tormenta Psiónica (Nv. %d)" % lvl,
+				"desc": "+14 Daño por descarga psiónica | +0.2s Duración\n(A partir de Nv. 4 invoca 2 tormentas)",
+				"weapon_idx": 5
+			})
+	elif sec_count < 3:
+		weapon_pool.append({
+			"id": "psionic_storm",
+			"type": "weapon",
+			"name": "NUEVA ARMA: Tormenta Psiónica",
+			"desc": "Invocación psiónica errática en tu visión\nque inflige daño devastador de área",
+			"weapon_idx": 5
+		})
+
+	# 6. Zumo de Limón (Easter Egg - Limo Corrosivo)
+	if player_weapons.has("lemon_juice"):
+		var lvl = player_weapons["lemon_juice"] + 1
+		if lvl <= 6:
+			weapon_pool.append({
+				"id": "lemon_juice",
+				"type": "weapon",
+				"name": "Zumo de Limón (Nv. %d)" % lvl,
+				"desc": "+3.0 DoT ácido cítrico | +5% Ralentización Zerg\nMayor radio de salpicadura corrosiva",
+				"weapon_idx": 6
+			})
+	elif sec_count < 3:
+		weapon_pool.append({
+			"id": "lemon_juice",
+			"type": "weapon",
+			"name": "EASTER EGG: Zumo de Limón",
+			"desc": "Estallido de ácido cítrico concentrado:\nDoT letal y ralentiza a los enemigos alcanzados",
+			"weapon_idx": 6
+		})
 	
 	# 2. Pasivas (sin límites de investigación durante la run, progresión libre hasta Nv 5)
 	for p in PASSIVES_DEF:
