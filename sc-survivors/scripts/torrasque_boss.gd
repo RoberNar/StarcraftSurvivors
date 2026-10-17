@@ -92,6 +92,7 @@ func _ready() -> void:
 	if telegraph_line:
 		telegraph_line.visible = false
 	if stun_indicator:
+		stun_indicator.top_level = true
 		stun_indicator.visible = false
 	
 	_enter_intro()
@@ -413,8 +414,11 @@ func enter_stunned_state() -> void:
 	if telegraph_line:
 		telegraph_line.visible = false
 	if stun_indicator:
-		stun_indicator.visible = true
+		stun_indicator.global_position = global_position + Vector2(0, -60)
 		stun_indicator.rotation = 0.0
+		stun_indicator.scale = Vector2(1.5, 1.5)
+		stun_indicator.modulate = Color(1.0, 1.0, 1.0, 1.0)
+		stun_indicator.visible = true
 	if stun_stars_sprite:
 		stun_stars_sprite.frame = 0
 	
@@ -423,6 +427,9 @@ func enter_stunned_state() -> void:
 
 func _process_stunned(delta: float) -> void:
 	stun_timer -= delta
+	if stun_indicator:
+		stun_indicator.global_position = global_position + Vector2(0, -60)
+		stun_indicator.modulate = Color(1.0, 1.0, 1.0, 1.0)
 	if stun_stars_sprite:
 		# Animación continua de estrellitas girando a 25 FPS (40 ms por frame, 32 frames)
 		stun_stars_sprite.frame = int((STUN_DURATION - stun_timer) * 25.0) % 32

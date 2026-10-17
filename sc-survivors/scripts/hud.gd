@@ -799,7 +799,10 @@ func _setup_pause_menu() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if (transmission_comm and transmission_comm.visible) or (transmission_panel and transmission_panel.visible):
-		if event.is_action_pressed("ui_accept") or (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed):
+		# Excluir Space para que el jugador pueda usar Stimpack libremente en combate sin cortar transmisiones
+		var is_enter_key = (event is InputEventKey and event.pressed and not event.echo and (event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER))
+		var is_mouse_click = (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed)
+		if is_enter_key or is_mouse_click:
 			_skip_current_transmission()
 			get_viewport().set_input_as_handled()
 			return

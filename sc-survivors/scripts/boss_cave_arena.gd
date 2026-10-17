@@ -95,7 +95,8 @@ func _start_intro_cinematic() -> void:
 		_trigger_camera_shake(8.0)
 		_send_voss_radio(
 			"«¡Cuidado! Esta caverna se ve inestable... trata de no destruir disparejamente todo adentro.»",
-			4.0
+			4.0,
+			"VOSS_26"
 		)
 	)
 	
@@ -614,7 +615,7 @@ func _on_boss_died() -> void:
 		_send_voss_radio(
 			"«¡CONFIRMACIÓN DE IMPACTO FATAL! ¡EL TITÁN HA CAÍDO! Nave de extracción balizada en el centro de la cueva. ¡Entra a la baliza para regresar a la base!»",
 			7.0,
-			"VOSS_26"
+			"VOSS_29"
 		)
 	)
 

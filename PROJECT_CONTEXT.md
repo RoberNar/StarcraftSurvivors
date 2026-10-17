@@ -9,7 +9,7 @@
 - **Título**: *StarCraft: Survivors*
 - **Motor**: Godot Engine 4.5.1 Stable (.NET/C++ Core con GDScript)
 - **Género**: Roguelite Survivor (estilo *Vampire Survivors*) ambientado con fidelidad absoluta en el universo clásico de **StarCraft 1 (SD 1998 / Remastered)**.
-- **Versión Actual**: **`v0.333`** (Alpha con versionado auto-incremental vía `sc-survivors/version.txt` y tags en GitHub).
+- **Versión Actual**: **`v0.6`** (Alpha con versionado auto-incremental vía `sc-survivors/version.txt` y tags en GitHub).
 - **Repositorio Oficial de GitHub**:
   `https://github.com/RoberNar/StarcraftSurvivors`
 - **Ruta Local del Proyecto**: `c:\Users\toffe\Desktop\autocalabazas\sc-survivors\`
@@ -123,7 +123,8 @@ La pelea final del Acto 1 transcurre en una caverna subterránea claustrofóbica
    - Durante `CHASE`, el Torrasque tiene `is_armored = true`. Cualquier bala o daño recibido no reduce sus puntos de vida; se transfiere a `armor_heat` (0.0 a 100.0) a razón de `damage * 0.95`.
    - El sprite del jefe modula cromáticamente de blanco/metálico hasta un naranja ígneo intenso conforme sube la temperatura.
    - Al llegar a 100% de calor, ruge y comienza el casteo de 3 segundos de embestida.
-   - **Aturdimiento y Efecto Ragnarok Online**: Al colisionar contra un pilar, el Torrasque entra en estado `STUNNED` durante 4.0s: reproduce el efecto de sonido oficial de aturdimiento de Ragnarok Online (`boss_stun.wav`) y activa la corona de estrellitas doradas giratorias sobre su cabeza (`ro_stun_sheet.png`, 32 fotogramas en ciclo suave a 25 FPS).
+   - **Aturdimiento y Efecto Ragnarok Online**: Al colisionar contra un pilar, el Torrasque entra en estado `STUNNED` durante 4.0s: reproduce el efecto de sonido oficial de aturdimiento de Ragnarok Online (`boss_stun.wav`) y activa la corona de estrellitas doradas giratorias sobre su cabeza (`ro_stun_sheet.png`, 32 fotogramas en ciclo suave a 25 FPS). Las estrellitas usan `top_level = true` y modulación neutra independiente para no teñirse de rojo cuando el Ultralisco recibe daño o se calienta.
+   - **Controles e Independencia de Stimpack**: La tecla `[ESPACIO]` (usada para inyección de Stimpack en combate) está disociada del salto de diálogos/transmisiones radiales (`TransmissionComm`), el cual solo responde a `[ENTER]` o clic del ratón. Esto evita cortar transmisiones de radio tácticas al combatir.
 
 4. **Las 6 Barras de Vida Consecutivas**:
    - El jefe cuenta con `TOTAL_HEALTH_BARS = 6`, cada una con `BAR_MAX_HEALTH = 250.0` HP (salud total combinada: 1500 HP).

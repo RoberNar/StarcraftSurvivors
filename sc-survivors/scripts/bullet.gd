@@ -51,7 +51,13 @@ func hit_enemy(enemy: Node2D) -> void:
 		queue_free()
 
 func _spawn_sniper_impact_fx(enemy: Node2D) -> void:
-	if enemy is CanvasItem:
+	var target_sprite = enemy.get_node_or_null("Sprite2D")
+	if target_sprite and target_sprite is CanvasItem:
+		var orig_mod = target_sprite.modulate
+		target_sprite.modulate = Color(3.0, 0.35, 0.35, 1.0)
+		var tw_mod = target_sprite.create_tween()
+		tw_mod.tween_property(target_sprite, "modulate", orig_mod, 0.2)
+	elif enemy is CanvasItem:
 		var orig_mod = enemy.modulate
 		enemy.modulate = Color(3.0, 0.35, 0.35, 1.0)
 		var tw_mod = enemy.create_tween()
