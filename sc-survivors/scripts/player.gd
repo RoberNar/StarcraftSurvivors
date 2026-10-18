@@ -56,6 +56,10 @@ var extreme_heat_radius: float = 95.0
 var extreme_heat_tick_timer: float = 0.0
 var heat_aura: Node2D = null
 
+# Ralentización por ataques zerg (Ensnare / Ácido Corrosivo)
+var acid_slow_ratio: float = 0.0
+var acid_slow_timer: float = 0.0
+
 # Animacion y direccion 32 angulos clasica de StarCraft
 var current_dir32: int = 8 # Empieza mirando al Este (Derecha)
 var facing_column: int = 8
@@ -252,6 +256,11 @@ func _physics_process(delta: float) -> void:
 	var current_speed = move_speed * (1.4 if stimpack_active else 1.0)
 	if is_extreme_heat_active:
 		current_speed *= (1.0 - extreme_heat_slow_ratio) # Calor Extremo ralentiza al usuario
+	if acid_slow_timer > 0.0:
+		acid_slow_timer -= delta
+		current_speed *= (1.0 - acid_slow_ratio)
+		if acid_slow_timer <= 0.0:
+			acid_slow_ratio = 0.0
 	velocity = input_vec * current_speed
 	move_and_slide()
 	
@@ -678,6 +687,11 @@ func _process_extreme_heat_tick() -> void:
 		if heal > 0.01:
 			current_health = min(max_health, current_health + heal)
 			emit_signal("health_changed", current_health, max_health)
+
+func apply_slow(ratio: float, duration: float) -> void:
+	if is_dead: return
+	acid_slow_ratio = max(acid_slow_ratio, ratio)
+	acid_slow_timer = max(acid_slow_timer, duration)
 
 func take_damage(amount: float) -> void:
 	if is_dead or is_in_base:

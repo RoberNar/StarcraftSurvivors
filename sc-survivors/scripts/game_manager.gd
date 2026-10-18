@@ -198,6 +198,10 @@ var mutalisk_scene: PackedScene = null
 var ultralisk_scene: PackedScene = null
 var drone_scene: PackedScene = null
 var nydus_scene: PackedScene = null
+var scourge_scene: PackedScene = null
+var guardian_scene: PackedScene = null
+var devourer_scene: PackedScene = null
+var queen_scene: PackedScene = null
 
 # Mini-jefes cada 4 minutos (240 segundos) y Clímax a los 20 minutos (1200s)
 var next_ultralisk_time: float = 240.0
@@ -345,6 +349,10 @@ func _ready() -> void:
 	drone_scene = load("res://scenes/drone.tscn")
 	nydus_scene = load("res://scenes/nydus_canal.tscn")
 	lurker_hazard_scene = load("res://scenes/lurker_spine_hazard.tscn")
+	scourge_scene = load("res://scenes/scourge.tscn")
+	guardian_scene = load("res://scenes/guardian.tscn")
+	devourer_scene = load("res://scenes/devourer.tscn")
+	queen_scene = load("res://scenes/queen.tscn")
 	sync_barracks_upgrades()
 	reset_game()
 
@@ -946,6 +954,10 @@ func _spawn_enemy() -> void:
 		"hydralisk": enemy_scene = hydralisk_scene
 		"mutalisk": enemy_scene = mutalisk_scene
 		"drone": enemy_scene = drone_scene
+		"scourge": enemy_scene = scourge_scene
+		"guardian": enemy_scene = guardian_scene
+		"devourer": enemy_scene = devourer_scene
+		"queen": enemy_scene = queen_scene
 		_: enemy_scene = zergling_scene
 	
 	if enemy_scene:

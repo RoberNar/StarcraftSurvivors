@@ -200,21 +200,32 @@ Implementado en [`scenes/transmission_comm.tscn`](scenes/transmission_comm.tscn)
 
 ---
 
-## 4. 🌊 Sistema de Oleadas, Peligros Subterráneos y Rendimiento
+## 4. 🌊 Sistema de Oleadas, Nuevas Unidades Zerg y Rendimiento
 
-### A. Ciclos de Oleadas de 2 Minutos (Wave Tiers)
-Cada 2 minutos (`game_time / 120.0`), la biología Zerg muta a un nuevo escalón con armadura balística, salud incrementada y tintes cromáticos identificativos:
+### A. Nuevas Unidades Zerg Integradas
+1. **Scourge (Kamikaze Aéreo - `scenes/scourge.tscn` / `scripts/scourge.gd`)**:
+   - Vuela a alta velocidad (185-205 px/s), chilla con audio oficial (`scourge_charge.wav`) al detectar al jugador y se autodestruye en proximidad infligiendo daño explosivo en área (`scourge_explo.png`, 40-75 de daño). Vida baja (28-65 HP), muere de 1 a 2 disparos certeros pero castiga distracciones.
+2. **Guardián (Asedio Pesado - `scenes/guardian.tscn` / `scripts/guardian.gd`)**:
+   - Unidad de bombardeo aéreo pesado (62-70 px/s). Se posiciona a media distancia (~280 px) y dispara esporas ácidas bio-explosivas (`guardian_spore.tscn` / `guardian_spore_hit.png`) con audio original (`guardian_attack.wav`). Alta resistencia biológica (380-950 HP, armadura 3-9).
+3. **Devorador / Corruptor (Bio-tanque Corrosivo - `scenes/devourer.tscn` / `scripts/devourer.gd`)**:
+   - Unidad pesada voladora (75-85 px/s) con 480-1200 HP y 4-10 de armadura. Dispara proyectiles de ácido corrosivo (`devourer_acid_projectile.tscn`) que infligen daño de impacto y ralentizan al jugador un 15% durante 2.5s con efecto visual de ácido.
+4. **Reina Zerg (Lanzadora Táctica - `scenes/queen.tscn` / `scripts/queen.gd`)**:
+   - Unidad de soporte aéreo ágil (95-105 px/s, 280-680 HP). Se posiciona tácticamente y lanza Ensnare (`queen_ensnare_projectile.tscn`), cubriendo al jugador con masa viscosa verdosa que reduce su velocidad un 25% durante 3.0s con su audio original (`queen_ensnare.wav`).
 
-| Minuto | Ciclo | Composición Principal | Tiers y Colores Zerg | Salud / Armadura |
-|---|---|---|---|---|
-| **0:00 - 2:00** | 0 | 50% Drones, 50% Zerglings | Tier 1 (Clásico Marrón) | HP 15 / Armadura 0 |
-| **2:00 - 4:00** | 1 | 20% Hidraliscos, 55% Zerglings T2, Drones | Tier 2 (Bronce Cobrizo) | Zergling HP 32 / Arm 1, Hidra HP 110 / Arm 2 |
-| **4:00 - 6:00** | 2 | 22% Mutaliscos, 23% Hidras, 55% Zerglings T3 | Tier 3 (Púrpura Cazador) | Zergling HP 75 / Arm 2, Muta HP 85 / Arm 1 |
-| **6:00 - 8:00** | 3 | 25% Mutaliscos, 25% Hidras T2, Zerglings T4 | Tier 4 (Carmesí Devorador) | Zergling HP 160 / Arm 4, Hidra HP 280 / Arm 5 |
-| **8:00 - 10:00** | 4 | 30% Mutas, 30% Hidras T2, Zerglings T5 | Tier 5 (Azul Tormenta) | Zergling HP 480 / Arm 7, Muta HP 220 / Arm 4 |
-| **10:00 - 12:00** | 5 | 32% Mutas T3, 32% Hidras T3, Zerglings T6 | Tier 6 (Ámbar Mutante Tóxico) | Zergling HP 950 / Arm 11, Hidra HP 680 / Arm 10, Muta HP 550 / Arm 8 |
-| **12:00 - 14:00** | 6 | 35% Mutas T4, 35% Hidras T4, Zerglings T7 | Tier 7 (Esmeralda Nocivo / Titán) | Zergling HP 1800 / Arm 16, Hidra HP 1400 / Arm 15, Muta HP 1100 / Arm 14 |
-| **14:00+** | 7+ | Enjambre Titánico de Alta Resistencia | Tier 8+ (Masa Crítica) | HP 2500+ / Armadura 20+ |
+### B. Rebalanceo de Oleadas y Erradicación de Zerglings "Esponja de Balas"
+- **Tope de Zerglings**: Los Zerglings ahora tienen un tope estricto en Tier 4 (140 HP máximo y 3 de armadura en lugar de los antiguos 2400 HP / 20 armadura que los convertían en muros tediosos).
+- **Diversificación del Enjambre**: La dificultad escala mediante variedad de amenazas simultáneas (asedio de Guardianes, ralentización de Devoradores y Reinas, ráfagas de Scourges kamikaze, Ultraliscos y mutaciones aéreas).
+
+| Minuto | Ciclo | Composición Principal | Nuevas Amenazas Zerg |
+|---|---|---|---|
+| **0:00 - 2:00** | 0 | 50% Drones, 50% Zerglings | Tier 1 (Inicio clásico) |
+| **2:00 - 4:00** | 1 | 20% Hidraliscos, 55% Zerglings T2, Drones | Tier 2 (Llegada de Hidraliscos) |
+| **4:00 - 6:00** | 2 | 15% Scourges, 20% Mutas, 20% Hidras, 45% Zerglings T3 | Tier 3 (Kamikazes Scourge enjambre) |
+| **6:00 - 8:00** | 3 | 12% Guardianes, 15% Scourges, 20% Hidras T2, Mutas | Tier 4 (Bombardeo de Guardianes) |
+| **8:00 - 10:00** | 4 | 10% Devoradores, 12% Guardianes, 15% Scourges, Mutas, Hidras | Tier 5 (Ácido corrosivo de Devoradores) |
+| **10:00 - 12:00** | 5 | 8% Reinas, 10% Devoradores, 12% Guardianes, Scourges, Mutas, Hidras | Tier 6 (Ensnare y ralentización de Reinas) |
+| **12:00 - 14:00** | 6 | 6% Ultraliscos, 8% Reinas, 12% Devoradores, 12% Guardianes, Scourges | Tier 7 (Enjambre titánico combinado) |
+| **14:00+** | 7+ | Enjambre Total de Élite (Ultraliscos, Devoradores, Guardianes, Reinas) | Masa crítica antes del Canal Nydus (min 20) |
 
 ### B. Peligro Subterráneo del Enjambre: Espinas de Lurker (`scenes/lurker_spine_hazard.tscn`)
 - **Mecánica**:
@@ -304,6 +315,10 @@ Definidas en `BARRACKS_UPGRADES_DEF` en `scripts/game_manager.gd`:
   - Mutalisco: `mutalisk.png` (17 cols x 6 filas, restos `mutalisk_remains.png`).
   - Drone: `drone.png` (17 cols x 23 filas, restos `drone_remains.png`).
   - Ultralisco: `ultralisk.png` (Jefe de gran tamaño con pisadas sísmicas).
+  - Scourge: `scourge.png` (17 cols x 5 filas 48x48, sombra `scourge_shadow.png`, muerte `scourge_death.png`, explosión kamikaze 9 frames `scourge_explo.png`, SFX `scourge_charge`, `scourge_explode`, `scourge_death`).
+  - Guardián: `guardian.png` (17 cols x 7 filas 96x96, sombra `guardian_shadow.png`, muerte `guardian_death.png`, proyectil de esporas 8 frames `guardian_spore.png`, impacto `guardian_spore_hit.png`, SFX `guardian_attack`, `guardian_death`).
+  - Devorador / Corruptor: `devourer.png` (17 cols x 10 filas 96x96, sombra `devourer_shadow.png`, muerte `devourer_death.png`, proyectil ácido `devourer_acid.png`, impacto ácido `devourer_hit_fx.png`, SFX `devourer_attack`, `devourer_hit`, `devourer_death`).
+  - Reina Zerg: `queen.png` (17 cols x 11 filas 128x128, sombra `queen_shadow.png`, muerte `queen_death.png`, proyectil y efecto Ensnare `queen_ensnare.png`, SFX `queen_ensnare`, `queen_death`).
   - Espinas de Lurker: `lurker_spikes.png` (7 cuadros de erupción secuencial).
 
 ---
