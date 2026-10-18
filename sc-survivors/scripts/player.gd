@@ -42,6 +42,20 @@ var stimpack_duration: float = 5.0
 var stimpack_cooldown: float = 8.0
 var stimpack_cd_timer: float = 0.0
 
+# Habilidad exclusiva de Firebat: Calor Extremo
+var is_extreme_heat_active: bool = false
+var extreme_heat_timer: float = 0.0
+var extreme_heat_cd_timer: float = 0.0
+var extreme_heat_duration: float = 6.0
+var extreme_heat_cooldown: float = 12.0
+var extreme_heat_armor_bonus: float = 4.0
+var extreme_heat_slow_ratio: float = 0.25 # 25% más lento durante la habilidad
+var extreme_heat_heal_percent: float = 0.015 # 1.5% inicial de robo de vida del daño del aura
+var extreme_heat_dps: float = 28.0
+var extreme_heat_radius: float = 95.0
+var extreme_heat_tick_timer: float = 0.0
+var heat_aura: Node2D = null
+
 # Animacion y direccion 32 angulos clasica de StarCraft
 var current_dir32: int = 8 # Empieza mirando al Este (Derecha)
 var facing_column: int = 8
@@ -123,9 +137,24 @@ func _ready() -> void:
 		max_health = 80.0
 		current_health = 80.0
 		armor = 0.0
+	elif GameManager.selected_hero == "firebat":
+		max_health = 50.0
+		current_health = 50.0
+		armor = 2.0
+		move_speed = 115.0
+		weapons.clear()
+		weapons["firebat_flame"] = 1
+		firebat_power_lvl = 1
+		firebat_streams = 1
 	
 	current_health = max_health
 	emit_signal("health_changed", current_health, max_health)
+	
+	# Instanciar aura visual de Calor Extremo
+	var aura_res = load("res://scenes/extreme_heat_aura.tscn")
+	if aura_res:
+		heat_aura = aura_res.instantiate()
+		add_child(heat_aura)
 	
 	_apply_skin()
 	var sm = get_node_or_null("/root/SkinManager")
@@ -135,6 +164,8 @@ func _ready() -> void:
 	_update_pickup_shape()
 	if is_civilian_mode:
 		AudioManager.play_sfx("tcvrdy00")
+	elif GameManager.selected_hero == "firebat":
+		AudioManager.play_sfx("firebat_ready")
 	elif GameManager.selected_hero == "medic":
 		AudioManager.play_sfx("medic_ready")
 	else:
@@ -163,14 +194,15 @@ func _apply_skin() -> void:
 		return
 	
 	var is_medic = (GameManager.selected_hero == "medic")
+	var is_firebat = (GameManager.selected_hero == "firebat")
 	if sprite:
-		var tex = SkinManager.get_sprite("medic") if is_medic else SkinManager.get_sprite("marine")
+		var tex = SkinManager.get_sprite("firebat") if is_firebat else (SkinManager.get_sprite("medic") if is_medic else SkinManager.get_sprite("marine"))
 		if tex:
 			sprite.texture = tex
 		sprite.hframes = 17
 		sprite.vframes = 14
 	if shadow:
-		var stex = SkinManager.get_sprite("medic_shadow") if is_medic else SkinManager.get_sprite("marine_shadow")
+		var stex = SkinManager.get_sprite("firebat_shadow") if is_firebat else (SkinManager.get_sprite("medic_shadow") if is_medic else SkinManager.get_sprite("marine_shadow"))
 		if stex:
 			shadow.texture = stex
 		shadow.hframes = 17
@@ -197,6 +229,20 @@ func _physics_process(delta: float) -> void:
 	if stimpack_cd_timer > 0.0:
 		stimpack_cd_timer -= delta
 
+	# Calor Extremo timer & tick
+	if is_extreme_heat_active:
+		extreme_heat_timer -= delta
+		extreme_heat_tick_timer -= delta
+		if extreme_heat_tick_timer <= 0.0:
+			extreme_heat_tick_timer = 0.25 # Pulsos de calor 4 veces por segundo
+			_process_extreme_heat_tick()
+		if extreme_heat_timer <= 0.0:
+			is_extreme_heat_active = false
+			if heat_aura:
+				heat_aura.deactivate()
+	if extreme_heat_cd_timer > 0.0:
+		extreme_heat_cd_timer -= delta
+
 	# Movimiento WASD
 	var input_vec = Vector2.ZERO
 	input_vec.x = Input.get_axis("move_left", "move_right")
@@ -204,18 +250,25 @@ func _physics_process(delta: float) -> void:
 	input_vec = input_vec.normalized()
 	
 	var current_speed = move_speed * (1.4 if stimpack_active else 1.0)
+	if is_extreme_heat_active:
+		current_speed *= (1.0 - extreme_heat_slow_ratio) # Calor Extremo ralentiza al usuario
 	velocity = input_vec * current_speed
 	move_and_slide()
 	
-	# Stimpack manual y disparo de armas solo fuera de base y con armadura
+	# Habilidad táctica manual ([T] o Stimpack) y disparo de armas
 	var target = null
 	if not is_in_base and not is_civilian_mode:
-		if Input.is_action_just_pressed("stimpack") and not stimpack_active and stimpack_cd_timer <= 0.0:
-			var can_stim = SaveManager.is_stimpack_unlocked() if has_node("/root/SaveManager") else (GameManager.barracks_upgrades.get("stim", 0) > 0)
-			if can_stim:
-				use_stimpack()
+		if Input.is_action_just_pressed("stimpack"):
+			if GameManager.selected_hero == "firebat":
+				if not is_extreme_heat_active and extreme_heat_cd_timer <= 0.0:
+					use_extreme_heat()
 			else:
-				show_bubble("Estimulante bloqueado: Requiere investigarse en la Academia", 2.2)
+				if not stimpack_active and stimpack_cd_timer <= 0.0:
+					var can_stim = SaveManager.is_stimpack_unlocked() if has_node("/root/SaveManager") else (GameManager.barracks_upgrades.get("stim", 0) > 0)
+					if can_stim:
+						use_stimpack()
+					else:
+						show_bubble("Estimulante bloqueado: Requiere investigarse en la Academia", 2.2)
 		target = _find_nearest_enemy()
 		_process_weapons(delta, target)
 
@@ -315,6 +368,20 @@ func _update_animation(delta: float, is_moving: bool) -> void:
 		return
 	
 	var is_medic = (GameManager.selected_hero == "medic")
+	var is_firebat = (GameManager.selected_hero == "firebat")
+	if is_firebat:
+		if fire_anim_timer > 0.0:
+			fire_anim_timer -= delta
+			_set_sprite_frame(1 * 17 + facing_column) # Fila 1: Pose de disparo de lanzallamas
+		elif is_moving:
+			walk_anim_timer += delta * (14.0 if (stimpack_active or is_extreme_heat_active) else 10.0)
+			var walk_subframe = int(walk_anim_timer) % 8 # 8 filas de caminata (filas 2 a 9)
+			_set_sprite_frame((2 + walk_subframe) * 17 + facing_column)
+		else:
+			walk_anim_timer = 0.0
+			_set_sprite_frame(0 * 17 + facing_column) # Fila 0: Reposo
+		return
+	
 	if is_medic:
 		if fire_anim_timer > 0.0:
 			fire_anim_timer -= delta
@@ -390,6 +457,7 @@ func _fire_flame(target: Node2D) -> void:
 		dir = (target.global_position - global_position).normalized()
 	
 	_update_direction(dir)
+	fire_anim_timer = 0.22 # Activa pose de fuego
 	AudioManager.play_sfx("flame_fire", 0.05, 1.0)
 	
 	var flame_scene = load("res://scenes/flame.tscn")
@@ -570,11 +638,53 @@ func use_stimpack() -> void:
 	tw.tween_property(sprite, "modulate", Color(1.4, 0.6, 0.6, 1.0), 0.1)
 	tw.tween_property(sprite, "modulate", Color(1, 1, 1, 1), 0.3)
 
+func use_extreme_heat() -> void:
+	is_extreme_heat_active = true
+	extreme_heat_timer = extreme_heat_duration
+	extreme_heat_cd_timer = extreme_heat_cooldown
+	extreme_heat_tick_timer = 0.0
+	
+	if heat_aura:
+		heat_aura.activate()
+	
+	AudioManager.play_sfx("extreme_heat_activate")
+	AudioManager.play_sfx("flame_fire")
+	
+	var tw = create_tween()
+	tw.tween_property(sprite, "modulate", Color(1.8, 0.8, 0.4, 1.0), 0.12)
+	tw.tween_property(sprite, "modulate", Color(1, 1, 1, 1), 0.3)
+	
+	emit_signal("stimpack_used", extreme_heat_duration)
+
+func _process_extreme_heat_tick() -> void:
+	var enemies = get_tree().get_nodes_in_group("enemies")
+	var r_sq = extreme_heat_radius * extreme_heat_radius
+	var total_tick_damage: float = 0.0
+	var tick_dmg = (extreme_heat_dps * 0.25) * damage_mult
+	
+	for e in enemies:
+		if is_instance_valid(e) and not ("is_dead" in e and e.is_dead) and not ("is_destroyed" in e and e.is_destroyed):
+			if global_position.distance_squared_to(e.global_position) <= r_sq:
+				if e.has_method("take_damage"):
+					e.take_damage(tick_dmg)
+					total_tick_damage += tick_dmg
+				if e.has_method("apply_burn"):
+					var burn_dot = (2.0 + (firebat_power_lvl - 1) * 0.5) * damage_mult
+					e.apply_burn(burn_dot, 2.5, 1.0)
+	
+	# Robo de vida exclusivo de la habilidad Calor Extremo
+	if total_tick_damage > 0.0 and extreme_heat_heal_percent > 0.0:
+		var heal = total_tick_damage * extreme_heat_heal_percent
+		if heal > 0.01:
+			current_health = min(max_health, current_health + heal)
+			emit_signal("health_changed", current_health, max_health)
+
 func take_damage(amount: float) -> void:
 	if is_dead or is_in_base:
 		return
 	
-	var effective_damage = max(1.0, amount - armor)
+	var eff_armor = armor + (extreme_heat_armor_bonus if is_extreme_heat_active else 0.0)
+	var effective_damage = max(1.0, amount - eff_armor)
 	current_health = maxf(0.0, current_health - effective_damage)
 	invuln_timer = 0.15
 	emit_signal("health_changed", current_health, max_health)
@@ -629,7 +739,9 @@ func die() -> void:
 		)
 		return
 	
-	if GameManager.selected_hero == "medic":
+	if GameManager.selected_hero == "firebat":
+		AudioManager.play_sfx("firebat_death")
+	elif GameManager.selected_hero == "medic":
 		AudioManager.play_sfx("medic_death")
 	elif randf() > 0.5:
 		AudioManager.play_sfx("marine_death0")
@@ -755,6 +867,11 @@ func apply_upgrade(type: String) -> void:
 		passives["stimpack_upgrade"] = passives.get("stimpack_upgrade", 0) + 1
 		move_speed += move_speed * 0.12 # +12% velocidad de movimiento porcentual
 		stimpack_duration += 1.0
+	elif type == "extreme_heat_upgrade":
+		passives["extreme_heat_upgrade"] = passives.get("extreme_heat_upgrade", 0) + 1
+		extreme_heat_armor_bonus += 2.0 # +2 Armadura adicional durante la habilidad
+		extreme_heat_heal_percent += 0.005 # +0.5% robo de vida (1.5%, 2.0%, 2.5%...)
+		extreme_heat_dps += 6.0 # +6 DPS al aura ígnea
 	elif type == "explosive_rounds":
 		passives["explosive_rounds"] = passives.get("explosive_rounds", 0) + 1
 		has_explosive = true

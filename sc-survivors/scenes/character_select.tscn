@@ -170,6 +170,7 @@ auto_scale_to_fill = true
 enable_click_to_talk = false
 
 [node name="LockOverlay" type="ColorRect" parent="Monitors/FirebatMonitor"]
+visible = false
 layout_mode = 0
 offset_left = 6.0
 offset_top = 6.0
@@ -202,13 +203,13 @@ offset_top = 94.0
 offset_right = 118.0
 offset_bottom = 112.0
 theme = SubResource("Theme_sc")
-theme_override_colors/font_color = Color(1, 0.8, 0.2, 1)
+theme_override_colors/font_color = Color(0.2, 1, 0.35, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
 theme_override_constants/shadow_outline_size = 2
 theme_override_font_sizes/font_size = 9
-text = "BLOQUEADO"
+text = "FIREBAT"
 horizontal_alignment = 1
 
 [node name="Button" type="Button" parent="Monitors/FirebatMonitor"]

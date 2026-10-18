@@ -849,13 +849,15 @@ func _choose_armor_suit(suit_id: String) -> void:
 				if has_node("/root/SaveManager"):
 					SaveManager.save_data()
 				_update_armor_stand_state()
-				if suit_id == "medic":
+				if suit_id == "firebat":
+					AudioManager.play_sfx("firebat_ready")
+				elif suit_id == "medic":
 					AudioManager.play_sfx("medic_ready")
 				else:
 					AudioManager.play_sfx("marine_ready")
 				if player_node and player_node.has_method("set_suit_equipped"):
 					player_node.set_suit_equipped(true)
-					var msg = "Equipado: Traje Médica Terran." if suit_id == "medic" else "Equipado: Armadura Marine CMC-300."
+					var msg = "Equipado: Traje Firebat CMC-660." if suit_id == "firebat" else ("Equipado: Traje Médica Terran." if suit_id == "medic" else "Equipado: Armadura Marine CMC-300.")
 					player_node.show_bubble(msg, 2.0)
 			)
 
@@ -892,7 +894,15 @@ func _update_armor_stand_state() -> void:
 		return
 	
 	var is_medic = (GameManager.selected_hero == "medic")
-	if is_medic:
+	var is_firebat = (GameManager.selected_hero == "firebat")
+	if is_firebat:
+		armor_stand_sprite.visible = true
+		if armor_stand_shadow: armor_stand_shadow.visible = true
+		armor_stand_hint.text = "[E] CAMBIAR A MARINE CMC-300"
+		if armor_stand_medic_sprite: armor_stand_medic_sprite.visible = true
+		if armor_stand_medic_shadow: armor_stand_medic_shadow.visible = true
+		if armor_stand_medic_hint: armor_stand_medic_hint.text = "[E] CAMBIAR A MÉDICA TERRAN"
+	elif is_medic:
 		armor_stand_sprite.visible = true
 		if armor_stand_shadow: armor_stand_shadow.visible = true
 		armor_stand_hint.text = "[E] CAMBIAR A MARINE CMC-300"
@@ -910,13 +920,19 @@ func _update_armor_stand_state() -> void:
 		if armor_stand_medic_hint: armor_stand_medic_hint.text = "[E] CAMBIAR A MÉDICA TERRAN"
 	
 	if bottom_wireframe:
-		var wf_name = "wire_medic" if is_medic else "wire_marine"
+		var wf_name = "wire_firebat" if is_firebat else ("wire_medic" if is_medic else "wire_marine")
 		var wf_m = SkinManager.get_sprite(wf_name)
 		if wf_m: bottom_wireframe.texture = wf_m
 	if bottom_portrait:
-		var port_path = "res://assets/skins/sd/portrait/medic_portrait.png" if is_medic else "res://assets/skins/sd/portrait/marine_portrait.png"
-		bottom_portrait.set_portrait(load(port_path))
-		if is_medic:
+		var port_name = "firebat" if is_firebat else ("medic" if is_medic else "marine")
+		var p_tex = SkinManager.get_portrait(port_name)
+		if p_tex: bottom_portrait.set_portrait(p_tex)
+		if is_firebat:
+			bottom_portrait.voice_list = [
+				"firebat_what0", "firebat_what1", "firebat_what2", "firebat_what3",
+				"firebat_yes0", "firebat_yes1", "firebat_yes2", "firebat_yes3"
+			]
+		elif is_medic:
 			bottom_portrait.voice_list = [
 				"medic_what0", "medic_what1", "medic_what2", "medic_what3",
 				"medic_yes0", "medic_yes1", "medic_yes2", "medic_yes3"
@@ -925,17 +941,17 @@ func _update_armor_stand_state() -> void:
 			bottom_portrait.voice_list = ["marine_what0", "marine_what1", "marine_yes0", "marine_yes1"]
 		bottom_portrait.trigger_talk(1.5)
 	if bottom_name_label:
-		bottom_name_label.text = "MÉDICA TERRAN" if is_medic else "INFANTERÍA TERRAN"
+		bottom_name_label.text = "FIREBAT CMC-660" if is_firebat else ("MÉDICA TERRAN" if is_medic else "INFANTERÍA TERRAN")
 	if bottom_rank_label:
-		bottom_rank_label.text = "Soporte Táctico" if is_medic else "Blindaje: CMC-300"
+		bottom_rank_label.text = "Infantería Pesada" if is_firebat else ("Soporte Táctico" if is_medic else "Blindaje: CMC-300")
 	if bottom_weapon_label:
-		bottom_weapon_label.text = "Láser Médico Táctico" if is_medic else "Fusil Gauss C-14"
+		bottom_weapon_label.text = "Lanza-llamas Perdition" if is_firebat else ("Láser Médico Táctico" if is_medic else "Fusil Gauss C-14")
 	if bottom_armor_label:
-		bottom_armor_label.text = "Armadura: 0 (+1)"
+		bottom_armor_label.text = "Armadura: 2 (+1)" if is_firebat else "Armadura: 0 (+1)"
 	if bottom_hp_bar:
-		bottom_hp_bar.set_health(40, 40)
+		bottom_hp_bar.set_health(50 if is_firebat else 40, 50 if is_firebat else 40)
 	if bottom_hp_label:
-		bottom_hp_label.text = "40 / 40"
+		bottom_hp_label.text = "50 / 50" if is_firebat else "40 / 40"
 
 func _connect_signals() -> void:
 	cmd_center_close_btn.pressed.connect(_close_all_modals)

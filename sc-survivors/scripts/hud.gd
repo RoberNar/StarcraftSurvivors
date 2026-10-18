@@ -163,6 +163,11 @@ const PASSIVE_INFO = {
 		"type": "Mejora Química Militar",
 		"desc": "Potenciador celular que eleva la velocidad del marine y prolonga el efecto del estimulante."
 	},
+	"extreme_heat_upgrade": {
+		"name": "Calor Extremo",
+		"type": "Sobrecarga de Blindaje Térmico",
+		"desc": "Intensifica el aura ígnea: +2 Armadura durante la habilidad, +0.5% robo de vida y +6 DPS al fuego envolvente."
+	},
 	"explosive_rounds": {
 		"name": "Balas Explosivas",
 		"type": "Munición de Fragmentación",
@@ -249,6 +254,8 @@ func _format_passive_stats(p_id: String, stacks: int, _p: Player) -> String:
 			return "• Acumulaciones: x%d\n• +%d Balas adicionales por disparo" % [stacks, stacks]
 		"stimpack_upgrade":
 			return "• Acumulaciones: x%d\n• +%.0f%% Velocidad de movimiento\n• +%.1fs Duración del Stimpack [T]" % [stacks, stacks * 12.0, stacks * 1.0]
+		"extreme_heat_upgrade":
+			return "• Acumulaciones: x%d\n• +%d Armadura en Calor Extremo [T]\n• +%.1f%% Robo de vida con aura\n• +%.0f DPS al calor envolvente" % [stacks, stacks * 2, 1.5 + (stacks - 1) * 0.5, stacks * 6.0]
 		"explosive_rounds":
 			return "• Acumulaciones: x%d\n• Balas causan daño de área\n• +%.0f%% Daño explosivo" % [stacks, stacks * 10.0]
 		"magnetic_field":
@@ -272,7 +279,8 @@ func _ready() -> void:
 	if base_weapon_icon and weapon_icons_tex:
 		var atlas = AtlasTexture.new()
 		atlas.atlas = weapon_icons_tex
-		atlas.region = Rect2(0, 0, 48, 48)
+		var slot_idx = 1 if (has_node("/root/GameManager") and GameManager.selected_hero == "firebat") else 0
+		atlas.region = Rect2(slot_idx * 48, 0, 48, 48)
 		base_weapon_icon.texture = atlas
 	
 	level_up_panel.visible = false
@@ -723,6 +731,7 @@ func _update_inventory_display(weapons: Dictionary, passives: Dictionary) -> voi
 	var passive_icon_map = {
 		"magnetic_field": 0,
 		"stimpack_upgrade": 1,
+		"extreme_heat_upgrade": 1,
 		"combat_shield": 2,
 		"u238_shells": 3,
 		"cadence": 4,
@@ -1041,15 +1050,21 @@ func _refresh_hud_skin() -> void:
 			unit_name_label.text = "??????"
 	else:
 		var is_medic = (GameManager.selected_hero == "medic")
+		var is_firebat = (GameManager.selected_hero == "firebat")
 		if wireframe_rect:
-			var wf_name = "wire_medic" if is_medic else "wire_marine"
+			var wf_name = "wire_firebat" if is_firebat else ("wire_medic" if is_medic else "wire_marine")
 			var wf = SkinManager.get_sprite(wf_name)
 			if wf: wireframe_rect.texture = wf
 		if portrait_control:
-			var port_name = "medic" if is_medic else "marine"
+			var port_name = "firebat" if is_firebat else ("medic" if is_medic else "marine")
 			var p_tex = SkinManager.get_portrait(port_name)
 			if p_tex: portrait_control.set_portrait(p_tex)
-			if is_medic:
+			if is_firebat:
+				portrait_control.voice_list = [
+					"firebat_what0", "firebat_what1", "firebat_what2", "firebat_what3",
+					"firebat_yes0", "firebat_yes1", "firebat_yes2", "firebat_yes3"
+				]
+			elif is_medic:
 				portrait_control.voice_list = [
 					"medic_what0", "medic_what1", "medic_what2", "medic_what3",
 					"medic_yes0", "medic_yes1", "medic_yes2", "medic_yes3"
@@ -1057,7 +1072,7 @@ func _refresh_hud_skin() -> void:
 			else:
 				portrait_control.voice_list = ["marine_what0", "marine_what1", "marine_yes0", "marine_yes1"]
 		if unit_name_label:
-			unit_name_label.text = "MÉDICA TERRAN" if is_medic else "INFANTERÍA TERRAN"
+			unit_name_label.text = "FIREBAT CMC-660" if is_firebat else ("MÉDICA TERRAN" if is_medic else "INFANTERÍA TERRAN")
 	
 	var cursor_tex = SkinManager.get_ui("cursor")
 	if cursor_tex:

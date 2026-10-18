@@ -57,7 +57,8 @@ func set_suit_equipped(val: bool) -> void:
 	is_suit_equipped = val
 	if is_suit_equipped:
 		var is_medic = (has_node("/root/GameManager") and GameManager.selected_hero == "medic")
-		var s_name = "medic" if is_medic else "marine"
+		var is_firebat = (has_node("/root/GameManager") and GameManager.selected_hero == "firebat")
+		var s_name = "firebat" if is_firebat else ("medic" if is_medic else "marine")
 		var tex = load("res://assets/skins/sd/sprites/%s.png" % s_name)
 		var shad = load("res://assets/skins/sd/sprites/%s_shadow.png" % s_name)
 		if sprite:
@@ -112,9 +113,13 @@ func _update_direction(dir: Vector2) -> void:
 func _update_animation(delta: float, is_moving: bool) -> void:
 	if is_suit_equipped:
 		var is_medic = (has_node("/root/GameManager") and GameManager.selected_hero == "medic")
+		var is_firebat = (has_node("/root/GameManager") and GameManager.selected_hero == "firebat")
 		if is_moving:
 			walk_anim_timer += delta * 11.0
-			if is_medic:
+			if is_firebat:
+				var walk_subframe = int(walk_anim_timer) % 8 # 8 filas de caminata de Firebat (filas 2 a 9)
+				_set_sprite_frame((2 + walk_subframe) * 17 + facing_column)
+			elif is_medic:
 				var walk_subframe = int(walk_anim_timer) % 7 # 7 filas de caminata de la Médica (filas 6 a 12)
 				_set_sprite_frame((6 + walk_subframe) * 17 + facing_column)
 			else:

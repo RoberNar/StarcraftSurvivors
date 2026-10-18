@@ -82,7 +82,7 @@ func _ready() -> void:
 	
 	# Botones de monitores activos y bloqueados
 	marine_button.text = ""
-	firebat_button.text = "???"
+	firebat_button.text = ""
 	ghost_button.text = "???"
 	goliath_button.text = "???"
 	
@@ -91,13 +91,15 @@ func _ready() -> void:
 	
 	_apply_skin()
 	
-	# Mantener héroe seleccionado previo (Marine o Médica)
-	selected_hero = GameManager.selected_hero if (GameManager.selected_hero == "medic" or GameManager.selected_hero == "marine") else "marine"
-	current_selected_monitor = "marine"
+	# Mantener héroe seleccionado previo (Marine, Médica o Firebat)
+	selected_hero = GameManager.selected_hero if (GameManager.selected_hero in ["medic", "marine", "firebat"]) else "marine"
+	current_selected_monitor = "firebat" if selected_hero == "firebat" else "marine"
 	_update_marine_monitor_skin()
 	_show_hero(selected_hero)
 	
-	if selected_hero == "medic" and marine_portrait:
+	if selected_hero == "firebat" and firebat_portrait:
+		firebat_portrait.trigger_talk(1.8)
+	elif selected_hero == "medic" and marine_portrait:
 		marine_portrait.trigger_talk(1.8)
 	elif marine_portrait:
 		marine_portrait.trigger_talk(1.8)
@@ -118,8 +120,23 @@ func _ready() -> void:
 func _apply_skin() -> void:
 	_update_marine_monitor_skin()
 	
+	# Firebat operativo en Monitor 2
+	if firebat_portrait:
+		var p_firebat = SkinManager.get_portrait("firebat")
+		if p_firebat: firebat_portrait.set_portrait(p_firebat)
+		firebat_portrait.voice_list = [
+			"firebat_what0", "firebat_what1", "firebat_what2", "firebat_what3",
+			"firebat_yes0", "firebat_yes1", "firebat_yes2", "firebat_yes3"
+		]
+		var f_badge = firebat_monitor.get_node_or_null("Badge") as Label
+		if f_badge:
+			f_badge.text = "FIREBAT"
+			f_badge.add_theme_color_override("font_color", Color(0.2, 1.0, 0.35, 1.0))
+		var f_lock = firebat_monitor.get_node_or_null("LockOverlay") as Control
+		if f_lock:
+			f_lock.visible = false
+	
 	# Unidades bloqueadas con monitor en negro/señal azul sin rostro
-	if firebat_portrait: firebat_portrait.set_portrait(null)
 	if ghost_portrait: ghost_portrait.set_portrait(null)
 	if goliath_portrait: goliath_portrait.set_portrait(null)
 	
@@ -210,13 +227,10 @@ func _on_marine_button_pressed() -> void:
 		_toggle_marine_skin_animation()
 	else:
 		current_selected_monitor = "marine"
+		selected_hero = "marine"
 		_show_hero(selected_hero)
-		if selected_hero == "medic":
-			if marine_portrait: marine_portrait.trigger_talk(1.8)
-			AudioManager.play_sfx("medic_ready")
-		else:
-			if marine_portrait: marine_portrait.trigger_talk(1.8)
-			AudioManager.play_sfx("marine_ready")
+		if marine_portrait: marine_portrait.trigger_talk(1.8)
+		AudioManager.play_sfx("marine_ready")
 
 func _toggle_marine_skin_animation() -> void:
 	is_transitioning = true
@@ -251,7 +265,12 @@ func _select_monitor(mon_id: String) -> void:
 	if is_transitioning:
 		return
 	current_selected_monitor = mon_id
-	AudioManager.play_sfx("button")
+	if mon_id == "firebat":
+		selected_hero = "firebat"
+		if firebat_portrait: firebat_portrait.trigger_talk(1.8)
+		AudioManager.play_sfx("firebat_ready")
+	else:
+		AudioManager.play_sfx("button")
 	_show_hero(mon_id)
 
 func _show_hero(hero_id: String) -> void:
@@ -326,26 +345,37 @@ func _show_hero(hero_id: String) -> void:
 			else:
 				start_button.text = "INICIAR MISIÓN"
 		"firebat":
-			unit_name_label.text = "??? [UNIDAD TÁCTICA BLOQUEADA]"
-			unit_role_label.text = "[ ARCHIVO CLASIFICADO // SEÑAL ENCRIPTADA ]"
-			stats_grid.visible = false
-			skill_label.visible = false
-			lore_label.visible = false
-			status_badge.text = "[ PROTOCOLO BLOQUEADO // ACCESO DENEGADO ]"
-			status_badge.modulate = Color(1.0, 0.4, 0.4, 1.0)
+			unit_name_label.text = "FIREBAT CMC-660"
+			unit_role_label.text = "Infantería Pesada de Asalto (Armadura CMC-660)"
+			stats_grid.visible = true
+			stat_hp_label.text = "Vida: 50 PS"
+			stat_armor_label.text = "Armadura: 2"
+			stat_weapon_label.text = "Arma: Lanza-llamas Perdition"
+			stat_damage_label.text = "Daño: 4 + DoT térmico"
+			stat_rate_label.text = "Cadencia: 1.8/s (Abanico)"
+			stat_speed_label.text = "Velocidad: 115 px/s"
+			skill_label.visible = true
+			skill_label.text = "HABILIDAD: Calor Extremo [T] (-25% Vel, +4 Armadura, aura ígnea corrosiva y robo de vida)"
+			lore_label.visible = true
+			lore_label.text = "Especialista confederado en armadura pesada ignífuga. Purifica y calcina enjambres a corta distancia."
+			status_badge.text = "[ DESPLEGADO Y LISTO PARA COMBATE ]"
+			status_badge.modulate = Color(0.25, 1.0, 0.35, 1.0)
 			
-			obj_header.text = "CONDICIÓN DE DESBLOQUEO"
+			obj_header.text = "EXPEDIENTE TÁCTICO"
 			obj1.visible = true
-			obj1.text = "• Sobrevivir 10 minutos en el páramo exterior."
+			obj1.text = "• Infantería pesada de contención de enjambres."
 			obj2.visible = true
-			obj2.text = "• Costo de adquisición: 500 Minerales."
+			obj2.text = "• Doble lanzallamas Perdition con reducción de armadura."
 			obj3.visible = true
-			obj3.text = "• Estado: No disponible actualmente."
+			obj3.text = "• Desata Calor Extremo para absorber castigo y sanar con el fuego."
 			obj4.visible = false
 			obj5.visible = false
 			
-			start_button.disabled = true
-			start_button.text = "UNIDAD BLOQUEADA"
+			start_button.disabled = false
+			if GameManager.character_select_source == "barracks":
+				start_button.text = "EQUIPAR PERSONAJE"
+			else:
+				start_button.text = "INICIAR MISIÓN"
 		"ghost":
 			unit_name_label.text = "??? [OPERATIVO ENCUBIERTO BLOQUEADO]"
 			unit_role_label.text = "[ ARCHIVO CLASIFICADO // SEÑAL ENCRIPTADA ]"
@@ -392,7 +422,9 @@ func _on_start_pressed() -> void:
 		return
 	start_button.disabled = true
 	cancel_button.disabled = true
-	if selected_hero == "medic":
+	if selected_hero == "firebat":
+		AudioManager.play_sfx("firebat_ready")
+	elif selected_hero == "medic":
 		AudioManager.play_sfx("medic_ready")
 	else:
 		AudioManager.play_sfx("marine_ready")

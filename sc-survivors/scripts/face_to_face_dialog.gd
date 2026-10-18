@@ -104,7 +104,8 @@ func _advance_queue_line() -> void:
 		portrait_tex = load("res://assets/skins/sd/portrait/civilian_portrait.png")
 	else:
 		if GameManager.has_suit_equipped:
-			portrait_tex = SkinManager.get_sprite("wire_medic") if GameManager.selected_hero == "medic" else SkinManager.get_sprite("wire_marine")
+			var wf = "wire_firebat" if GameManager.selected_hero == "firebat" else ("wire_medic" if GameManager.selected_hero == "medic" else "wire_marine")
+			portrait_tex = SkinManager.get_sprite(wf)
 		else:
 			portrait_tex = SkinManager.get_sprite("wire_civilian")
 	

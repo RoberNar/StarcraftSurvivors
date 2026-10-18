@@ -69,13 +69,24 @@ func _gui_input(event: InputEvent) -> void:
 		if voice_list.size() > 0:
 			AudioManager.play_sfx(voice_list[randi() % voice_list.size()])
 		else:
+			var is_firebat = false
 			var is_medic = false
-			if GameManager and "selected_hero" in GameManager and GameManager.selected_hero == "medic":
+			if GameManager and "selected_hero" in GameManager and GameManager.selected_hero == "firebat":
+				is_firebat = true
+			elif GameManager and "selected_hero" in GameManager and GameManager.selected_hero == "medic":
 				is_medic = true
-			if texture_sheet and "medic" in texture_sheet.resource_path.to_lower():
+			if texture_sheet and "firebat" in texture_sheet.resource_path.to_lower():
+				is_firebat = true
+			elif texture_sheet and "medic" in texture_sheet.resource_path.to_lower():
 				is_medic = true
 			
-			if is_medic:
+			if is_firebat:
+				var f_voices = [
+					"firebat_what0", "firebat_what1", "firebat_what2", "firebat_what3",
+					"firebat_yes0", "firebat_yes1", "firebat_yes2", "firebat_yes3"
+				]
+				AudioManager.play_sfx(f_voices[randi() % f_voices.size()])
+			elif is_medic:
 				var m_voices = [
 					"medic_what0", "medic_what1", "medic_what2", "medic_what3",
 					"medic_yes0", "medic_yes1", "medic_yes2", "medic_yes3"

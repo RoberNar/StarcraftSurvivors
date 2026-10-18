@@ -307,6 +307,13 @@ const PASSIVES_DEF = [
 		"icon_idx": 1
 	},
 	{
+		"id": "extreme_heat_upgrade",
+		"type": "passive",
+		"name": "Calor Extremo",
+		"desc": "+2 Armadura durante la habilidad\n+0.5% Robo de vida y +6 DPS al aura ígnea",
+		"icon_idx": 1
+	},
+	{
 		"id": "explosive_rounds",
 		"type": "passive",
 		"name": "Balas Explosivas",
@@ -1062,10 +1069,21 @@ func _get_available_upgrade_choices() -> Array:
 			"weapon_idx": 0
 		})
 	
+	var base_w = "firebat_flame" if selected_hero == "firebat" else "c14_rifle"
 	var sec_count = 0
 	for w in player_weapons.keys():
-		if w != "c14_rifle":
+		if w != base_w:
 			sec_count += 1
+	
+	# Si el héroe es Firebat, el Rifle Gauss C-14 puede adquirirse como arma secundaria
+	if selected_hero == "firebat" and not player_weapons.has("c14_rifle") and sec_count < 3:
+		weapon_pool.append({
+			"id": "c14_rifle",
+			"type": "weapon",
+			"name": "NUEVA ARMA: Rifle Gauss C-14",
+			"desc": "Fusil de asalto automático de 8mm perforante\ncon saturación balística continua",
+			"weapon_idx": 0
+		})
 	
 	# 1. Firebat (Disponible desde el inicio en las runs)
 	if player_weapons.has("firebat_flame"):
@@ -1205,8 +1223,13 @@ func _get_available_upgrade_choices() -> Array:
 		var p_id = p["id"]
 		var allowed_max = 5
 		if p_id == "stimpack_upgrade":
+			if selected_hero == "firebat":
+				continue
 			var can_stim = (has_node("/root/SaveManager") and SaveManager.is_stimpack_unlocked()) or barracks_upgrades.get("stim", 0) > 0
 			if not can_stim:
+				continue
+		elif p_id == "extreme_heat_upgrade":
+			if selected_hero != "firebat":
 				continue
 		
 		var cur_p_lvl = player_passives.get(p_id, 0)

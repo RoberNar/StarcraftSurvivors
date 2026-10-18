@@ -297,6 +297,7 @@ Definidas en `BARRACKS_UPGRADES_DEF` en `scripts/game_manager.gd`:
 - **Spritesheets de Unidades y Héroes**:
   - Marine: `marine.png` (17 cols x 14 filas 64x64, muerte frames 221-228, restos `marine_remains.png`).
   - Médica Terran (Enfermera): `medic.png` (17 cols x 14 filas 64x64, muerte frames 221-228, sombra `medic_shadow.png`, retrato parlante animado 600x168 `medic_portrait.png`, wireframe `wire_medic.png`, SFX `medic_ready`, `medic_heal`, `medic_death`). Su animación de disparo utiliza la emisión y destello curativo de su brazo bio-médico.
+  - Firebat Terran: `firebat.png` (17 cols x 14 filas 64x64 centrados con offset de 16px, sombra `firebat_shadow.png`, wireframe `wire_firebat.png`, retrato `firebat_portrait.png`, audio completo `firebat_ready`, `firebat_what0..3`, `firebat_yes0..3`, `firebat_death0..2`). Inicia con Lanzallamas Perdition (`firebat_flame`) y su habilidad exclusiva **Calor Extremo** (`[T]`), la cual despliega un aura/nube de Enjambre/Corruptores (`extreme_heat_cloud.png`, `scenes/extreme_heat_aura.tscn`), reduce su velocidad de movimiento un 25%, aumenta su armadura (+4 base, +2 por nivel) e inflige daño ígneo continuo de área, sanando al jugador un porcentaje del daño realizado estrictamente por dicha habilidad (1.5% base, +0.5% por mejora de nivel).
   - Zergling: `zergling.png` (17 cols, restos `zergling_remains.png`).
   - Hidralisco: `hydralisk.png` (17 cols x 18 filas, muerte fila 12 cols 0-7, restos `hydralisk_remains.png`).
   - Mutalisco: `mutalisk.png` (17 cols x 6 filas, restos `mutalisk_remains.png`).
@@ -340,6 +341,6 @@ Definidas en `BARRACKS_UPGRADES_DEF` en `scripts/game_manager.gd`:
 - [ ] Modo Asedio de Tanque Arclite (Torreta secundaria fija o vehículo desbloqueable en el Arsenal).
 
 ### Prioridad 3: Héroes y Clases Alternativas
-- [ ] Héroe Firebat: Inicio con lanzallamas, armadura pesada y resistencia al fuego.
+- [x] **Héroe Firebat**: Inicio con Lanzallamas Perdition, armadura pesada (50 HP, 2 armadura), habilidad exclusiva Calor Extremo con aura de nube corrosiva, ralentización, bonificación de armadura y robo de vida balanceado.
 - [ ] Héroe Ghost: Inicio con rifle C-10, invisibilidad táctica temporal con energía.
 - [ ] Héroe Protoss invitado (Zealot / Templario Tétrico): Escudos de plasma regenerables y cuchillas psiónicas.

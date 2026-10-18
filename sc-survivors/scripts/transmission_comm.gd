@@ -127,7 +127,7 @@ func _play_next_in_queue() -> void:
 		else:
 			spk = "??????"
 			if tex == null:
-				var wf_hero = "wire_medic" if GameManager.selected_hero == "medic" else "wire_marine"
+				var wf_hero = "wire_firebat" if (has_node("/root/GameManager") and GameManager.selected_hero == "firebat") else ("wire_medic" if (has_node("/root/GameManager") and GameManager.selected_hero == "medic") else "wire_marine")
 				tex = SkinManager.get_sprite(wf_hero) if (has_node("/root/GameManager") and GameManager.has_suit_equipped) else SkinManager.get_sprite("wire_civilian")
 	
 	var msg = item.get("message", item.get("text", ""))
