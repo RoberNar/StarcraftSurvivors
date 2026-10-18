@@ -156,7 +156,10 @@ func _update_marine_monitor_skin() -> void:
 		var p_medic = SkinManager.get_portrait("medic")
 		if p_medic:
 			marine_portrait.set_portrait(p_medic)
-		marine_portrait.voice_list = ["medic_what0", "medic_what1", "medic_what2", "medic_what3"]
+		marine_portrait.voice_list = [
+			"medic_what0", "medic_what1", "medic_what2", "medic_what3",
+			"medic_yes0", "medic_yes1", "medic_yes2", "medic_yes3"
+		]
 		if badge: badge.text = "MÉDICA TERRAN"
 	else:
 		var p_marine = SkinManager.get_portrait("marine")

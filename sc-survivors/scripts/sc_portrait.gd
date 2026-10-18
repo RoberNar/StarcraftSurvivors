@@ -50,6 +50,15 @@ func trigger_talk(duration: float = 1.4) -> void:
 
 func set_portrait(tex: Texture2D) -> void:
 	texture_sheet = tex
+	if tex != null:
+		var path_str = tex.resource_path.to_lower()
+		if "medic" in path_str:
+			voice_list = [
+				"medic_what0", "medic_what1", "medic_what2", "medic_what3",
+				"medic_yes0", "medic_yes1", "medic_yes2", "medic_yes3"
+			]
+		elif "marine" in path_str:
+			voice_list = ["marine_what0", "marine_what1", "marine_yes0", "marine_yes1"]
 	queue_redraw()
 
 func _gui_input(event: InputEvent) -> void:
@@ -60,8 +69,21 @@ func _gui_input(event: InputEvent) -> void:
 		if voice_list.size() > 0:
 			AudioManager.play_sfx(voice_list[randi() % voice_list.size()])
 		else:
-			var voices = ["marine_what0", "marine_what1", "marine_yes0", "marine_yes1"]
-			AudioManager.play_sfx(voices[randi() % voices.size()])
+			var is_medic = false
+			if GameManager and "selected_hero" in GameManager and GameManager.selected_hero == "medic":
+				is_medic = true
+			if texture_sheet and "medic" in texture_sheet.resource_path.to_lower():
+				is_medic = true
+			
+			if is_medic:
+				var m_voices = [
+					"medic_what0", "medic_what1", "medic_what2", "medic_what3",
+					"medic_yes0", "medic_yes1", "medic_yes2", "medic_yes3"
+				]
+				AudioManager.play_sfx(m_voices[randi() % m_voices.size()])
+			else:
+				var voices = ["marine_what0", "marine_what1", "marine_yes0", "marine_yes1"]
+				AudioManager.play_sfx(voices[randi() % voices.size()])
 
 func _draw() -> void:
 	var w = size.x

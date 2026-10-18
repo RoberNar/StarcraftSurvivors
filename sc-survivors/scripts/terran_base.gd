@@ -909,6 +909,13 @@ func _update_armor_stand_state() -> void:
 	if bottom_portrait:
 		var port_path = "res://assets/skins/sd/portrait/medic_portrait.png" if is_medic else "res://assets/skins/sd/portrait/marine_portrait.png"
 		bottom_portrait.set_portrait(load(port_path))
+		if is_medic:
+			bottom_portrait.voice_list = [
+				"medic_what0", "medic_what1", "medic_what2", "medic_what3",
+				"medic_yes0", "medic_yes1", "medic_yes2", "medic_yes3"
+			]
+		else:
+			bottom_portrait.voice_list = ["marine_what0", "marine_what1", "marine_yes0", "marine_yes1"]
 		bottom_portrait.trigger_talk(1.5)
 	if bottom_name_label:
 		bottom_name_label.text = "MÉDICA TERRAN" if is_medic else "INFANTERÍA TERRAN"

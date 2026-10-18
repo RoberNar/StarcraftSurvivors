@@ -1049,6 +1049,13 @@ func _refresh_hud_skin() -> void:
 			var port_name = "medic" if is_medic else "marine"
 			var p_tex = SkinManager.get_portrait(port_name)
 			if p_tex: portrait_control.set_portrait(p_tex)
+			if is_medic:
+				portrait_control.voice_list = [
+					"medic_what0", "medic_what1", "medic_what2", "medic_what3",
+					"medic_yes0", "medic_yes1", "medic_yes2", "medic_yes3"
+				]
+			else:
+				portrait_control.voice_list = ["marine_what0", "marine_what1", "marine_yes0", "marine_yes1"]
 		if unit_name_label:
 			unit_name_label.text = "MÉDICA TERRAN" if is_medic else "INFANTERÍA TERRAN"
 	
