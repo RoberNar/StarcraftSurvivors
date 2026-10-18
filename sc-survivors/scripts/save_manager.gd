@@ -368,6 +368,7 @@ func load_data(slot_id: int = current_slot) -> void:
 				has_suit_equipped = true
 			if has_node("/root/GameManager"):
 				get_node("/root/GameManager").has_suit_equipped = has_suit_equipped
+				get_node("/root/GameManager").selected_hero = str(parsed.get("selected_hero", "marine"))
 				get_node("/root/GameManager").sync_barracks_upgrades()
 			
 			save_timestamp = str(parsed.get("timestamp", ""))
@@ -409,7 +410,8 @@ func save_data() -> void:
 			"first_death_dialogue_pending": first_death_dialogue_pending,
 			"has_seen_first_death_cinematic": has_seen_first_death_cinematic,
 			"has_seen_mission_1_intro": has_seen_mission_1_intro,
-			"has_suit_equipped": has_suit_equipped
+			"has_suit_equipped": has_suit_equipped,
+			"selected_hero": (get_node("/root/GameManager").selected_hero if has_node("/root/GameManager") else "marine")
 		}
 		file.store_string(JSON.stringify(data, "\t"))
 

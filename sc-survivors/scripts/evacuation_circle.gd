@@ -30,6 +30,28 @@ func _process(delta: float) -> void:
 	if beacon_light:
 		beacon_light.modulate.a = 0.6 + sin(pulse_timer) * 0.35
 
+func takeoff_and_leave() -> void:
+	remove_from_group("evacuation_zone")
+	set_deferred("monitoring", false)
+	set_deferred("monitorable", false)
+	collision_mask = 0
+	if beacon_light:
+		beacon_light.visible = false
+	if evac_hint_bubble:
+		evac_hint_bubble.visible = false
+	if modal:
+		modal.visible = false
+	AudioManager.play_sfx("dropship_depart")
+	var drop_sprite = get_node_or_null("DropshipSprite") as Sprite2D
+	if drop_sprite:
+		var tw = create_tween().set_parallel(true)
+		tw.tween_property(drop_sprite, "position", drop_sprite.position + Vector2(750, -950), 3.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		tw.tween_property(drop_sprite, "scale", drop_sprite.scale * 1.35, 3.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		tw.tween_property(drop_sprite, "modulate:a", 0.0, 3.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		tw.chain().tween_callback(queue_free)
+	else:
+		queue_free()
+
 func _unhandled_input(event: InputEvent) -> void:
 	if modal.visible:
 		if event is InputEventKey and event.pressed and not event.echo:

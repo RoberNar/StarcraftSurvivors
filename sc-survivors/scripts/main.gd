@@ -22,11 +22,18 @@ func _setup_mission_intro() -> void:
 	# Asegurar SIEMPRE que el jugador pueda moverse de inmediato
 	player.set_physics_process(true)
 	
+	# A partir de la segunda misión, la nave de descenso despega y se marcha inmediatamente sin texto
+	var is_mission_2_or_more = (StoryManager.get_current_mission_id() >= 2 or GameManager.current_mission_idx >= 1)
+	if is_mission_2_or_more:
+		var evac = get_tree().get_first_node_in_group("evacuation_zone")
+		if evac and evac.has_method("takeoff_and_leave"):
+			evac.takeoff_and_leave()
+	
 	if not GameManager.has_suit_equipped:
 		# Despliegue suicida sin armadura (Civil)
 		_play_unarmored_intro(player)
 	else:
-		# Despliegue con armadura Marine CMC-300
+		# Despliegue con armadura Marine CMC-300 / Médica
 		if SaveManager.first_death_dialogue_pending or SaveManager.has_experienced_first_death:
 			return
 		if SaveManager.get_story_stage() == "mission_1" and not SaveManager.has_seen_mission_1_intro:

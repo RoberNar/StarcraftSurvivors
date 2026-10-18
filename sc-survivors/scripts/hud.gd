@@ -1040,14 +1040,17 @@ func _refresh_hud_skin() -> void:
 		if unit_name_label:
 			unit_name_label.text = "??????"
 	else:
+		var is_medic = (GameManager.selected_hero == "medic")
 		if wireframe_rect:
-			var wf = SkinManager.get_sprite("wire_marine")
+			var wf_name = "wire_medic" if is_medic else "wire_marine"
+			var wf = SkinManager.get_sprite(wf_name)
 			if wf: wireframe_rect.texture = wf
 		if portrait_control:
-			var p_tex = SkinManager.get_portrait("marine")
+			var port_name = "medic" if is_medic else "marine"
+			var p_tex = SkinManager.get_portrait(port_name)
 			if p_tex: portrait_control.set_portrait(p_tex)
 		if unit_name_label:
-			unit_name_label.text = "INFANTERÍA TERRAN"
+			unit_name_label.text = "MÉDICA TERRAN" if is_medic else "INFANTERÍA TERRAN"
 	
 	var cursor_tex = SkinManager.get_ui("cursor")
 	if cursor_tex:

@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3]
+[gd_scene load_steps=22 format=3]
 
 [ext_resource type="Script" path="res://scripts/character_select.gd" id="1_script"]
 [ext_resource type="FontFile" path="res://assets/skins/sd/fonts/eurostile.ttf" id="2_font"]
@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" path="res://assets/skins/sd/portrait/firebat_portrait.png" id="5_firebat"]
 [ext_resource type="Texture2D" path="res://assets/skins/sd/portrait/ghost_portrait.png" id="6_ghost"]
 [ext_resource type="Texture2D" path="res://assets/skins/sd/portrait/goliath_portrait.png" id="7_goliath"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/portrait/medic_portrait.png" id="17_medic"]
 [ext_resource type="Texture2D" path="res://assets/skins/sd/ui/tframe1.png" id="8_tframe1"]
 [ext_resource type="Texture2D" path="res://assets/skins/sd/ui/tframe2.png" id="9_tframe2"]
 [ext_resource type="Texture2D" path="res://assets/skins/sd/ui/tframe3.png" id="10_tframe3"]
@@ -150,34 +151,25 @@ grow_horizontal = 2
 grow_vertical = 2
 flat = true
 
-[node name="FirebatMonitor" type="Control" parent="Monitors"]
+[node name="MedicMonitor" type="Control" parent="Monitors"]
 layout_mode = 0
 offset_left = 333.0
 offset_top = 38.0
 offset_right = 465.0
 offset_bottom = 158.0
 
-[node name="Portrait" type="Control" parent="Monitors/FirebatMonitor"]
+[node name="Portrait" type="Control" parent="Monitors/MedicMonitor"]
 layout_mode = 0
 offset_left = 6.0
 offset_top = 6.0
 offset_right = 126.0
 offset_bottom = 114.0
 script = ExtResource("16_portrait")
-portrait_texture = ExtResource("5_firebat")
+portrait_texture = ExtResource("17_medic")
 auto_scale_to_fill = true
 enable_click_to_talk = false
 
-[node name="LockOverlay" type="ColorRect" parent="Monitors/FirebatMonitor"]
-layout_mode = 0
-offset_left = 6.0
-offset_top = 6.0
-offset_right = 126.0
-offset_bottom = 114.0
-mouse_filter = 2
-color = Color(0, 0, 0, 0.25)
-
-[node name="Chassis" type="TextureRect" parent="Monitors/FirebatMonitor"]
+[node name="Chassis" type="TextureRect" parent="Monitors/MedicMonitor"]
 texture_filter = 0
 layout_mode = 0
 offset_right = 132.0
@@ -185,7 +177,7 @@ offset_bottom = 120.0
 mouse_filter = 2
 texture = ExtResource("9_tframe2")
 
-[node name="Highlight" type="TextureRect" parent="Monitors/FirebatMonitor"]
+[node name="Highlight" type="TextureRect" parent="Monitors/MedicMonitor"]
 visible = false
 texture_filter = 0
 layout_mode = 0
@@ -194,23 +186,23 @@ offset_bottom = 120.0
 mouse_filter = 2
 texture = ExtResource("13_tframeh2")
 
-[node name="Badge" type="Label" parent="Monitors/FirebatMonitor"]
+[node name="Badge" type="Label" parent="Monitors/MedicMonitor"]
 layout_mode = 0
 offset_left = 14.0
 offset_top = 94.0
 offset_right = 118.0
 offset_bottom = 112.0
 theme = SubResource("Theme_sc")
-theme_override_colors/font_color = Color(1, 0.8, 0.2, 1)
+theme_override_colors/font_color = Color(0.2, 1, 0.35, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
 theme_override_constants/shadow_outline_size = 2
 theme_override_font_sizes/font_size = 9
-text = "BLOQUEADO"
+text = "LISTO"
 horizontal_alignment = 1
 
-[node name="Button" type="Button" parent="Monitors/FirebatMonitor"]
+[node name="Button" type="Button" parent="Monitors/MedicMonitor"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0

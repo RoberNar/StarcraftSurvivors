@@ -835,18 +835,21 @@ func _update_armor_stand_state() -> void:
 		armor_stand_hint.text = ""
 		if armor_stand_area:
 			armor_stand_area.monitoring = false
+		var is_medic = (GameManager.selected_hero == "medic")
 		if bottom_wireframe:
-			var wf_m = SkinManager.get_sprite("wire_marine")
+			var wf_name = "wire_medic" if is_medic else "wire_marine"
+			var wf_m = SkinManager.get_sprite(wf_name)
 			if wf_m: bottom_wireframe.texture = wf_m
 		if bottom_portrait:
-			bottom_portrait.set_portrait(load("res://assets/skins/sd/portrait/marine_portrait.png"))
+			var port_path = "res://assets/skins/sd/portrait/medic_portrait.png" if is_medic else "res://assets/skins/sd/portrait/marine_portrait.png"
+			bottom_portrait.set_portrait(load(port_path))
 			bottom_portrait.trigger_talk(1.5)
 		if bottom_name_label:
-			bottom_name_label.text = "INFANTERÍA TERRAN"
+			bottom_name_label.text = "MÉDICA TERRAN" if is_medic else "INFANTERÍA TERRAN"
 		if bottom_rank_label:
-			bottom_rank_label.text = "Blindaje: CMC-300"
+			bottom_rank_label.text = "Soporte Táctico" if is_medic else "Blindaje: CMC-300"
 		if bottom_weapon_label:
-			bottom_weapon_label.text = "Fusil Gauss C-14"
+			bottom_weapon_label.text = "Láser Médico Táctico" if is_medic else "Fusil Gauss C-14"
 		if bottom_armor_label:
 			bottom_armor_label.text = "Armadura: 0 (+1)"
 		if bottom_hp_bar:

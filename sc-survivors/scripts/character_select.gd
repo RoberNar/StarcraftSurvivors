@@ -6,22 +6,22 @@ extends Control
 
 # Monitores de personajes
 @onready var marine_monitor: Control = $Monitors/MarineMonitor
-@onready var firebat_monitor: Control = $Monitors/FirebatMonitor
+@onready var medic_monitor: Control = $Monitors/MedicMonitor
 @onready var ghost_monitor: Control = $Monitors/GhostMonitor
 @onready var goliath_monitor: Control = $Monitors/GoliathMonitor
 
 @onready var marine_button: Button = $Monitors/MarineMonitor/Button
-@onready var firebat_button: Button = $Monitors/FirebatMonitor/Button
+@onready var medic_button: Button = $Monitors/MedicMonitor/Button
 @onready var ghost_button: Button = $Monitors/GhostMonitor/Button
 @onready var goliath_button: Button = $Monitors/GoliathMonitor/Button
 
 @onready var marine_portrait: SCPortrait = $Monitors/MarineMonitor/Portrait
-@onready var firebat_portrait: SCPortrait = $Monitors/FirebatMonitor/Portrait
+@onready var medic_portrait: SCPortrait = $Monitors/MedicMonitor/Portrait
 @onready var ghost_portrait: SCPortrait = $Monitors/GhostMonitor/Portrait
 @onready var goliath_portrait: SCPortrait = $Monitors/GoliathMonitor/Portrait
 
 @onready var marine_highlight: TextureRect = $Monitors/MarineMonitor/Highlight
-@onready var firebat_highlight: TextureRect = $Monitors/FirebatMonitor/Highlight
+@onready var medic_highlight: TextureRect = $Monitors/MedicMonitor/Highlight
 @onready var ghost_highlight: TextureRect = $Monitors/GhostMonitor/Highlight
 @onready var goliath_highlight: TextureRect = $Monitors/GoliathMonitor/Highlight
 
@@ -60,7 +60,7 @@ func _ready() -> void:
 	
 	# Guardar posiciones originales para la animación mecánica de despliegue
 	var anim_nodes = [
-		marine_monitor, firebat_monitor, ghost_monitor, goliath_monitor,
+		marine_monitor, medic_monitor, ghost_monitor, goliath_monitor,
 		center_panel, obj_header, obj_panel, start_button, cancel_button
 	]
 	for n in anim_nodes:
@@ -68,7 +68,7 @@ func _ready() -> void:
 	
 	# Posición fuera de pantalla antes de llegar según su brazo mecánico
 	marine_monitor.position = Vector2(-200, orig_positions[marine_monitor].y)
-	firebat_monitor.position = Vector2(orig_positions[firebat_monitor].x, -160)
+	medic_monitor.position = Vector2(orig_positions[medic_monitor].x, -160)
 	ghost_monitor.position = Vector2(orig_positions[ghost_monitor].x, -160)
 	goliath_monitor.position = Vector2(1000, orig_positions[goliath_monitor].y)
 	center_panel.position = Vector2(orig_positions[center_panel].x, -260)
@@ -77,9 +77,9 @@ func _ready() -> void:
 	start_button.position = Vector2(orig_positions[start_button].x, 560)
 	cancel_button.position = Vector2(orig_positions[cancel_button].x, 560)
 	
-	# Botones de monitores bloqueados con texto enigmático
+	# Botones de monitores activos y bloqueados
 	marine_button.text = ""
-	firebat_button.text = "???"
+	medic_button.text = ""
 	ghost_button.text = "???"
 	goliath_button.text = "???"
 	
@@ -87,16 +87,21 @@ func _ready() -> void:
 	AudioManager.play_music("trdyroom")
 	
 	_apply_skin()
-	_show_hero("marine")
-	if marine_portrait:
+	
+	# Mantener héroe seleccionado previo o por defecto Marine
+	selected_hero = GameManager.selected_hero if (GameManager.selected_hero == "medic" or GameManager.selected_hero == "marine") else "marine"
+	_show_hero(selected_hero)
+	if selected_hero == "medic" and medic_portrait:
+		medic_portrait.trigger_talk(1.8)
+	elif marine_portrait:
 		marine_portrait.trigger_talk(1.8)
 	
 	marine_button.pressed.connect(func(): _select_hero("marine"))
-	firebat_button.pressed.connect(func(): _select_hero("firebat"))
+	medic_button.pressed.connect(func(): _select_hero("medic"))
 	ghost_button.pressed.connect(func(): _select_hero("ghost"))
 	goliath_button.pressed.connect(func(): _select_hero("goliath"))
 	
-	for btn in [marine_button, firebat_button, ghost_button, goliath_button, start_button, cancel_button]:
+	for btn in [marine_button, medic_button, ghost_button, goliath_button, start_button, cancel_button]:
 		btn.mouse_entered.connect(func(): AudioManager.play_sfx("button"))
 	
 	start_button.pressed.connect(_on_start_pressed)
@@ -106,10 +111,16 @@ func _ready() -> void:
 
 func _apply_skin() -> void:
 	var p_marine = SkinManager.get_portrait("marine")
-	if p_marine and marine_portrait: marine_portrait.set_portrait(p_marine)
+	if p_marine and marine_portrait:
+		marine_portrait.set_portrait(p_marine)
+		marine_portrait.voice_list = ["marine_what0", "marine_what1", "marine_yes0", "marine_yes1"]
+	
+	var p_medic = SkinManager.get_portrait("medic")
+	if p_medic and medic_portrait:
+		medic_portrait.set_portrait(p_medic)
+		medic_portrait.voice_list = ["medic_what0", "medic_what1", "medic_what2", "medic_what3"]
 	
 	# Unidades bloqueadas con monitor en negro/señal azul sin rostro
-	if firebat_portrait: firebat_portrait.set_portrait(null)
 	if ghost_portrait: ghost_portrait.set_portrait(null)
 	if goliath_portrait: goliath_portrait.set_portrait(null)
 	
@@ -125,7 +136,7 @@ func _apply_skin() -> void:
 		SkinManager.get_ui("tframeh3"),
 		SkinManager.get_ui("tframeh4")
 	]
-	var monitors = [marine_monitor, firebat_monitor, ghost_monitor, goliath_monitor]
+	var monitors = [marine_monitor, medic_monitor, ghost_monitor, goliath_monitor]
 	for i in range(4):
 		var m = monitors[i]
 		if not is_instance_valid(m): continue
@@ -155,7 +166,7 @@ func _play_exit_animation(on_complete: Callable) -> void:
 	var tw = create_tween().set_parallel(true)
 	var dur = 0.35
 	tw.tween_property(marine_monitor, "position", Vector2(-200, orig_positions[marine_monitor].y), dur).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
-	tw.tween_property(firebat_monitor, "position", Vector2(orig_positions[firebat_monitor].x, -160), dur).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	tw.tween_property(medic_monitor, "position", Vector2(orig_positions[medic_monitor].x, -160), dur).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
 	tw.tween_property(ghost_monitor, "position", Vector2(orig_positions[ghost_monitor].x, -160), dur).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
 	tw.tween_property(goliath_monitor, "position", Vector2(1000, orig_positions[goliath_monitor].y), dur).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
 	tw.tween_property(center_panel, "position", Vector2(orig_positions[center_panel].x, -260), dur).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
@@ -178,6 +189,9 @@ func _select_hero(hero_id: String) -> void:
 	if hero_id == "marine":
 		if marine_portrait: marine_portrait.trigger_talk(1.8)
 		AudioManager.play_sfx("marine_ready")
+	elif hero_id == "medic":
+		if medic_portrait: medic_portrait.trigger_talk(1.8)
+		AudioManager.play_sfx("medic_ready")
 	else:
 		# Unidades bloqueadas no reproducen voz de confirmación militar
 		AudioManager.play_sfx("button")
@@ -186,7 +200,7 @@ func _select_hero(hero_id: String) -> void:
 
 func _show_hero(hero_id: String) -> void:
 	marine_highlight.visible = (hero_id == "marine")
-	firebat_highlight.visible = (hero_id == "firebat")
+	medic_highlight.visible = (hero_id == "medic")
 	ghost_highlight.visible = (hero_id == "ghost")
 	goliath_highlight.visible = (hero_id == "goliath")
 	
@@ -220,27 +234,35 @@ func _show_hero(hero_id: String) -> void:
 			
 			start_button.disabled = false
 			start_button.text = "INICIAR MISIÓN"
-		"firebat":
-			unit_name_label.text = "??? [UNIDAD TÁCTICA BLOQUEADA]"
-			unit_role_label.text = "[ ARCHIVO CLASIFICADO // SEÑAL ENCRIPTADA ]"
-			stats_grid.visible = false
-			skill_label.visible = false
-			lore_label.visible = false
-			status_badge.text = "[ PROTOCOLO BLOQUEADO // ACCESO DENEGADO ]"
-			status_badge.modulate = Color(1.0, 0.4, 0.4, 1.0)
+		"medic":
+			unit_name_label.text = "MÉDICA TERRAN"
+			unit_role_label.text = "Cuerpo Médico de Asalto / Soporte Táctico"
+			stats_grid.visible = true
+			stat_hp_label.text = "Vida: 40 PS"
+			stat_armor_label.text = "Armadura: 1"
+			stat_weapon_label.text = "Arma: Emisor Láser Táctico (C-14)"
+			stat_damage_label.text = "Daño: 14 dmg"
+			stat_rate_label.text = "Cadencia: 2.4/s"
+			stat_speed_label.text = "Velocidad: 120 px/s"
+			skill_label.visible = true
+			skill_label.text = "HABILIDAD: Estimulantes [T] (+50% vel/cad x 5s, -10 PS)"
+			lore_label.visible = true
+			lore_label.text = "Especialista médica de primera línea. Su equipo emite pulsos bio-energéticos concentrados y ráfagas de curación adaptadas a combate directo."
+			status_badge.text = "[ DESPLEGADA Y LISTA PARA COMBATE ]"
+			status_badge.modulate = Color(0.25, 1.0, 0.35, 1.0)
 			
-			obj_header.text = "CONDICIÓN DE DESBLOQUEO"
+			obj_header.text = "EXPEDIENTE TÁCTICO"
 			obj1.visible = true
-			obj1.text = "• Sobrevivir 10 minutos en el páramo exterior."
+			obj1.text = "• Especialista de apoyo táctico con tecnología de curación en combate."
 			obj2.visible = true
-			obj2.text = "• Costo de adquisición: 500 Minerales."
+			obj2.text = "• Animación de emisión nanomédica adaptada a disparo ofensivo."
 			obj3.visible = true
-			obj3.text = "• Estado: No disponible actualmente."
+			obj3.text = "• Despliegue individual activo (preparada para futuro modo cooperativo)."
 			obj4.visible = false
 			obj5.visible = false
 			
-			start_button.disabled = true
-			start_button.text = "UNIDAD BLOQUEADA"
+			start_button.disabled = false
+			start_button.text = "INICIAR MISIÓN"
 		"ghost":
 			unit_name_label.text = "??? [OPERATIVO ENCUBIERTO BLOQUEADO]"
 			unit_role_label.text = "[ ARCHIVO CLASIFICADO // SEÑAL ENCRIPTADA ]"
@@ -287,9 +309,15 @@ func _on_start_pressed() -> void:
 		return
 	start_button.disabled = true
 	cancel_button.disabled = true
-	AudioManager.play_sfx("marine_ready")
+	if selected_hero == "medic":
+		AudioManager.play_sfx("medic_ready")
+	else:
+		AudioManager.play_sfx("marine_ready")
 	_play_exit_animation(func():
+		GameManager.selected_hero = selected_hero
 		GameManager.start_new_run(selected_hero)
+		if has_node("/root/SaveManager"):
+			SaveManager.save_data()
 		GameManager.deploy_to_mission()
 	)
 

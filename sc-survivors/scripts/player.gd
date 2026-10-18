@@ -135,6 +135,8 @@ func _ready() -> void:
 	_update_pickup_shape()
 	if is_civilian_mode:
 		AudioManager.play_sfx("tcvrdy00")
+	elif GameManager.selected_hero == "medic":
+		AudioManager.play_sfx("medic_ready")
 	else:
 		AudioManager.play_sfx("marine_ready")
 	call_deferred("_emit_initial_inventory")
@@ -160,14 +162,15 @@ func _apply_skin() -> void:
 			shadow.position = Vector2(0, -6)
 		return
 	
+	var is_medic = (GameManager.selected_hero == "medic")
 	if sprite:
-		var tex = SkinManager.get_sprite("marine")
+		var tex = SkinManager.get_sprite("medic") if is_medic else SkinManager.get_sprite("marine")
 		if tex:
 			sprite.texture = tex
 		sprite.hframes = 17
 		sprite.vframes = 14
 	if shadow:
-		var stex = SkinManager.get_sprite("marine_shadow")
+		var stex = SkinManager.get_sprite("medic_shadow") if is_medic else SkinManager.get_sprite("marine_shadow")
 		if stex:
 			shadow.texture = stex
 		shadow.hframes = 17
@@ -311,6 +314,22 @@ func _update_animation(delta: float, is_moving: bool) -> void:
 			_set_sprite_frame(0 * 17 + facing_column)
 		return
 	
+	var is_medic = (GameManager.selected_hero == "medic")
+	if is_medic:
+		if fire_anim_timer > 0.0:
+			fire_anim_timer -= delta
+			var heal_subframe = int((0.14 - fire_anim_timer) * 30.0) % 3
+			_set_sprite_frame((3 + heal_subframe) * 17 + facing_column)
+		elif is_moving:
+			walk_anim_timer += delta * (14.0 if stimpack_active else 10.0)
+			var walk_subframe = int(walk_anim_timer) % 7 # 7 filas de caminata de la Médica (filas 6 a 12)
+			_set_sprite_frame((6 + walk_subframe) * 17 + facing_column)
+		else:
+			walk_anim_timer = 0.0
+			_set_sprite_frame(0 * 17 + facing_column)
+		return
+	
+	# Marine estándar
 	if fire_anim_timer > 0.0:
 		fire_anim_timer -= delta
 		_set_sprite_frame(3 * 17 + facing_column)
@@ -345,8 +364,12 @@ func _find_nearest_enemy() -> Node2D:
 func _fire_c14(target: Node2D) -> void:
 	var dir = (target.global_position - global_position).normalized()
 	_update_direction(dir)
-	fire_anim_timer = 0.09
-	AudioManager.play_sfx("marine_fire", 0.08, -1.0)
+	if GameManager.selected_hero == "medic":
+		fire_anim_timer = 0.14
+		AudioManager.play_sfx("medic_heal", 0.08, -1.0)
+	else:
+		fire_anim_timer = 0.09
+		AudioManager.play_sfx("marine_fire", 0.08, -1.0)
 	
 	var bullet_scene = load("res://scenes/bullet.tscn")
 	var count = max(1, multishot)
@@ -610,7 +633,9 @@ func die() -> void:
 		)
 		return
 	
-	if randf() > 0.5:
+	if GameManager.selected_hero == "medic":
+		AudioManager.play_sfx("medic_death")
+	elif randf() > 0.5:
 		AudioManager.play_sfx("marine_death0")
 	else:
 		AudioManager.play_sfx("marine_death1")

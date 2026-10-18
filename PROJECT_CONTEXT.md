@@ -45,8 +45,7 @@
 
 ### Fase 2: Incursión Exterior en los Páramos (`scenes/main.tscn` / `scripts/main.gd`)
 - Mapa exterior de combate, supervivencia y extracción en el planeta Sigma-4.
-### Fase 2: Incursión Exterior en los Páramos (`scenes/main.tscn` / `scripts/main.gd`)
-- Mapa exterior de combate, supervivencia y extracción en el planeta Sigma-4.
+- **Despegue de la Nave de Evacuación (Misión 2+)**: A partir de la segunda misión, la nave de descenso (`EvacuationCircle`) enciende motores y despega volando hacia el espacio exterior inmediatamente apenas inicia la misión, sin mostrar transmisiones ni diálogos de texto ("no agregues ningún texto").
 - **HUD Superior (`scripts/hud.gd`)**:
   - `minerals_label`: Muestra **`GameManager.session_minerals`** (EXP de la run) en tiempo real.
   - Temporizador (`time_label`): Cuenta el tiempo sobrevivido.
@@ -285,9 +284,13 @@ Definidas en `BARRACKS_UPGRADES_DEF` en `scripts/game_manager.gd`:
   - Slot 1: Lanza-llamas Firebat
   - Slot 2: Minas Araña Vulture
   - Slot 3: Francotirador Ghost C-10
-  - Bio-arma Zerg Mutalisco: `sprites/mutalisk_glave_icon.png`
-- **Spritesheets de Unidades**:
-  - Marine: `marine.png` (17 cols x 128x128, muerte frames 221-228, restos `marine_remains.png`).
+  - Slot 4: Bio-arma Zerg Mutalisco (`mutalisk_glave`)
+  - Slot 5: Tormenta Psiónica (icono clásico original de Alto Templario de StarCraft)
+  - Slot 6: Zumo de Limón / Limo Corrosivo (Easter Egg)
+  - Mejora Multishot: `tech_icons_clean.png` índice 6 con icono original de misiles dobles / proyectiles adicionales (`cmdicons` 290).
+- **Spritesheets de Unidades y Héroes**:
+  - Marine: `marine.png` (17 cols x 14 filas 64x64, muerte frames 221-228, restos `marine_remains.png`).
+  - Médica Terran (Enfermera): `medic.png` (17 cols x 14 filas 64x64, muerte frames 221-228, sombra `medic_shadow.png`, retrato parlante animado 600x168 `medic_portrait.png`, wireframe `wire_medic.png`, SFX `medic_ready`, `medic_heal`, `medic_death`). Su animación de disparo utiliza la emisión y destello curativo de su brazo bio-médico.
   - Zergling: `zergling.png` (17 cols, restos `zergling_remains.png`).
   - Hidralisco: `hydralisk.png` (17 cols x 18 filas, muerte fila 12 cols 0-7, restos `hydralisk_remains.png`).
   - Mutalisco: `mutalisk.png` (17 cols x 6 filas, restos `mutalisk_remains.png`).
