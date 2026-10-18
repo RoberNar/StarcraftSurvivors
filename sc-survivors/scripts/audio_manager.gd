@@ -13,9 +13,11 @@ var voice_cache: Dictionary = {}
 
 var current_music_name: String = ""
 var current_music_loop: bool = true
+const AUDIO_SETTINGS_PATH = "user://audio_settings.json"
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	load_audio_settings()
 	
 	music_player = AudioStreamPlayer.new()
 	music_player.bus = "Master"
@@ -44,21 +46,52 @@ func _vol_to_db(val: float) -> float:
 		return -80.0
 	return linear_to_db(val)
 
-func set_music_volume(val: float) -> void:
+func set_music_volume(val: float, save: bool = true) -> void:
 	music_volume = clamp(val, 0.0, 1.0)
 	if music_player:
 		music_player.volume_db = _vol_to_db(music_volume)
+	if save:
+		save_audio_settings()
 
-func set_sfx_volume(val: float) -> void:
+func set_sfx_volume(val: float, save: bool = true) -> void:
 	sfx_volume = clamp(val, 0.0, 1.0)
 	var db = _vol_to_db(sfx_volume)
 	for p in sfx_pool:
 		p.volume_db = db
+	if save:
+		save_audio_settings()
 
-func set_voice_volume(val: float) -> void:
+func set_voice_volume(val: float, save: bool = true) -> void:
 	voice_volume = clamp(val, 0.0, 1.0)
 	if voice_player:
 		voice_player.volume_db = _vol_to_db(voice_volume)
+	if save:
+		save_audio_settings()
+
+func load_audio_settings() -> void:
+	if not FileAccess.file_exists(AUDIO_SETTINGS_PATH):
+		return
+	var file = FileAccess.open(AUDIO_SETTINGS_PATH, FileAccess.READ)
+	if file:
+		var json_str = file.get_as_text()
+		var parsed = JSON.parse_string(json_str)
+		if parsed is Dictionary:
+			if parsed.has("music_volume"):
+				music_volume = clamp(float(parsed.get("music_volume", 0.5)), 0.0, 1.0)
+			if parsed.has("sfx_volume"):
+				sfx_volume = clamp(float(parsed.get("sfx_volume", 0.8)), 0.0, 1.0)
+			if parsed.has("voice_volume"):
+				voice_volume = clamp(float(parsed.get("voice_volume", 0.9)), 0.0, 1.0)
+
+func save_audio_settings() -> void:
+	var file = FileAccess.open(AUDIO_SETTINGS_PATH, FileAccess.WRITE)
+	if file:
+		var data = {
+			"music_volume": music_volume,
+			"sfx_volume": sfx_volume,
+			"voice_volume": voice_volume
+		}
+		file.store_string(JSON.stringify(data, "\t"))
 
 func get_voice_stream(voice_id: String) -> AudioStream:
 	var id_clean = voice_id.strip_edges().to_upper()

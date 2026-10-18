@@ -371,6 +371,13 @@ func load_data(slot_id: int = current_slot) -> void:
 				get_node("/root/GameManager").selected_hero = str(parsed.get("selected_hero", "marine"))
 				get_node("/root/GameManager").sync_barracks_upgrades()
 			
+			if parsed.has("music_volume") and has_node("/root/AudioManager"):
+				AudioManager.set_music_volume(float(parsed.get("music_volume", 0.5)), false)
+			if parsed.has("sfx_volume") and has_node("/root/AudioManager"):
+				AudioManager.set_sfx_volume(float(parsed.get("sfx_volume", 0.8)), false)
+			if parsed.has("voice_volume") and has_node("/root/AudioManager"):
+				AudioManager.set_voice_volume(float(parsed.get("voice_volume", 0.9)), false)
+			
 			save_timestamp = str(parsed.get("timestamp", ""))
 
 func save_data() -> void:
@@ -411,7 +418,10 @@ func save_data() -> void:
 			"has_seen_first_death_cinematic": has_seen_first_death_cinematic,
 			"has_seen_mission_1_intro": has_seen_mission_1_intro,
 			"has_suit_equipped": has_suit_equipped,
-			"selected_hero": (get_node("/root/GameManager").selected_hero if has_node("/root/GameManager") else "marine")
+			"selected_hero": (get_node("/root/GameManager").selected_hero if has_node("/root/GameManager") else "marine"),
+			"music_volume": (AudioManager.music_volume if has_node("/root/AudioManager") else 0.5),
+			"sfx_volume": (AudioManager.sfx_volume if has_node("/root/AudioManager") else 0.8),
+			"voice_volume": (AudioManager.voice_volume if has_node("/root/AudioManager") else 0.9)
 		}
 		file.store_string(JSON.stringify(data, "\t"))
 
