@@ -227,15 +227,23 @@ Implementado en [`scenes/transmission_comm.tscn`](scenes/transmission_comm.tscn)
 | **12:00 - 14:00** | 6 | 6% Ultraliscos, 8% Reinas, 12% Devoradores, 12% Guardianes, Scourges | Tier 7 (Enjambre titánico combinado) |
 | **14:00+** | 7+ | Enjambre Total de Élite (Ultraliscos, Devoradores, Guardianes, Reinas) | Masa crítica antes del Canal Nydus (min 20) |
 
-### B. Peligro Subterráneo del Enjambre: Espinas de Lurker (`scenes/lurker_spine_hazard.tscn`)
-- **Mecánica**:
-  - **Fase de Telégrafo**: Proyecta una franja roja translúcida en el suelo con chevrons direccionales avisando la trayectoria de erupción.
-  - **Erupción Secuencial**: Brota una fila de espinas (`lurker_spikes.png`) con partículas de tierra, infligiendo daño balístico al contacto.
-  - **Audio Original**: Sonidos `burrow_up.wav`, `lurker_fire.wav` y `lurker_hit.wav`.
-- **Frecuencia y Frenesí**:
-  - Oleadas tácticas periódicas cada 3 minutos (180s, 360s, 540s...).
-  - **Frenesí de Espinas (Minutos 15 a 20 / 900s a 1200s)**: Erupciones continuas cada 3.2s como obstáculo de alta tensión en el endgame.
-  - **Limpieza Instantánea**: Se eliminan de inmediato al activarse el clímax de los 20 minutos (`get_tree().call_group("lurker_hazards", "clear_immediately")`).
+### B. Peligro Subterráneo del Enjambre: Espinas de Lurker y Tentáculos de Sunken Colony
+1. **Espinas Subterráneas de Lurker (`scenes/lurker_spine_hazard.tscn`)**:
+   - **Fase de Telégrafo**: Proyecta una franja roja translúcida en el suelo con chevrons direccionales avisando la trayectoria de erupción.
+   - **Erupción Secuencial**: Brota una fila de espinas (`lurker_spikes.png`) con partículas de tierra, infligiendo daño balístico al contacto.
+   - **Duración de los Eventos**: Cada evento sísmico periódico (a los 180s, 360s, 540s, 720s) **dura exactamente 30 segundos continuos**, desovando múltiples líneas de espinas combinadas con círculos de Sunken Colony mientras dura el temblor.
+   - **Frenesí Final (Minutos 15 a 20 / 900s a 1200s)**: Erupciones continuas incesantes cada 2.4s.
+   - **Audio Original**: Sonidos `burrow_up.wav`, `lurker_fire.wav` y `lurker_hit.wav`.
+2. **Círculos de Peligro y Tentáculos de Sunken Colony (`scenes/sunken_colony_hazard.tscn`)**:
+   - **Mecánica**: Proyecta un círculo rojo translúcido de peligro de radio 42px con retícula en cruz y un arco de progreso de advertencia (1.25s).
+   - **Erupción de Tentáculo**: Al completarse la advertencia, el suelo se fractura con partículas de tierra y brota violentamente un tentáculo gigante bio-orgánico (`sunken_tentacle.png` / `unit/bullet/tentacle.grp`), infligiendo 28 de daño al jugador si permanece dentro del círculo.
+   - **Audio Original**: Sonido `sunken_hit.wav` (`spooghit.wav`) y retumbo subterráneo `burrow_up.wav`.
+
+### C. Overlords de Desembarco Táctico (Últimos 5 Minutos / 15:00 a 20:00 - `scenes/overlord_dropship.tscn`)
+- **Mecánica Ambiental Inmune**: Vuelan a gran altitud sobrevolando el mapa de un extremo a otro cada 14-18 segundos. No pertenecen al grupo de enemigos y carecen de hurtbox, actuando como eventos del mapa inmunes al fuego y armas del jugador.
+- **Desembarco de Tropas de Choque**: Al pasar sobre el sector del jugador, abren compuertas y desembarcan de 4 a 5 **Zerglings de élite Tier 4** (los más duros, carmesí, 140 HP y armadura) con animación de descenso vertical.
+- **Audio y Sprites Oficiales**: Spritesheet auténtico `overlord.png` (84x84, 17 columnas de rotación y sombra `overlord_shadow.png`), audio de transporte StarCraft 1 `overlord_drop.wav` (`zOvTra00.wav`) y bramido aéreo `overlord_groan.wav` (`zovpss00.wav`).
+- **Limpieza Instantánea**: Se eliminan de inmediato junto con todas las espinas y tentáculos al activarse el clímax de los 20 minutos (`get_tree().call_group("overlord_transports", "clear_immediately")`).
 
 ### C. Estructuras de Desove Zerg (`scenes/zerg_spawner_structure.tscn`)
 - **Pozo de Zerglings (Minuto 5)**: Genera flujo acelerado de Zerglings hasta ser destruido.

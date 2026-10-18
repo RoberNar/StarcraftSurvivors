@@ -208,12 +208,23 @@ var next_ultralisk_time: float = 240.0
 var has_triggered_20min_climax: bool = false
 var has_triggered_30min_climax: bool = false # compat
 
-# Peligro Subterráneo del Enjambre: Espinas de Lurker
+# Peligro Subterráneo del Enjambre: Espinas de Lurker y Tentáculos de Sunken Colony
 var lurker_hazard_scene: PackedScene = null
+var sunken_hazard_scene: PackedScene = null
+var overlord_dropship_scene: PackedScene = null
+
 var next_lurker_event_time: float = 180.0
+var lurker_event_active: bool = false
+var lurker_event_timer: float = 0.0 # Cada evento sísmico dura exactamente 30 segundos
+var lurker_event_spawn_timer: float = 0.0
+
 var lurker_frenzy_active: bool = false
 var lurker_frenzy_timer: float = 0.0
-var lurker_frenzy_interval: float = 3.2
+var lurker_frenzy_interval: float = 2.4
+
+# Overlords de desembarco (últimos 5 minutos: 15:00 a 20:00)
+var overlord_spawn_timer: float = 6.0
+var overlord_spawn_interval: float = 16.0
 
 # Eventos de Estructuras del Enjambre (Minutos 5, 10 y 13)
 var event_zergling_pool_spawned: bool = false
@@ -349,6 +360,8 @@ func _ready() -> void:
 	drone_scene = load("res://scenes/drone.tscn")
 	nydus_scene = load("res://scenes/nydus_canal.tscn")
 	lurker_hazard_scene = load("res://scenes/lurker_spine_hazard.tscn")
+	sunken_hazard_scene = load("res://scenes/sunken_colony_hazard.tscn")
+	overlord_dropship_scene = load("res://scenes/overlord_dropship.tscn")
 	scourge_scene = load("res://scenes/scourge.tscn")
 	guardian_scene = load("res://scenes/guardian.tscn")
 	devourer_scene = load("res://scenes/devourer.tscn")
@@ -458,8 +471,12 @@ func reset_game() -> void:
 	event_hydralisk_den_spawned = false
 	event_mutalisk_spire_spawned = false
 	next_lurker_event_time = 180.0
+	lurker_event_active = false
+	lurker_event_timer = 0.0
+	lurker_event_spawn_timer = 0.0
 	lurker_frenzy_active = false
 	lurker_frenzy_timer = 0.0
+	overlord_spawn_timer = 6.0
 	is_game_over = false
 	is_leveling_up = false
 	has_shown_max_upgrades_notice = false
@@ -648,6 +665,7 @@ func _process(delta: float) -> void:
 	
 	_handle_world_events()
 	_handle_lurker_hazards(delta)
+	_handle_overlords(delta)
 	
 	if game_time >= 1200.0 and not has_triggered_20min_climax:
 		_trigger_20min_climax()
@@ -736,8 +754,9 @@ func _trigger_20min_climax() -> void:
 	has_triggered_30min_climax = true
 	lurker_frenzy_active = false
 	
-	# Detener y limpiar de inmediato todos los peligros de espinas subterráneas ("para todo")
+	# Detener y limpiar de inmediato todos los peligros de espinas subterráneas y transportes
 	get_tree().call_group("lurker_hazards", "clear_immediately")
+	get_tree().call_group("overlord_transports", "clear_immediately")
 	
 	# 1. Limpiar todos los enemigos del mapa
 	var enemies = get_tree().get_nodes_in_group("enemies")
@@ -783,59 +802,62 @@ func _handle_lurker_hazards(delta: float) -> void:
 	if not player or not is_instance_valid(player) or player.is_dead:
 		return
 	
-	# 1. Avisos y erupciones tácticas cada 3 minutos (180s, 360s, 540s, 720s)
+	# 1. Eventos periódicos cada 3 minutos (180s, 360s, 540s, 720s) que duran 30 segundos
 	if game_time >= next_lurker_event_time and game_time < 900.0:
 		var current_mark = next_lurker_event_time
 		next_lurker_event_time += 180.0
-		_trigger_lurker_event_wave(current_mark)
+		_start_30s_lurker_event(current_mark)
+	
+	# Ejecutar oleada sísmica activa de 30 segundos
+	if lurker_event_active and game_time < 900.0:
+		lurker_event_timer -= delta
+		lurker_event_spawn_timer -= delta
+		if lurker_event_spawn_timer <= 0.0:
+			lurker_event_spawn_timer = randf_range(1.6, 2.3)
+			_spawn_tactical_lurker_line(player.global_position)
+			if randf() > 0.35:
+				_spawn_sunken_colony_circle(player.global_position)
+		if lurker_event_timer <= 0.0:
+			lurker_event_active = false
 	
 	# 2. Alerta de la fase final a los 15 minutos (900s)
 	if game_time >= 900.0 and not lurker_frenzy_active and game_time < 1200.0:
 		lurker_frenzy_active = true
 		_trigger_lurker_frenzy_warning()
 	
-	# 3. Frenesí de los últimos 5 minutos (15:00 a 20:00 = 900s a 1200s): espinas incesantes
+	# 3. Frenesí de los últimos 5 minutos (15:00 a 20:00 = 900s a 1200s): espinas y círculos de Sunken incesantes
 	if lurker_frenzy_active and game_time < 1200.0:
 		lurker_frenzy_timer += delta
 		if lurker_frenzy_timer >= lurker_frenzy_interval:
 			lurker_frenzy_timer = 0.0
-			var count = randi_range(2, 3)
-			for i in range(count):
+			var line_count = randi_range(1, 2)
+			for i in range(line_count):
 				_spawn_tactical_lurker_line(player.global_position)
+			var sunken_count = randi_range(1, 2)
+			for i in range(sunken_count):
+				_spawn_sunken_colony_circle(player.global_position)
 
-func _trigger_lurker_event_wave(mark: float) -> void:
-	var player = get_tree().get_first_node_in_group("player")
-	if not player or not is_instance_valid(player):
-		return
+func _start_30s_lurker_event(mark: float) -> void:
+	lurker_event_active = true
+	lurker_event_timer = 30.0 # Dura exactamente 30 segundos
+	lurker_event_spawn_timer = 0.2
 	
 	var msg = ""
 	var v_id = ""
-	var line_count = 3
 	if mark <= 185.0:
 		msg = "«Alerta sísmica: Sensores geológicos registran anomalías en el subsuelo. Despliegue de espinas subterráneas detectado.»"
 		v_id = "ADJ_05"
-		line_count = 3
 	elif mark <= 365.0:
 		msg = "«Advertencia Sísmica: Erupciones subterráneas detectadas en su sector.»"
 		v_id = "ADJ_06"
-		line_count = 4
 	elif mark <= 545.0:
 		msg = "«Alerta sísmica: Incremento en la actividad sísmica subterránea. Múltiples vectores de púas cruzando el cuadrante.»"
 		v_id = "ADJ_07"
-		line_count = 5
 	else:
 		msg = "«Emergencia sísmica: Radar geológico saturado. Despliegue masivo de espinas.»"
 		v_id = "ADJ_08"
-		line_count = 6
 	
 	_send_adjutant_transmission(msg, 5.0, v_id)
-	
-	for i in range(line_count):
-		get_tree().create_timer(float(i) * 0.40).timeout.connect(func():
-			if not is_instance_valid(player) or has_triggered_20min_climax:
-				return
-			_spawn_tactical_lurker_line(player.global_position)
-		)
 
 func _trigger_lurker_frenzy_warning() -> void:
 	var msg = "«Emergencia crítica general: El Enjambre fractura la superficie en masa. Mantenga maniobras evasivas continuas.»"
@@ -864,6 +886,69 @@ func _spawn_tactical_lurker_line(center_pos: Vector2) -> void:
 	var cur_scene = get_tree().current_scene
 	if cur_scene:
 		cur_scene.add_child(hazard)
+
+func _spawn_sunken_colony_circle(center_pos: Vector2) -> void:
+	if not sunken_hazard_scene:
+		sunken_hazard_scene = load("res://scenes/sunken_colony_hazard.tscn")
+	if not sunken_hazard_scene:
+		return
+	
+	var hazard = sunken_hazard_scene.instantiate()
+	var offset = Vector2(randf_range(-160.0, 160.0), randf_range(-120.0, 120.0))
+	var pos = center_pos + offset
+	var telegraph_time = randf_range(1.15, 1.35)
+	hazard.setup(pos, 42.0, 28.0, telegraph_time)
+	
+	var cur_scene = get_tree().current_scene
+	if cur_scene:
+		cur_scene.add_child(hazard)
+
+func _handle_overlords(delta: float) -> void:
+	if has_triggered_20min_climax or is_game_over:
+		return
+	
+	# Solo en los últimos 5 minutos (15:00 a 20:00 = 900s a 1200s)
+	if game_time < 900.0 or game_time >= 1200.0:
+		return
+	
+	var player = get_tree().get_first_node_in_group("player")
+	if not player or not is_instance_valid(player) or player.is_dead:
+		return
+	
+	overlord_spawn_timer -= delta
+	if overlord_spawn_timer <= 0.0:
+		overlord_spawn_timer = randf_range(13.0, 17.0)
+		_spawn_ambient_overlord(player.global_position)
+
+func _spawn_ambient_overlord(player_pos: Vector2) -> void:
+	if not overlord_dropship_scene:
+		overlord_dropship_scene = load("res://scenes/overlord_dropship.tscn")
+	if not overlord_dropship_scene:
+		return
+	
+	var side = randi() % 4
+	var start_pos = Vector2.ZERO
+	var target_dir = Vector2.ZERO
+	
+	match side:
+		0: # Izquierda a Derecha
+			start_pos = player_pos + Vector2(-680.0, randf_range(-220.0, 220.0))
+			target_dir = Vector2(1.0, randf_range(-0.25, 0.25)).normalized()
+		1: # Derecha a Izquierda
+			start_pos = player_pos + Vector2(680.0, randf_range(-220.0, 220.0))
+			target_dir = Vector2(-1.0, randf_range(-0.25, 0.25)).normalized()
+		2: # Arriba a Abajo
+			start_pos = player_pos + Vector2(randf_range(-300.0, 300.0), -450.0)
+			target_dir = Vector2(randf_range(-0.25, 0.25), 1.0).normalized()
+		3: # Abajo a Arriba
+			start_pos = player_pos + Vector2(randf_range(-300.0, 300.0), 450.0)
+			target_dir = Vector2(randf_range(-0.25, 0.25), -1.0).normalized()
+	
+	var ov = overlord_dropship_scene.instantiate()
+	ov.setup(start_pos, target_dir)
+	var cur_scene = get_tree().current_scene
+	if cur_scene:
+		cur_scene.add_child(ov)
 
 func _handle_spawning(delta: float) -> void:
 	if has_triggered_20min_climax or has_triggered_30min_climax:

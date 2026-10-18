@@ -79,4 +79,14 @@ copy_sfx("sound/zerg/avenger/zavhit00.wav", "scourge_explode")
 copy_sfx("sound/zerg/avenger/zavdth00.wav", "scourge_death")
 copy_sfx("sound/zerg/avenger/zavrdy00.wav", "scourge_ready")
 
+print("\n=== 5. EXTRACTING OVERLORD ===")
+extract_sheet("unit/zerg/overlord.grp", "overlord", cols=17)
+extract_sheet("unit/zerg/overlord.grp", "overlord_shadow", cols=17, mode="shadow")
+copy_sfx("sound/zerg/overlord/zovpss00.wav", "overlord_groan")
+copy_sfx("sound/misc/zOvTra00.wav", "overlord_drop")
+
+print("\n=== 6. EXTRACTING SUNKEN TENTACLE ===")
+extract_sheet("unit/bullet/tentacle.grp", "sunken_tentacle", cols=6)
+copy_sfx("sound/bullet/spooghit.wav", "sunken_hit")
+
 print("\nExtraction finished successfully!")
