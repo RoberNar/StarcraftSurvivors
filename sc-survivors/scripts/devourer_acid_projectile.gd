@@ -8,8 +8,12 @@ var direction: Vector2 = Vector2.ZERO
 var lifetime: float = 2.8
 var has_exploded: bool = false
 
-@onready var sprite: Sprite2D = $Sprite2D
+# 17 columnas de dirección oficiales de StarCraft (proyectil directo orientado al lanzarse)
+var facing_column: int = 8
+var is_facing_left: bool = false
 var anim_timer: float = 0.0
+
+@onready var sprite: Sprite2D = $Sprite2D
 
 func _ready() -> void:
 	collision_layer = 0
@@ -20,15 +24,35 @@ func _ready() -> void:
 		var tex = SkinManager.get_sprite("devourer_acid")
 		if tex:
 			sprite.texture = tex
-		sprite.hframes = 8
-		sprite.vframes = 9
-		sprite.frame = 0
+		sprite.hframes = 17
+		sprite.vframes = 4
+		sprite.frame = facing_column
+		sprite.flip_h = is_facing_left
 
 func setup(start_pos: Vector2, target: Vector2, dmg: float) -> void:
 	global_position = start_pos
 	damage = dmg
 	direction = (target - start_pos).normalized()
-	rotation = direction.angle()
+	
+	# Sin rotación por código del nodo: se orienta con el ángulo fijado al dispararse
+	rotation = 0.0
+	_set_direction_angle(direction)
+
+func _set_direction_angle(dir: Vector2) -> void:
+	if dir == Vector2.ZERO:
+		return
+	var angle_sc = fposmod(dir.angle() + PI * 0.5, TAU)
+	var current_dir32 = int(round(angle_sc / (TAU / 32.0))) % 32
+	if current_dir32 <= 16:
+		facing_column = current_dir32
+		is_facing_left = false
+	else:
+		facing_column = 32 - current_dir32
+		is_facing_left = true
+	
+	if sprite:
+		sprite.flip_h = is_facing_left
+		sprite.frame = facing_column
 
 func _physics_process(delta: float) -> void:
 	if has_exploded:
@@ -39,10 +63,15 @@ func _physics_process(delta: float) -> void:
 		queue_free()
 		return
 	
+	# Trayectoria recta fija desde el punto de lanzamiento hacia ti
 	global_position += direction * speed * delta
-	anim_timer += delta * 16.0
+	
+	# Animación orgánica de 4 filas a lo largo de la dirección fija (sin girar ni rotar en vuelo)
+	anim_timer += delta * 10.0
+	var anim_row = int(anim_timer) % 4
 	if sprite:
-		sprite.frame = int(anim_timer) % 16
+		sprite.frame = anim_row * 17 + facing_column
+		sprite.flip_h = is_facing_left
 
 func _on_body_entered(body: Node2D) -> void:
 	if has_exploded:
@@ -52,7 +81,7 @@ func _on_body_entered(body: Node2D) -> void:
 		if body.has_method("take_damage"):
 			body.take_damage(damage)
 		if body.has_method("apply_devourer_acid"):
-			body.apply_devourer_acid(3.0) # Moco morado y baja mitad de armadura por 3 segundos
+			body.apply_devourer_acid(3.0) # Moco morado y reduce mitad de armadura por 3 segundos
 		_explode()
 
 func _explode() -> void:
@@ -67,6 +96,7 @@ func _explode() -> void:
 		sprite.hframes = 8
 		sprite.vframes = 2
 		sprite.frame = 0
+		sprite.flip_h = false
 		sprite.scale = Vector2(1.3, 1.3)
 		var tw = create_tween()
 		for f in range(1, 10):
