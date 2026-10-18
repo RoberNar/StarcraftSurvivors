@@ -151,22 +151,19 @@ func _update_marine_monitor_skin() -> void:
 	if not marine_portrait:
 		return
 	var badge = marine_monitor.get_node_or_null("Badge") as Label
-	var hint = marine_monitor.get_node_or_null("SkinHint") as Label
 	
 	if selected_hero == "medic":
 		var p_medic = SkinManager.get_portrait("medic")
 		if p_medic:
 			marine_portrait.set_portrait(p_medic)
 		marine_portrait.voice_list = ["medic_what0", "medic_what1", "medic_what2", "medic_what3"]
-		if badge: badge.text = "MÉDICA (SKIN)"
-		if hint: hint.text = "◄ CLIC CARA: MARINE ►"
+		if badge: badge.text = "MÉDICA TERRAN"
 	else:
 		var p_marine = SkinManager.get_portrait("marine")
 		if p_marine:
 			marine_portrait.set_portrait(p_marine)
 		marine_portrait.voice_list = ["marine_what0", "marine_what1", "marine_yes0", "marine_yes1"]
 		if badge: badge.text = "MARINE CMC-300"
-		if hint: hint.text = "◄ CLIC CARA: MÉDICA ►"
 
 func _play_entrance_animation() -> void:
 	is_transitioning = true
@@ -282,36 +279,36 @@ func _show_hero(hero_id: String) -> void:
 			obj2.visible = true
 			obj2.text = "• Asistencia de tiro automática en armadura CMC-300."
 			obj3.visible = true
-			obj3.text = "• Presiona la cara en el monitor para alternar skin con la Médica."
+			obj3.text = "• Extraer mediante nave para conservar minerales."
 			obj4.visible = false
 			obj5.visible = false
 			
 			start_button.disabled = false
 			start_button.text = "INICIAR MISIÓN"
 		"medic":
-			unit_name_label.text = "MÉDICA TERRAN (SKIN ALTERNATIVA)"
-			unit_role_label.text = "Infantería de Asalto / Skin Femenina (Armadura Médica)"
+			unit_name_label.text = "MÉDICA TERRAN"
+			unit_role_label.text = "Infantería Ligera de Asalto (Armadura CMC-300)"
 			stats_grid.visible = true
 			stat_hp_label.text = "Vida: 40 PS"
 			stat_armor_label.text = "Armadura: 1"
-			stat_weapon_label.text = "Arma: Rifle Gauss C-14 (Disparo adaptado)"
+			stat_weapon_label.text = "Arma: Rifle Gauss C-14"
 			stat_damage_label.text = "Daño: 14 dmg"
 			stat_rate_label.text = "Cadencia: 2.4/s"
 			stat_speed_label.text = "Velocidad: 120 px/s"
 			skill_label.visible = true
 			skill_label.text = "HABILIDAD: Estimulantes [T] (+50% vel/cad x 5s, -10 PS)"
 			lore_label.visible = true
-			lore_label.text = "Especialista médica de las fuerzas de asalto. Equipada con disparo de combate de alta cadencia y animación de curación bio-energética."
-			status_badge.text = "[ SKIN FEMENINA // LISTA PARA COMBATE ]"
+			lore_label.text = "Soldado confederado curtido en combate. Versátil y letal ante enjambres masivos."
+			status_badge.text = "[ DESPLEGADO Y LISTO PARA COMBATE ]"
 			status_badge.modulate = Color(0.25, 1.0, 0.35, 1.0)
 			
 			obj_header.text = "EXPEDIENTE TÁCTICO"
 			obj1.visible = true
-			obj1.text = "• Skin alternativa femenina de la infantería Terran."
+			obj1.text = "• Infantería básica asignada a la expedición."
 			obj2.visible = true
-			obj2.text = "• Animación de emisión nanomédica al disparar."
+			obj2.text = "• Asistencia de tiro automática en armadura CMC-300."
 			obj3.visible = true
-			obj3.text = "• Presiona la cara en el monitor para alternar skin con el Marine."
+			obj3.text = "• Extraer mediante nave para conservar minerales."
 			obj4.visible = false
 			obj5.visible = false
 			

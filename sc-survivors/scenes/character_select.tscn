@@ -142,20 +142,6 @@ theme_override_font_sizes/font_size = 9
 text = "LISTO"
 horizontal_alignment = 1
 
-[node name="SkinHint" type="Label" parent="Monitors/MarineMonitor"]
-layout_mode = 0
-offset_left = 6.0
-offset_top = 108.0
-offset_right = 122.0
-offset_bottom = 120.0
-theme = SubResource("Theme_sc")
-theme_override_colors/font_color = Color(0.3, 0.85, 1, 0.85)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
-theme_override_constants/shadow_outline_size = 1
-theme_override_font_sizes/font_size = 7
-text = "◄ CLIC CARA: SKIN ►"
-horizontal_alignment = 1
-
 [node name="Button" type="Button" parent="Monitors/MarineMonitor"]
 layout_mode = 1
 anchors_preset = 15
