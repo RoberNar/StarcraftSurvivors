@@ -20,6 +20,8 @@ var mission_kills: int = 0
 var mission_gas: int = 0
 var mission_bosses: int = 0
 var is_mission_completed: bool = false
+var character_select_source: String = "dropship"
+var base_player_position: Vector2 = Vector2.ZERO
 
 # Mejoras permanentes de inicio compradas en la Academia
 var barracks_upgrades: Dictionary = {
@@ -608,6 +610,7 @@ func deploy_to_mission() -> void:
 
 func evacuate_to_base() -> void:
 	get_tree().paused = false
+	base_player_position = Vector2.ZERO
 	get_tree().change_scene_to_file("res://scenes/terran_base.tscn")
 
 func _process(delta: float) -> void:

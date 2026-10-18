@@ -300,8 +300,10 @@ func _ready() -> void:
 	var p_scene = load("res://scenes/civilian_player.tscn")
 	if p_scene:
 		player_node = p_scene.instantiate()
-		player_node.move_speed = 185.0
-		player_node.global_position = player_spawn.global_position
+		if GameManager.base_player_position != Vector2.ZERO:
+			player_node.global_position = GameManager.base_player_position
+		else:
+			player_node.global_position = player_spawn.global_position
 		add_child(player_node)
 		
 		# Cámara del civil con límites del mapa completo (1920x1152)
@@ -492,6 +494,8 @@ func _process(delta: float) -> void:
 	pulse_time += delta * 4.0
 	if npc_badge:
 		npc_badge.modulate.a = 0.7 + sin(pulse_time) * 0.3
+	if player_node and is_instance_valid(player_node):
+		GameManager.base_player_position = player_node.global_position
 
 func _unhandled_input(event: InputEvent) -> void:
 	if is_playing_story_dialogue or (face_to_face_dialog != null and face_to_face_dialog.is_active):
@@ -796,6 +800,9 @@ func _create_building_card(b_name: String, b_desc: String, cost: int, is_built: 
 
 func _open_barracks_select() -> void:
 	AudioManager.play_sfx("button")
+	if player_node:
+		GameManager.base_player_position = player_node.global_position
+	GameManager.character_select_source = "barracks"
 	ScreenFade.fade_out_in(0.35, 0.1, 0.35, func():
 		get_tree().change_scene_to_file("res://scenes/character_select.tscn")
 	)
@@ -982,6 +989,9 @@ func _connect_signals() -> void:
 	deploy_confirm_btn.pressed.connect(func():
 		AudioManager.play_sfx("ship_liftoff")
 		_close_all_modals()
+		if player_node:
+			GameManager.base_player_position = player_node.global_position
+		GameManager.character_select_source = "dropship"
 		ScreenFade.fade_out_in(0.4, 0.1, 0.4, func():
 			if StoryManager.can_access_character_select():
 				get_tree().change_scene_to_file("res://scenes/character_select.tscn")

@@ -41,10 +41,12 @@
   - El Monitor 2 permanece como Firebat (bloqueado con overlay táctico).
   - En el Monitor 1 (Marine), al hacer clic sobre el rostro/retrato, se activa una animación mecánica donde el monitor se retrae verticalmente hacia arriba fuera de pantalla, conmuta la skin entre Marine y Médica Terran (`GameManager.selected_hero`), y desciende de vuelta con rebote elástico (`TRANS_BACK`), reproduciendo la confirmación de voz (`marine_ready` / `medic_ready`).
   - La Médica Terran funciona como skin alternativa femenina de combate: dispara con sonido original de fusil Gauss del Marine (`marine_fire`) mientras mantiene la animación visual de emisión nanomédica.
+  - **Diferenciación de Acceso (Cuartel vs. Nave)**: Si se abre desde el Cuartel (`GameManager.character_select_source == "barracks"`), el botón muestra `"EQUIPAR PERSONAJE"`, aplica la skin elegida y regresa directamente a la Base sin iniciar la misión. Si se accede desde la Nave de Descenso, el botón muestra `"INICIAR MISIÓN"` y realiza el despliegue al páramo.
+  - **Persistencia de Posición en Base**: La posición del jugador se preserva continuamente en `GameManager.base_player_position`, garantizando que al cancelar o regresar de la selección de personaje, el jugador permanezca exactamente frente al Cuartel o la Nave en lugar de reaparecer en el centro del HUB.
 - **Estructuras de la Base**:
   1. **Centro de Mando (Command Center)**: Núcleo de operaciones y radar perimetral.
   2. **Bahía de Ingeniería / Academia**: Terminal de mejoras permanentes globales (costos 100% en Gas Vespeno).
-  3. **Cuartel (Barracks)**: Hangar de infantería y selección de armas.
+  3. **Cuartel (Barracks)**: Hangar de infantería y cambio de trajes/skins sin desplegar.
   4. **Puerto Estelar**: Nave de descenso y extracción táctica hacia el exterior.
 
 ### Fase 2: Incursión Exterior en los Páramos (`scenes/main.tscn` / `scripts/main.gd`)

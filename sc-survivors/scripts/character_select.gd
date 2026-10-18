@@ -53,8 +53,10 @@ var selected_hero: String = "marine"
 var current_selected_monitor: String = "marine"
 var orig_positions: Dictionary = {}
 var is_transitioning: bool = false
+var initial_hero: String = "marine"
 
 func _ready() -> void:
+	initial_hero = GameManager.selected_hero
 	var cursor_tex = SkinManager.get_ui("cursor")
 	if cursor_tex:
 		Input.set_custom_mouse_cursor(cursor_tex, Input.CURSOR_ARROW, Vector2.ZERO)
@@ -287,7 +289,10 @@ func _show_hero(hero_id: String) -> void:
 			obj5.visible = false
 			
 			start_button.disabled = false
-			start_button.text = "INICIAR MISIÓN"
+			if GameManager.character_select_source == "barracks":
+				start_button.text = "EQUIPAR PERSONAJE"
+			else:
+				start_button.text = "INICIAR MISIÓN"
 		"medic":
 			unit_name_label.text = "MÉDICA TERRAN"
 			unit_role_label.text = "Infantería Ligera de Asalto (Armadura CMC-300)"
@@ -316,7 +321,10 @@ func _show_hero(hero_id: String) -> void:
 			obj5.visible = false
 			
 			start_button.disabled = false
-			start_button.text = "INICIAR MISIÓN"
+			if GameManager.character_select_source == "barracks":
+				start_button.text = "EQUIPAR PERSONAJE"
+			else:
+				start_button.text = "INICIAR MISIÓN"
 		"firebat":
 			unit_name_label.text = "??? [UNIDAD TÁCTICA BLOQUEADA]"
 			unit_role_label.text = "[ ARCHIVO CLASIFICADO // SEÑAL ENCRIPTADA ]"
@@ -390,10 +398,14 @@ func _on_start_pressed() -> void:
 		AudioManager.play_sfx("marine_ready")
 	_play_exit_animation(func():
 		GameManager.selected_hero = selected_hero
-		GameManager.start_new_run(selected_hero)
 		if has_node("/root/SaveManager"):
 			SaveManager.save_data()
-		GameManager.deploy_to_mission()
+		
+		if GameManager.character_select_source == "barracks":
+			get_tree().change_scene_to_file("res://scenes/terran_base.tscn")
+		else:
+			GameManager.start_new_run(selected_hero)
+			GameManager.deploy_to_mission()
 	)
 
 func _on_cancel_pressed() -> void:
@@ -401,6 +413,9 @@ func _on_cancel_pressed() -> void:
 		return
 	start_button.disabled = true
 	cancel_button.disabled = true
+	GameManager.selected_hero = initial_hero
+	if has_node("/root/SaveManager"):
+		SaveManager.save_data()
 	AudioManager.play_sfx("button")
 	_play_exit_animation(func():
 		get_tree().change_scene_to_file("res://scenes/terran_base.tscn")
