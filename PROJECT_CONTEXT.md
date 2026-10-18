@@ -206,11 +206,11 @@ Implementado en [`scenes/transmission_comm.tscn`](scenes/transmission_comm.tscn)
 1. **Scourge (Kamikaze Aéreo - `scenes/scourge.tscn` / `scripts/scourge.gd`)**:
    - Vuela a alta velocidad (185-205 px/s), chilla con audio oficial (`scourge_charge.wav`) al detectar al jugador y se autodestruye en proximidad infligiendo daño explosivo en área (`scourge_explo.png`, 40-75 de daño). Vida baja (28-65 HP), muere de 1 a 2 disparos certeros pero castiga distracciones.
 2. **Guardián (Asedio Pesado - `scenes/guardian.tscn` / `scripts/guardian.gd`)**:
-   - Unidad de bombardeo aéreo pesado (62-70 px/s). Se posiciona a media distancia (~280 px) y dispara esporas ácidas bio-explosivas (`guardian_spore.tscn` / `guardian_spore_hit.png`) con audio original (`guardian_attack.wav`). Alta resistencia biológica (380-950 HP, armadura 3-9).
+   - Unidad de bombardeo aéreo pesado (62-70 px/s). Se posiciona a media distancia (~280 px) y dispara su espora ácida original (`bullet/spores.grp` / `guardian_spore.tscn`), ampliada a 2.3x para tener un impacto visual ancho y contundente. Su trayectoria es directa en línea recta a 160 px/s (velocidad reducida y predecible) permitiendo esquivarla activamente, con impacto `sporehit.grp` al impactar contra el jugador o agotar su alcance.
 3. **Devorador / Corruptor (Bio-tanque Corrosivo - `scenes/devourer.tscn` / `scripts/devourer.gd`)**:
-   - Unidad pesada voladora (75-85 px/s) con 480-1200 HP y 4-10 de armadura. Dispara proyectiles de ácido corrosivo (`devourer_acid_projectile.tscn`) que infligen daño de impacto y ralentizan al jugador un 15% durante 2.5s con efecto visual de ácido.
+   - Unidad pesada voladora (75-85 px/s) con 480-1200 HP y 4-10 de armadura. Dispara saliva de ácido corrosivo (`devourer_acid_projectile.tscn`) a 185 px/s. Al impactar al héroe, le aplica un **efecto de moco morado** (overlay animado de ácido y partículas de goteo morado) que **reduce la mitad de su armadura (50%) durante 3.0 segundos**.
 4. **Reina Zerg (Lanzadora Táctica - `scenes/queen.tscn` / `scripts/queen.gd`)**:
-   - Unidad de soporte aéreo ágil (95-105 px/s, 280-680 HP). Se posiciona tácticamente y lanza Ensnare (`queen_ensnare_projectile.tscn`), cubriendo al jugador con masa viscosa verdosa que reduce su velocidad un 25% durante 3.0s con su audio original (`queen_ensnare.wav`).
+   - Unidad de soporte aéreo ágil (95-105 px/s, 280-680 HP). Lanza Ensnare (`queen_ensnare_projectile.tscn`) a 175 px/s. Al golpear al jugador, le aplica un **efecto de moco verde** (overlay animado de Ensnare oficial y gotas ácidas verdes) que **reduce su velocidad de movimiento un 40% durante 3.0 segundos** con su audio oficial `queen_ensnare.wav`.
 
 ### B. Rebalanceo de Oleadas y Erradicación de Zerglings "Esponja de Balas"
 - **Tope de Zerglings**: Los Zerglings ahora tienen un tope estricto en Tier 4 (140 HP máximo y 3 de armadura en lugar de los antiguos 2400 HP / 20 armadura que los convertían en muros tediosos).

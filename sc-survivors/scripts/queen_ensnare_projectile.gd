@@ -1,11 +1,11 @@
 class_name QueenEnsnareProjectile
 extends Area2D
 
-@export var speed: float = 270.0
+@export var speed: float = 175.0
 @export var damage: float = 14.0
 
 var direction: Vector2 = Vector2.ZERO
-var lifetime: float = 2.2
+var lifetime: float = 3.0
 var has_hit: bool = false
 
 @onready var sprite: Sprite2D = $Sprite2D
@@ -52,8 +52,10 @@ func _on_body_entered(body: Node2D) -> void:
 		set_physics_process(false)
 		if body.has_method("take_damage"):
 			body.take_damage(damage)
-		if body.has_method("apply_slow"):
-			body.apply_slow(0.25, 3.0) # 25% ralentización durante 3.0s
+		if body.has_method("apply_queen_ensnare"):
+			body.apply_queen_ensnare(0.40, 3.0) # Moco verde y ralentiza 40% durante 3.0s
+		elif body.has_method("apply_slow"):
+			body.apply_slow(0.40, 3.0)
 		
 		# Animación de disipación de baba
 		var tw = create_tween()

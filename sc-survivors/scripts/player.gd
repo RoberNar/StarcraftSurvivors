@@ -56,9 +56,20 @@ var extreme_heat_radius: float = 95.0
 var extreme_heat_tick_timer: float = 0.0
 var heat_aura: Node2D = null
 
-# Ralentización por ataques zerg (Ensnare / Ácido Corrosivo)
+# Ralentización y debuffs por ataques zerg (Devorador y Reina)
 var acid_slow_ratio: float = 0.0
 var acid_slow_timer: float = 0.0
+
+var devourer_acid_timer: float = 0.0 # Moco morado + reduce la mitad de armadura por 3s
+var purple_slime_sprite: Sprite2D = null
+var purple_slime_particles: CPUParticles2D = null
+var purple_slime_timer: float = 0.0
+
+var queen_ensnare_timer: float = 0.0 # Moco verde + 40% de ralentización por 3s
+var queen_slow_ratio: float = 0.40
+var green_slime_sprite: Sprite2D = null
+var green_slime_particles: CPUParticles2D = null
+var green_slime_timer: float = 0.0
 
 # Animacion y direccion 32 angulos clasica de StarCraft
 var current_dir32: int = 8 # Empieza mirando al Este (Derecha)
@@ -247,6 +258,24 @@ func _physics_process(delta: float) -> void:
 	if extreme_heat_cd_timer > 0.0:
 		extreme_heat_cd_timer -= delta
 
+	# Actualizar debuff de Devorador (Moco Morado + Mitad de armadura)
+	if devourer_acid_timer > 0.0:
+		devourer_acid_timer -= delta
+		purple_slime_timer += delta * 15.0
+		if purple_slime_sprite and purple_slime_sprite.visible:
+			purple_slime_sprite.frame = int(purple_slime_timer) % 16
+		if devourer_acid_timer <= 0.0:
+			_hide_purple_slime()
+
+	# Actualizar debuff de Reina (Moco Verde + Ralentización 40%)
+	if queen_ensnare_timer > 0.0:
+		queen_ensnare_timer -= delta
+		green_slime_timer += delta * 12.0
+		if green_slime_sprite and green_slime_sprite.visible:
+			green_slime_sprite.frame = int(green_slime_timer) % 15
+		if queen_ensnare_timer <= 0.0:
+			_hide_green_slime()
+
 	# Movimiento WASD
 	var input_vec = Vector2.ZERO
 	input_vec.x = Input.get_axis("move_left", "move_right")
@@ -256,7 +285,9 @@ func _physics_process(delta: float) -> void:
 	var current_speed = move_speed * (1.4 if stimpack_active else 1.0)
 	if is_extreme_heat_active:
 		current_speed *= (1.0 - extreme_heat_slow_ratio) # Calor Extremo ralentiza al usuario
-	if acid_slow_timer > 0.0:
+	if queen_ensnare_timer > 0.0:
+		current_speed *= (1.0 - queen_slow_ratio) # 40% de ralentización por moco verde
+	elif acid_slow_timer > 0.0:
 		acid_slow_timer -= delta
 		current_speed *= (1.0 - acid_slow_ratio)
 		if acid_slow_timer <= 0.0:
@@ -693,11 +724,114 @@ func apply_slow(ratio: float, duration: float) -> void:
 	acid_slow_ratio = max(acid_slow_ratio, ratio)
 	acid_slow_timer = max(acid_slow_timer, duration)
 
+func apply_devourer_acid(duration: float = 3.0) -> void:
+	if is_dead: return
+	devourer_acid_timer = max(devourer_acid_timer, duration)
+	_setup_purple_slime()
+
+func apply_queen_ensnare(slow_ratio: float = 0.40, duration: float = 3.0) -> void:
+	if is_dead: return
+	queen_slow_ratio = slow_ratio
+	queen_ensnare_timer = max(queen_ensnare_timer, duration)
+	_setup_green_slime()
+
+func _setup_purple_slime() -> void:
+	if purple_slime_sprite == null or not is_instance_valid(purple_slime_sprite):
+		purple_slime_sprite = Sprite2D.new()
+		purple_slime_sprite.name = "PurpleSlimeOverlay"
+		purple_slime_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		var tex = SkinManager.get_sprite("devourer_hit_fx")
+		if tex:
+			purple_slime_sprite.texture = tex
+		purple_slime_sprite.hframes = 8
+		purple_slime_sprite.vframes = 2
+		purple_slime_sprite.frame = 0
+		purple_slime_sprite.position = Vector2(0, -6)
+		purple_slime_sprite.scale = Vector2(1.15, 1.15)
+		purple_slime_sprite.modulate = Color(1.3, 0.4, 1.4, 0.9)
+		purple_slime_sprite.z_index = 2
+		add_child(purple_slime_sprite)
+		
+		purple_slime_particles = CPUParticles2D.new()
+		purple_slime_particles.name = "PurpleSlimeDrips"
+		purple_slime_particles.amount = 12
+		purple_slime_particles.lifetime = 0.65
+		purple_slime_particles.position = Vector2(0, 0)
+		purple_slime_particles.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+		purple_slime_particles.emission_rect_extents = Vector2(12, 14)
+		purple_slime_particles.direction = Vector2(0, 1)
+		purple_slime_particles.spread = 35.0
+		purple_slime_particles.gravity = Vector2(0, 90)
+		purple_slime_particles.initial_velocity_min = 10.0
+		purple_slime_particles.initial_velocity_max = 25.0
+		purple_slime_particles.scale_amount_min = 2.0
+		purple_slime_particles.scale_amount_max = 3.5
+		purple_slime_particles.color = Color(0.85, 0.25, 1.0, 0.85)
+		purple_slime_particles.z_index = 2
+		add_child(purple_slime_particles)
+	
+	purple_slime_sprite.visible = true
+	if purple_slime_particles:
+		purple_slime_particles.emitting = true
+
+func _hide_purple_slime() -> void:
+	if purple_slime_sprite and is_instance_valid(purple_slime_sprite):
+		purple_slime_sprite.visible = false
+	if purple_slime_particles and is_instance_valid(purple_slime_particles):
+		purple_slime_particles.emitting = false
+
+func _setup_green_slime() -> void:
+	if green_slime_sprite == null or not is_instance_valid(green_slime_sprite):
+		green_slime_sprite = Sprite2D.new()
+		green_slime_sprite.name = "GreenSlimeOverlay"
+		green_slime_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		var tex = SkinManager.get_sprite("queen_ensnare")
+		if tex:
+			green_slime_sprite.texture = tex
+		green_slime_sprite.hframes = 8
+		green_slime_sprite.vframes = 2
+		green_slime_sprite.frame = 0
+		green_slime_sprite.position = Vector2(0, -6)
+		green_slime_sprite.scale = Vector2(0.55, 0.55)
+		green_slime_sprite.modulate = Color(0.4, 1.3, 0.4, 0.9)
+		green_slime_sprite.z_index = 2
+		add_child(green_slime_sprite)
+		
+		green_slime_particles = CPUParticles2D.new()
+		green_slime_particles.name = "GreenSlimeDrips"
+		green_slime_particles.amount = 14
+		green_slime_particles.lifetime = 0.65
+		green_slime_particles.position = Vector2(0, 0)
+		green_slime_particles.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+		green_slime_particles.emission_rect_extents = Vector2(12, 14)
+		green_slime_particles.direction = Vector2(0, 1)
+		green_slime_particles.spread = 35.0
+		green_slime_particles.gravity = Vector2(0, 80)
+		green_slime_particles.initial_velocity_min = 10.0
+		green_slime_particles.initial_velocity_max = 25.0
+		green_slime_particles.scale_amount_min = 2.0
+		green_slime_particles.scale_amount_max = 3.5
+		green_slime_particles.color = Color(0.3, 1.0, 0.3, 0.85)
+		green_slime_particles.z_index = 2
+		add_child(green_slime_particles)
+	
+	green_slime_sprite.visible = true
+	if green_slime_particles:
+		green_slime_particles.emitting = true
+
+func _hide_green_slime() -> void:
+	if green_slime_sprite and is_instance_valid(green_slime_sprite):
+		green_slime_sprite.visible = false
+	if green_slime_particles and is_instance_valid(green_slime_particles):
+		green_slime_particles.emitting = false
+
 func take_damage(amount: float) -> void:
 	if is_dead or is_in_base:
 		return
 	
 	var eff_armor = armor + (extreme_heat_armor_bonus if is_extreme_heat_active else 0.0)
+	if devourer_acid_timer > 0.0:
+		eff_armor *= 0.5 # Moco morado del devorador reduce la mitad de armadura
 	var effective_damage = max(1.0, amount - eff_armor)
 	current_health = maxf(0.0, current_health - effective_damage)
 	invuln_timer = 0.15
@@ -720,6 +854,9 @@ func take_damage(amount: float) -> void:
 func die() -> void:
 	if is_dead:
 		return
+	
+	_hide_purple_slime()
+	_hide_green_slime()
 	
 	# Si es la primera muerte en combate (con armadura CMC):
 	# Evacuar de regreso a la base (HUB) donde el jugador despierta y ocurre el diálogo de resurrección
@@ -782,6 +919,8 @@ func _trigger_first_death_evacuation() -> void:
 	SaveManager.save_data()
 	
 	is_dead = true
+	_hide_purple_slime()
+	_hide_green_slime()
 	current_health = 0.0
 	if GameManager.is_leveling_up:
 		GameManager.is_leveling_up = false

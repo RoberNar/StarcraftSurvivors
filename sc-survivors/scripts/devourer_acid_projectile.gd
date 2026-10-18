@@ -1,11 +1,11 @@
 class_name DevourerAcidProjectile
 extends Area2D
 
-@export var speed: float = 300.0
+@export var speed: float = 185.0
 @export var damage: float = 18.0
 
 var direction: Vector2 = Vector2.ZERO
-var lifetime: float = 2.0
+var lifetime: float = 2.8
 var has_exploded: bool = false
 
 @onready var sprite: Sprite2D = $Sprite2D
@@ -51,8 +51,8 @@ func _on_body_entered(body: Node2D) -> void:
 		AudioManager.play_sfx("devourer_hit", 0.08, 0.0)
 		if body.has_method("take_damage"):
 			body.take_damage(damage)
-		if body.has_method("apply_slow"):
-			body.apply_slow(0.18, 2.8) # 18% ralentización durante 2.8s
+		if body.has_method("apply_devourer_acid"):
+			body.apply_devourer_acid(3.0) # Moco morado y baja mitad de armadura por 3 segundos
 		_explode()
 
 func _explode() -> void:
