@@ -822,18 +822,20 @@ func _update_pickup_shape() -> void:
 func apply_upgrade(type: String) -> void:
 	# Armas adicionales
 	if type == "c14_rifle":
-		weapons["c14_rifle"] = weapons.get("c14_rifle", 0) + 1
-		multishot += 1
+		var cur_lvl = weapons.get("c14_rifle", 0)
+		weapons["c14_rifle"] = cur_lvl + 1
+		if cur_lvl > 0:
+			multishot += 1
 	elif type == "firebat_flame":
 		weapons["firebat_flame"] = 1
 		firebat_power_lvl = 1
 		firebat_streams = 1
 	elif type == "firebat_power":
 		firebat_power_lvl += 1
-		weapons["firebat_flame"] = max(weapons.get("firebat_flame", 1), firebat_power_lvl)
+		weapons["firebat_flame"] = firebat_power_lvl + firebat_streams - 1
 	elif type == "firebat_streams":
 		firebat_streams += 1
-		weapons["firebat_flame"] = max(weapons.get("firebat_flame", 1), firebat_streams)
+		weapons["firebat_flame"] = firebat_power_lvl + firebat_streams - 1
 	elif type == "spider_mine":
 		weapons["spider_mine"] = weapons.get("spider_mine", 0) + 1
 	elif type == "ghost_sniper":

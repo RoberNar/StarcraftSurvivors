@@ -634,15 +634,19 @@ func _on_base_weapon_gui_input(event: InputEvent) -> void:
 func _show_tooltip_for_base_weapon() -> void:
 	if not tooltip_panel:
 		return
+	var is_firebat = (has_node("/root/GameManager") and GameManager.selected_hero == "firebat")
+	var base_w_id = "firebat_flame" if is_firebat else "c14_rifle"
 	var lvl = 1
 	if player and is_instance_valid(player):
-		lvl = player.weapons.get("c14_rifle", 1)
-	var w_def = WEAPON_INFO.get("c14_rifle", {})
-	var stats_str = _format_weapon_stats("c14_rifle", lvl, player)
+		lvl = player.weapons.get(base_w_id, 1)
+	var w_def = WEAPON_INFO.get(base_w_id, {})
+	var stats_str = _format_weapon_stats(base_w_id, lvl, player)
+	var default_title = "Lanzallamas Perdition" if is_firebat else "Rifle de Asalto C-14 Gauß"
+	var default_type = "Arma Principal Firebat" if is_firebat else "Arma Principal Reglamentaria CMC"
 	var info = {
 		"is_empty": false,
-		"title": w_def.get("name", "Rifle de Asalto C-14 Gauß"),
-		"type": "Arma Principal Reglamentaria CMC",
+		"title": w_def.get("name", default_title),
+		"type": default_type,
 		"badge": "[Nivel %d]" % lvl,
 		"desc": w_def.get("desc", ""),
 		"stats": stats_str
@@ -653,28 +657,33 @@ func _update_inventory_display(weapons: Dictionary, passives: Dictionary) -> voi
 	if slot_info_cache.size() < 9:
 		slot_info_cache.resize(9)
 	
+	var is_firebat = (has_node("/root/GameManager") and GameManager.selected_hero == "firebat")
+	var base_w_id = "firebat_flame" if is_firebat else "c14_rifle"
+	
 	# 1. Actualizar Ranura de Arma Base (separada de la cuadrícula)
 	if base_weapon_slot:
 		if not GameManager.has_suit_equipped:
 			base_weapon_slot.visible = false
 		else:
 			base_weapon_slot.visible = true
-			var lvl = weapons.get("c14_rifle", 1)
+			var lvl = weapons.get(base_w_id, 1)
 			if base_weapon_icon:
 				var atlas = AtlasTexture.new()
 				atlas.atlas = weapon_icons_tex
-				atlas.region = Rect2(0, 0, 48, 48)
+				var base_icon_idx = 1 if is_firebat else 0
+				atlas.region = Rect2(base_icon_idx * 48, 0, 48, 48)
 				base_weapon_icon.texture = atlas
 			if base_weapon_badge:
 				base_weapon_badge.text = "L%d" % lvl
 	
-	# 2. Armas Secundarias en slots 0, 1, 2 de CommandGrid (el arma base C-14 no gasta slot aquí)
+	# 2. Armas Secundarias en slots 0, 1, 2 de CommandGrid (el arma base del personaje no gasta slot aquí)
 	var secondary_weapons: Array[String] = []
 	for w_id in weapons.keys():
-		if w_id != "c14_rifle":
+		if w_id != base_w_id:
 			secondary_weapons.append(w_id)
 	
 	var weapon_icon_map = {
+		"c14_rifle": 0,
 		"firebat_flame": 1,
 		"spider_mine": 2,
 		"ghost_sniper": 3,
@@ -702,10 +711,13 @@ func _update_inventory_display(weapons: Dictionary, passives: Dictionary) -> voi
 			p.modulate = Color(1.0, 1.0, 1.0, 1.0)
 			
 			var stats_str = _format_weapon_stats(w_id, lvl, player)
+			var weapon_type = w_def.get("type", "Arma Secundaria")
+			if w_id == "c14_rifle" and is_firebat:
+				weapon_type = "Arma Balística Secundaria"
 			slot_info_cache[i] = {
 				"is_empty": false,
 				"title": w_def.get("name", w_id),
-				"type": w_def.get("type", "Arma Secundaria"),
+				"type": weapon_type,
 				"badge": "[Nivel %d]" % lvl,
 				"desc": w_def.get("desc", ""),
 				"stats": stats_str
@@ -1106,29 +1118,46 @@ func _process(_delta: float) -> void:
 			stim_status_label.visible = false
 		else:
 			var pct = int((player.damage_mult - 1.0) * 100)
-			weapon_label.text = "Rifle C-14 (+%d%% daño)" % pct
+			var is_firebat = (has_node("/root/GameManager") and GameManager.selected_hero == "firebat")
+			if is_firebat:
+				weapon_label.text = "Lanza-llamas (+%d%% daño)" % pct
+			else:
+				weapon_label.text = "Rifle C-14 (+%d%% daño)" % pct
 			if armor_label:
-				armor_label.text = "Armadura: %d" % int(player.armor)
+				var total_arm = player.armor + (player.extreme_heat_armor_bonus if (is_firebat and player.is_extreme_heat_active) else 0.0)
+				armor_label.text = "Armadura: %d" % int(total_arm)
 			if rank_label and has_node("/root/SaveManager"):
 				var r_info = SaveManager.get_current_rank()
 				rank_label.text = "Rango: %s" % r_info["name"]
 			
-			# Estado del Stimpack (oculto completamente si no está desbloqueado)
-			var is_stim_unlocked = SaveManager.is_stimpack_unlocked() if has_node("/root/SaveManager") else (GameManager.barracks_upgrades.get("stim", 0) > 0)
-			if not is_stim_unlocked:
-				stim_status_label.visible = false
-			elif player.stimpack_active:
+			# Estado de Habilidad [T] (Calor Extremo para Firebat, Stimpack para Marine/Médica)
+			if is_firebat:
 				stim_status_label.visible = true
-				stim_status_label.text = "STIM: ACTIVO (%.1fs)" % player.stimpack_timer
-				stim_status_label.modulate = Color(1.0, 0.3, 0.3, 1.0)
-			elif player.stimpack_cd_timer > 0.0:
-				stim_status_label.visible = true
-				stim_status_label.text = "STIM: RECARGA (%.1fs)" % player.stimpack_cd_timer
-				stim_status_label.modulate = Color(0.7, 0.7, 0.7, 1.0)
+				if player.is_extreme_heat_active:
+					stim_status_label.text = "CALOR: ACTIVO (%.1fs)" % player.extreme_heat_timer
+					stim_status_label.modulate = Color(1.0, 0.45, 0.1, 1.0)
+				elif player.extreme_heat_cd_timer > 0.0:
+					stim_status_label.text = "CALOR: RECARGA (%.1fs)" % player.extreme_heat_cd_timer
+					stim_status_label.modulate = Color(0.7, 0.7, 0.7, 1.0)
+				else:
+					stim_status_label.text = "CALOR [T]: LISTO"
+					stim_status_label.modulate = Color(1.0, 0.6, 0.2, 1.0)
 			else:
-				stim_status_label.visible = true
-				stim_status_label.text = "STIM [T]: LISTO"
-				stim_status_label.modulate = Color(0.25, 1.0, 0.35, 1.0)
+				var is_stim_unlocked = SaveManager.is_stimpack_unlocked() if has_node("/root/SaveManager") else (GameManager.barracks_upgrades.get("stim", 0) > 0)
+				if not is_stim_unlocked:
+					stim_status_label.visible = false
+				elif player.stimpack_active:
+					stim_status_label.visible = true
+					stim_status_label.text = "STIM: ACTIVO (%.1fs)" % player.stimpack_timer
+					stim_status_label.modulate = Color(1.0, 0.3, 0.3, 1.0)
+				elif player.stimpack_cd_timer > 0.0:
+					stim_status_label.visible = true
+					stim_status_label.text = "STIM: RECARGA (%.1fs)" % player.stimpack_cd_timer
+					stim_status_label.modulate = Color(0.7, 0.7, 0.7, 1.0)
+				else:
+					stim_status_label.visible = true
+					stim_status_label.text = "STIM [T]: LISTO"
+					stim_status_label.modulate = Color(0.25, 1.0, 0.35, 1.0)
 	
 	if is_hovering_base_weapon and tooltip_panel and tooltip_panel.visible:
 		_show_tooltip_for_base_weapon()

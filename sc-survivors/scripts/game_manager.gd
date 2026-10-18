@@ -1059,24 +1059,24 @@ func _get_available_upgrade_choices() -> Array:
 	var passive_pool: Array = []
 	
 	# 1. Armas
-	if player_weapons.has("c14_rifle"):
-		var lvl = player_weapons["c14_rifle"] + 1
-		weapon_pool.append({
-			"id": "c14_rifle",
-			"type": "weapon",
-			"name": "Rifle Gauss C-14 (Nv. %d)" % lvl,
-			"desc": "+1 Bala adicional por disparo\nMayor saturación balística",
-			"weapon_idx": 0
-		})
-	
 	var base_w = "firebat_flame" if selected_hero == "firebat" else "c14_rifle"
 	var sec_count = 0
 	for w in player_weapons.keys():
 		if w != base_w:
 			sec_count += 1
 	
-	# Si el héroe es Firebat, el Rifle Gauss C-14 puede adquirirse como arma secundaria
-	if selected_hero == "firebat" and not player_weapons.has("c14_rifle") and sec_count < 3:
+	if player_weapons.has("c14_rifle"):
+		var lvl = player_weapons["c14_rifle"] + 1
+		if lvl <= 6:
+			weapon_pool.append({
+				"id": "c14_rifle",
+				"type": "weapon",
+				"name": "Rifle Gauss C-14 (Nv. %d)" % lvl,
+				"desc": "+1 Bala adicional por disparo\nMayor saturación balística",
+				"weapon_idx": 0
+			})
+	elif sec_count < 3:
+		# Para Firebat u otros héroes que no inicien con Gauss, puede salir como arma secundaria aleatoria
 		weapon_pool.append({
 			"id": "c14_rifle",
 			"type": "weapon",
