@@ -39,7 +39,7 @@ var barracks_upgrades: Dictionary = {
 const BARRACKS_UPGRADES_DEF = {
 	"damage": {
 		"name": "Armamento de Infantería (Daño Global)",
-		"desc": "+5% Daño a todas las armas por nivel",
+		"desc": "+2.5% Daño a todas las armas por nivel",
 		"max_lvl": 10,
 		"cost_min": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 		"cost_gas": [2, 4, 7, 11, 16, 22, 30, 40, 52, 68],
@@ -49,17 +49,17 @@ const BARRACKS_UPGRADES_DEF = {
 	},
 	"multishot": {
 		"name": "Saturación Balística (Disparo Adicional)",
-		"desc": "+1 Proyectil/disparo adicional a todas las armas por nivel",
-		"max_lvl": 3,
-		"cost_min": [0, 0, 0],
-		"cost_gas": [8, 20, 45],
+		"desc": "+1 Proyectil adicional a todas las armas por nivel (Máx +2)",
+		"max_lvl": 2,
+		"cost_min": [0, 0],
+		"cost_gas": [15, 45],
 		"prereq": "",
 		"is_weapon": false,
 		"icon_idx": 6
 	},
 	"speed": {
 		"name": "Servomotores CMC (Velocidad)",
-		"desc": "+5% Velocidad de movimiento inicial por nivel",
+		"desc": "+2.5% Velocidad de movimiento inicial por nivel",
 		"max_lvl": 10,
 		"cost_min": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 		"cost_gas": [1, 2, 4, 7, 11, 16, 22, 29, 38, 50],
@@ -69,7 +69,7 @@ const BARRACKS_UPGRADES_DEF = {
 	},
 	"armor": {
 		"name": "Blindaje CMC (Vida y Armadura)",
-		"desc": "+15 Vida Máxima y +1 Armadura base por nivel",
+		"desc": "+7.5 Vida Máxima y +0.5 Armadura base por nivel",
 		"max_lvl": 10,
 		"cost_min": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 		"cost_gas": [1, 3, 5, 8, 12, 17, 24, 32, 42, 55],
@@ -79,7 +79,7 @@ const BARRACKS_UPGRADES_DEF = {
 	},
 	"stim": {
 		"name": "Estimulantes Sintéticos (Stimpack)",
-		"desc": "Desbloquea [T] Stimpack e incrementa su duración y recarga",
+		"desc": "Desbloquea [T] Stimpack (+0.25s duración, -0.15s recarga por nivel)",
 		"max_lvl": 5,
 		"cost_min": [0, 0, 0, 0, 0],
 		"cost_gas": [2, 5, 10, 18, 30],
@@ -89,7 +89,7 @@ const BARRACKS_UPGRADES_DEF = {
 	},
 	"regen": {
 		"name": "Botiquín Nanomédico (Regen)",
-		"desc": "+0.8 Regeneración de vida/s inicial por nivel",
+		"desc": "+0.4 Regeneración de vida/s inicial por nivel",
 		"max_lvl": 10,
 		"cost_min": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 		"cost_gas": [2, 4, 7, 11, 16, 22, 30, 40, 52, 68],
@@ -99,7 +99,7 @@ const BARRACKS_UPGRADES_DEF = {
 	},
 	"magnet": {
 		"name": "Condensador de Flujo (Imán)",
-		"desc": "+18% Radio de atracción de minerales de inicio",
+		"desc": "+9% Radio de atracción de minerales de inicio",
 		"max_lvl": 10,
 		"cost_min": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 		"cost_gas": [1, 2, 4, 7, 11, 16, 22, 29, 38, 50],
@@ -109,7 +109,7 @@ const BARRACKS_UPGRADES_DEF = {
 	},
 	"mineral_efficiency": {
 		"name": "Excavación de Plasma (+EXP)",
-		"desc": "+exp 5% por nivel",
+		"desc": "+2.5% EXP adicional obtenida por nivel",
 		"max_lvl": 10,
 		"cost_min": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 		"cost_gas": [2, 4, 7, 11, 16, 22, 30, 40, 52, 68],
@@ -611,28 +611,31 @@ func buy_barracks_upgrade(upgrade_id: String) -> bool:
 
 func get_barracks_bonus(stat_name: String) -> float:
 	match stat_name:
-		"armor": return barracks_upgrades.get("armor", 0) * 1.0
-		"max_hp": return barracks_upgrades.get("armor", 0) * 15.0
+		"armor": return barracks_upgrades.get("armor", 0) * 0.5
+		"max_hp": return barracks_upgrades.get("armor", 0) * 7.5
 		"damage":
 			var lvl = barracks_upgrades.get("damage", 0)
 			if lvl == 0 and barracks_upgrades.has("c14_damage"):
 				lvl = barracks_upgrades.get("c14_damage", 0)
-			return lvl * 0.05
+			return lvl * 0.025
 		"multishot":
 			var lvl = barracks_upgrades.get("multishot", 0)
 			if lvl == 0 and barracks_upgrades.has("c14_multishot"):
 				var legacy = barracks_upgrades.get("c14_multishot", 0)
-				if legacy >= 8: lvl = 3
-				elif legacy >= 4: lvl = 2
+				if legacy >= 8: lvl = 2
+				elif legacy >= 4: lvl = 1
 				elif legacy >= 1: lvl = 1
-			return float(lvl)
-		"speed": return barracks_upgrades.get("speed", 0) * 0.05
+			# Nerfeado a la mitad: nivel 1-2 da +1 proyectil, nivel 3 (o máx) da +2 proyectiles (antiguo daba +3)
+			if lvl >= 3: return 2.0
+			elif lvl >= 1: return 1.0
+			return 0.0
+		"speed": return barracks_upgrades.get("speed", 0) * 0.025
 		"cadence": return 0.0
-		"regen": return barracks_upgrades.get("regen", 0) * 0.8
-		"magnet": return barracks_upgrades.get("magnet", 0) * 0.18
-		"stim_dur": return barracks_upgrades.get("stim", 0) * 0.5
-		"stim_cd": return barracks_upgrades.get("stim", 0) * 0.3
-		"mineral_efficiency": return barracks_upgrades.get("mineral_efficiency", 0) * 0.05
+		"regen": return barracks_upgrades.get("regen", 0) * 0.4
+		"magnet": return barracks_upgrades.get("magnet", 0) * 0.09
+		"stim_dur": return barracks_upgrades.get("stim", 0) * 0.25
+		"stim_cd": return barracks_upgrades.get("stim", 0) * 0.15
+		"mineral_efficiency": return barracks_upgrades.get("mineral_efficiency", 0) * 0.025
 		"vespene_doubler": return float(barracks_upgrades.get("vespene_doubler", 0))
 	return 0.0
 

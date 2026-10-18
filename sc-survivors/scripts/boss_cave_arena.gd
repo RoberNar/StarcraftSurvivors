@@ -33,9 +33,17 @@ var evac_circle: EvacuationCircle = null
 
 var is_intro_cinematic_active: bool = true
 
+# Fase 2: Enrage, Transición y Brechas de Rocas
+var is_phase_2: bool = false
+var is_transitioning: bool = false
+var boundary_rocks: Array[Dictionary] = []
+var active_breaches: Array[Dictionary] = []
+var south_rock_data: Dictionary = {}
+
 var lurker_timer: float = 2.0
-var lurker_interval: float = 4.0
+var lurker_interval: float = 4.6
 var lurker_hazard_scene: PackedScene = null
+var sunken_hazard_scene: PackedScene = null
 
 func _ready() -> void:
 	get_tree().paused = false
@@ -132,14 +140,9 @@ func _finish_intro_cinematic() -> void:
 	if is_instance_valid(torrasque_boss):
 		torrasque_boss.start_fight()
 	
-	# Iniciar temporizador de desove periódico de apoyo
+	# En Fase 1 NO se generan Zergs todavía (solo puzzle de pilares y peligros crecientes)
 	if zerg_spawner_timer:
-		if not zerg_spawner_timer.timeout.is_connected(_on_zerg_spawn_tick):
-			zerg_spawner_timer.timeout.connect(_on_zerg_spawn_tick)
-		zerg_spawner_timer.start(4.5)
-	
-	# Desove inicial inmediato al comenzar el combate
-	get_tree().create_timer(1.2).timeout.connect(_on_zerg_spawn_tick)
+		zerg_spawner_timer.stop()
 
 func _process(delta: float) -> void:
 	if is_intro_cinematic_active:
@@ -149,12 +152,69 @@ func _process(delta: float) -> void:
 		var target_cam = player.position + Vector2(0, -45)
 		arena_camera.position = arena_camera.position.lerp(target_cam, delta * 6.0)
 	
-	# Mecánica periódica de espinas de Lurker en la caverna para esquivar
-	if not is_cave_collapsing and is_instance_valid(torrasque_boss) and torrasque_boss.current_state != TorrasqueBoss.State.DEAD:
-		lurker_timer -= delta
-		if lurker_timer <= 0.0:
-			lurker_timer = lurker_interval
-			_trigger_arena_lurker_hazard()
+	_process_arena_hazards(delta)
+	_process_breach_spawns(delta)
+
+func _process_arena_hazards(delta: float) -> void:
+	if is_transitioning or is_cave_collapsing or not is_instance_valid(torrasque_boss):
+		return
+	if torrasque_boss.current_state == TorrasqueBoss.State.DEAD:
+		return
+	
+	lurker_timer -= delta
+	if lurker_timer <= 0.0:
+		if is_phase_2:
+			lurker_timer = 3.2
+		else:
+			# Cada pilar roto reduce el intervalo y acelera los ataques subterráneos
+			lurker_timer = max(1.8, 4.6 - float(broken_pillars_count) * 0.5)
+		_trigger_combined_hazards()
+
+func _trigger_combined_hazards() -> void:
+	if not is_instance_valid(player) or is_cave_collapsing:
+		return
+	
+	# 1. Espinas de Lurker (Líneas direccionales)
+	_trigger_arena_lurker_hazard()
+	
+	# 2. Círculos de peligro con tentáculos de Sunken Colony
+	var sunken_count = 1 + int(broken_pillars_count * 0.6)
+	if is_phase_2:
+		sunken_count = 3
+	
+	for i in range(sunken_count):
+		var delay = float(i) * 0.22
+		get_tree().create_timer(delay).timeout.connect(func():
+			_spawn_sunken_hazard_at_arena()
+		)
+
+func _spawn_sunken_hazard_at_arena() -> void:
+	if not is_instance_valid(player) or is_cave_collapsing or not is_instance_valid(torrasque_boss):
+		return
+	if torrasque_boss.current_state == TorrasqueBoss.State.DEAD or is_transitioning:
+		return
+	
+	if not sunken_hazard_scene:
+		sunken_hazard_scene = load("res://scenes/sunken_colony_hazard.tscn")
+	if not sunken_hazard_scene:
+		return
+	
+	var p_pos = player.global_position
+	var pos: Vector2
+	if randf() < 0.55:
+		var p_vel = player.velocity.normalized() if player.velocity.length() > 10.0 else Vector2.ZERO
+		pos = p_pos + p_vel * randf_range(20.0, 50.0) + Vector2(randf_range(-25, 25), randf_range(-25, 25))
+	else:
+		var ang = randf() * TAU
+		var d = randf_range(40.0, ARENA_RADIUS * 0.72)
+		pos = ARENA_CENTER + Vector2(cos(ang) * d, sin(ang) * d)
+	
+	if pos.length() > ARENA_RADIUS - 35.0:
+		pos = pos.normalized() * (ARENA_RADIUS - 35.0)
+	
+	var hazard = sunken_hazard_scene.instantiate()
+	hazard.setup(pos, 44.0, 26.0, 1.25)
+	add_child(hazard)
 
 func _trigger_arena_lurker_hazard() -> void:
 	if not lurker_hazard_scene:
@@ -301,11 +361,18 @@ func _setup_boundary_doodads() -> void:
 	for c in boundary_doodads.get_children():
 		c.queue_free()
 	
+	boundary_rocks.clear()
+	active_breaches.clear()
+	south_rock_data.clear()
+	
 	var rock_count = 38
 	var step_angle = TAU / float(rock_count)
+	var south_target = Vector2(0, ARENA_RADIUS)
+	var best_south_dist = 999999.0
+	
 	for i in range(rock_count):
-		var angle = i * step_angle + randf_range(-0.03, 0.03)
-		var dist = ARENA_RADIUS + randf_range(-4.0, 16.0)
+		var angle = i * step_angle
+		var dist = ARENA_RADIUS + randf_range(-4.0, 14.0)
 		var pos = Vector2(cos(angle), sin(angle)) * dist
 		
 		var spr = Sprite2D.new()
@@ -314,12 +381,100 @@ func _setup_boundary_doodads() -> void:
 		var tex_path = "res://assets/skins/sd/sprites/boundary_rock%d.png" % variant
 		if ResourceLoader.exists(tex_path):
 			spr.texture = load(tex_path)
-		var sc = randf_range(1.2, 1.6)
+		var sc = randf_range(1.25, 1.6)
 		spr.scale = Vector2(sc, sc)
 		spr.rotation = randf_range(-0.25, 0.25)
 		spr.position = pos
 		spr.z_index = 1
 		boundary_doodads.add_child(spr)
+		
+		var r_data = {
+			"id": i,
+			"sprite": spr,
+			"pos": pos,
+			"angle": angle,
+			"is_broken": false,
+			"spawn_timer": randf_range(2.0, 4.0)
+		}
+		boundary_rocks.append(r_data)
+		
+		var d = pos.distance_to(south_target)
+		if d < best_south_dist:
+			best_south_dist = d
+			south_rock_data = r_data
+
+func break_boundary_rock(rock_data: Dictionary, spawn_zergs_immediately: bool = true) -> void:
+	if rock_data.is_empty() or rock_data.get("is_broken", false):
+		return
+	
+	rock_data["is_broken"] = true
+	var spr: Sprite2D = rock_data.get("sprite")
+	var pos: Vector2 = rock_data.get("pos", Vector2.ZERO)
+	
+	# Transformar sprite de roca a escombros fracturados
+	var rubble_tex = load("res://assets/skins/sd/sprites/boss_pillar_rubble.png")
+	if not rubble_tex:
+		rubble_tex = SkinManager.get_sprite("zrubblel")
+	if spr and rubble_tex:
+		spr.texture = rubble_tex
+		spr.hframes = 1
+		spr.vframes = 1
+		spr.frame = 0
+		spr.scale = Vector2(1.2, 1.2)
+		spr.modulate = Color(0.95, 0.5, 0.45, 1.0)
+	
+	AudioManager.play_sfx("pillar_smash", 0.05, 4.0)
+	AudioManager.play_sfx("pillar_crack", 0.05, 3.5)
+	_trigger_camera_shake(16.0)
+	_spawn_rock_debris(pos)
+	
+	active_breaches.append(rock_data)
+	
+	if boss_hud:
+		boss_hud.update_breaches_count(active_breaches.size(), boundary_rocks.size())
+	
+	if spawn_zergs_immediately:
+		_spawn_zergs_from_breach(rock_data, 2)
+
+func on_torrasque_smashed_wall(impact_pos: Vector2) -> void:
+	if not is_phase_2 or is_transitioning or is_cave_collapsing:
+		return
+	
+	# Buscar roca no rota más cercana al impacto del Torrasque
+	var closest_rock: Dictionary = {}
+	var min_d: float = 120.0
+	for r in boundary_rocks:
+		if not r.get("is_broken", false):
+			var d = r["pos"].distance_to(impact_pos)
+			if d < min_d:
+				min_d = d
+				closest_rock = r
+	
+	if not closest_rock.is_empty():
+		break_boundary_rock(closest_rock, true)
+	else:
+		_trigger_camera_shake(12.0)
+		for r in active_breaches:
+			if r["pos"].distance_to(impact_pos) < 140.0:
+				_spawn_zergs_from_breach(r, 2)
+				break
+
+func _spawn_rock_debris(pos: Vector2) -> void:
+	for i in range(12):
+		var p = Sprite2D.new()
+		var rock_frag = load("res://assets/skins/sd/sprites/boundary_rock%d.png" % (randi_range(1, 4)))
+		if rock_frag:
+			p.texture = rock_frag
+			p.scale = Vector2(0.4, 0.4)
+		p.global_position = pos + Vector2(randf_range(-18, 18), randf_range(-18, 18))
+		add_child(p)
+		
+		var fly_dir = Vector2(randf_range(-1, 1), randf_range(-1, 1)).normalized()
+		var fly_dist = randf_range(35, 80)
+		var p_tw = p.create_tween()
+		p_tw.tween_property(p, "global_position", p.global_position + fly_dir * fly_dist, 0.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		p_tw.parallel().tween_property(p, "modulate:a", 0.0, 0.4)
+		p_tw.tween_callback(p.queue_free)
 
 func _setup_pillars() -> void:
 	var pillar_scene = load("res://scenes/boss_pillar.tscn")
@@ -358,7 +513,7 @@ func on_pillar_hit_by_charge(pillar: BossPillar) -> void:
 	var hit_id = pillar.pillar_id
 	pillar.break_by_charge()
 	broken_pillars_count += 1
-	_trigger_camera_shake(12.0)
+	_trigger_camera_shake(14.0)
 	
 	if boss_hud:
 		boss_hud.update_pillars_count(6 - broken_pillars_count, 6)
@@ -390,7 +545,11 @@ func on_pillar_hit_by_charge(pillar: BossPillar) -> void:
 				boss_hud.update_cave_balance(true)
 			
 			if is_instance_valid(torrasque_boss):
-				torrasque_boss.enter_stunned_state()
+				if broken_pillars_count >= 6:
+					# ¡Rompiste todos los 6 pilares sin fallar! Stun final antes de Enrage
+					torrasque_boss.enter_final_phase1_stun()
+				else:
+					torrasque_boss.enter_stunned_state()
 		else:
 			# Rompió un pilar no opuesto -> Colapso de la cueva
 			_trigger_cave_collapse_cinematic(pillar)
@@ -494,90 +653,139 @@ func _show_collapse_game_over() -> void:
 	vbox.add_child(retry_btn)
 
 # ==============================================================================
-# SPAWN ENDGAME MINUTO 20 DE ZERGS (TIER 7/8 Y TIER 4/5)
+# CINEMÁTICA Y TRANSICIÓN A FASE 2 (ENRAGE Y RUPTURA DE PERÍMETRO)
 # ==============================================================================
-func _on_zerg_spawn_tick() -> void:
-	if is_cave_collapsing or not is_instance_valid(torrasque_boss) or torrasque_boss.current_state == TorrasqueBoss.State.DEAD or is_intro_cinematic_active:
+func start_phase_2_transition() -> void:
+	if is_transitioning or is_phase_2 or is_cave_collapsing:
+		return
+	is_transitioning = true
+	
+	# 1. El Torrasque pisa el suelo y corre/salta al centro
+	if is_instance_valid(torrasque_boss):
+		torrasque_boss.enter_transition_stomp_and_leap(ARENA_CENTER, Callable(self, "_execute_phase_2_shockwave_and_breach"))
+
+func _execute_phase_2_shockwave_and_breach() -> void:
+	# 2. Onda expansiva masiva desde el centro hacia los bordes
+	_trigger_camera_shake(30.0)
+	_spawn_rock_debris(ARENA_CENTER)
+	
+	# 3. Empujar al jugador violentamente contra la roca del fondo (Sur)
+	if is_instance_valid(player):
+		player.set_physics_process(false)
+		var south_impact_target = Vector2(0, ARENA_RADIUS - 30.0)
+		var p_tw = create_tween()
+		p_tw.tween_property(player, "global_position", south_impact_target, 0.42).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		p_tw.tween_callback(func():
+			if is_instance_valid(player):
+				player.set_physics_process(true)
+				player.velocity = Vector2.ZERO
+			
+			# 4. Romper la roca del sur al chocar contra ella
+			if not south_rock_data.is_empty():
+				break_boundary_rock(south_rock_data, false)
+			else:
+				for r in boundary_rocks:
+					if r["pos"].distance_to(south_impact_target) < 90.0:
+						break_boundary_rock(r, false)
+						break
+			
+			# 5. Emergen los primeros Zergs desde la primera brecha rota
+			get_tree().create_timer(0.3).timeout.connect(func():
+				if not south_rock_data.is_empty():
+					_spawn_zergs_from_breach(south_rock_data, 3)
+			)
+			
+			# 6. Se limpian los pilares centrales de la cueva
+			_clean_center_pillars()
+			
+			# 7. Voss advierte por radio sobre el Enrage
+			_send_voss_radio(
+				"«¡EL TITÁN ENTRÓ EN ENRAGE! ¡REVENTÓ EL PERÍMETRO! ¡MÁTALO ANTES DE QUE DESTRUYA TODA LA CAVERNA!»",
+				6.0,
+				"VOSS_26"
+			)
+			
+			is_phase_2 = true
+			is_transitioning = false
+			
+			if is_instance_valid(torrasque_boss):
+				torrasque_boss.enter_enrage()
+			
+			if boss_hud:
+				boss_hud.set_phase_2_mode(active_breaches.size(), boundary_rocks.size())
+		)
+
+func _clean_center_pillars() -> void:
+	if not pillars_container:
+		return
+	for c in pillars_container.get_children():
+		var dust_pos = c.global_position
+		_spawn_rock_debris(dust_pos)
+		var tw = c.create_tween()
+		tw.tween_property(c, "modulate:a", 0.0, 0.4)
+		tw.tween_callback(c.queue_free)
+
+# ==============================================================================
+# SPAWN DE ZERGS DESDE BRECHAS EN FASE 2 (DPS CHECK ESCALABLE)
+# ==============================================================================
+func _process_breach_spawns(delta: float) -> void:
+	if not is_phase_2 or is_transitioning or is_cave_collapsing:
+		return
+	if not is_instance_valid(torrasque_boss) or torrasque_boss.current_state == TorrasqueBoss.State.DEAD:
 		return
 	
-	var z_scene = load("res://scenes/zergling.tscn")
-	var h_scene = load("res://scenes/hydralisk.tscn")
-	var m_scene = load("res://scenes/mutalisk.tscn")
-	if not z_scene:
-		return
-	
-	# Limitar esbirros activos en la caverna para garantizar 60 FPS estables
 	var existing_enemies = get_tree().get_nodes_in_group("enemies")
 	var minion_count = 0
 	for e in existing_enemies:
 		if is_instance_valid(e) and e != torrasque_boss and not (e is TorrasqueBoss):
 			minion_count += 1
 	
-	if minion_count >= 34:
+	if minion_count >= 40:
 		return
 	
-	# Cantidad de apariciones: intensa como minuto 20 (base de 4-6 zerglings + 2 hidras + 1 muta)
-	var zerg_count = randi_range(4, 6) + (broken_pillars_count * 2)
-	var hydra_count = randi_range(2, 3) + broken_pillars_count
-	var muta_count = 1 if randf() < 0.70 else 0
-	
-	var player = get_tree().get_first_node_in_group("player")
-	
-	# 1. Zerglings Tier 8 (Masa Crítica, 2400 HP, 20 armadura, 1.65x) y Tier 7 (1600 HP, 16 armadura)
-	for i in range(zerg_count):
-		if minion_count >= 34:
-			break
-		var z = z_scene.instantiate()
-		z.global_position = _get_safe_cave_spawn_pos(player, 340.0, 420.0)
-		add_child(z)
-		
-		var tier_to_set = 8 if randf() < 0.65 else 7
-		if z.has_method("set_tier"):
-			z.set_tier(tier_to_set)
-		minion_count += 1
-	
-	# 2. Hidraliscos Tier 5 (Esmeralda, 2400 HP, 20 armadura) y Tier 4 (Ámbar, 1300 HP, 15 armadura)
-	if h_scene:
-		for i in range(hydra_count):
-			if minion_count >= 34:
-				break
-			var h = h_scene.instantiate()
-			h.global_position = _get_safe_cave_spawn_pos(player, 350.0, 420.0)
-			add_child(h)
-			
-			var tier_to_set = 5 if randf() < 0.60 else 4
-			if h.has_method("set_tier"):
-				h.set_tier(tier_to_set)
-			minion_count += 1
-	
-	# 3. Mutaliscos Tier 5 (Esmeralda, 2100 HP, 18 armadura)
-	if m_scene and muta_count > 0 and minion_count < 34:
-		for i in range(muta_count):
-			var m = m_scene.instantiate()
-			m.global_position = _get_safe_cave_spawn_pos(player, 360.0, 420.0)
-			add_child(m)
-			
-			if m.has_method("set_tier"):
-				m.set_tier(5)
-			minion_count += 1
+	for breach in active_breaches:
+		breach["spawn_timer"] -= delta
+		if breach["spawn_timer"] <= 0.0:
+			breach["spawn_timer"] = randf_range(3.8, 5.5)
+			if minion_count < 40:
+				_spawn_zergs_from_breach(breach, 1)
+				minion_count += 1
 
-func _get_safe_cave_spawn_pos(player: Node2D, min_d: float, max_d: float) -> Vector2:
-	const MIN_PLAYER_EXCLUSION: float = 220.0
-	for attempt in range(8):
-		var ang = randf() * TAU
-		var dist = randf_range(min_d, max_d)
-		var pos = ARENA_CENTER + Vector2(cos(ang) * dist, sin(ang) * dist)
-		if player and is_instance_valid(player):
-			if pos.distance_to(player.global_position) >= MIN_PLAYER_EXCLUSION:
-				return pos
+func _spawn_zergs_from_breach(breach: Dictionary, count: int) -> void:
+	var z_scene = load("res://scenes/zergling.tscn")
+	var h_scene = load("res://scenes/hydralisk.tscn")
+	var s_scene = load("res://scenes/scourge.tscn")
+	if not z_scene:
+		return
+	
+	var breach_pos = breach["pos"]
+	var inward_dir = (ARENA_CENTER - breach_pos).normalized()
+	AudioManager.play_sfx("burrow_up", 0.04, -2.0)
+	
+	for i in range(count):
+		var spawn_offset = inward_dir * randf_range(18.0, 35.0) + Vector2(randf_range(-14, 14), randf_range(-14, 14))
+		var spawn_pos = breach_pos + spawn_offset
+		
+		# Progresión de amenazas según cantidad de brechas rotas
+		if active_breaches.size() >= 5 and s_scene and randf() < 0.20:
+			var s = s_scene.instantiate()
+			s.global_position = spawn_pos
+			add_child(s)
+		elif active_breaches.size() >= 3 and h_scene and randf() < 0.28:
+			var h = h_scene.instantiate()
+			h.global_position = spawn_pos
+			add_child(h)
+			if h.has_method("set_tier"):
+				h.set_tier(4 if randf() < 0.6 else 5)
 		else:
-			return pos
-	if player and is_instance_valid(player):
-		var away_dir = (ARENA_CENTER - player.global_position).normalized()
-		if away_dir == Vector2.ZERO:
-			away_dir = Vector2.RIGHT.rotated(randf() * TAU)
-		return player.global_position + away_dir * MIN_PLAYER_EXCLUSION
-	return ARENA_CENTER + Vector2.RIGHT * min_d
+			var z = z_scene.instantiate()
+			z.global_position = spawn_pos
+			add_child(z)
+			if z.has_method("set_tier"):
+				z.set_tier(7 if randf() < 0.6 else 8)
+
+func _on_zerg_spawn_tick() -> void:
+	pass
 
 # ==============================================================================
 # VICTORIA Y EXTRACCIÓN

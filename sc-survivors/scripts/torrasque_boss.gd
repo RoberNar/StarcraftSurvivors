@@ -56,6 +56,11 @@ var max_charge_distance: float = 900.0
 var stun_timer: float = 0.0
 const STUN_DURATION: float = 6.0
 
+# Fase 2: Enrage & Destrucción de Rocas
+var is_enraged: bool = false
+var is_final_phase1_stun: bool = false
+var enraged_charge_timer: float = 6.0
+
 # Animación (32 ángulos clásicos de StarCraft)
 var current_dir32: int = 8
 var facing_column: int = 8
@@ -183,13 +188,20 @@ func _process_chase(delta: float) -> void:
 	if not is_instance_valid(player):
 		return
 	
-	# Acumulación continua de furia / calor de armadura (carga garantizada aun sin disparos)
-	armor_heat = min(MAX_ARMOR_HEAT, armor_heat + delta * 18.0)
-	armor_heat_changed.emit(armor_heat, MAX_ARMOR_HEAT)
-	_update_armor_visuals()
-	if armor_heat >= MAX_ARMOR_HEAT:
-		_start_charge_cast()
-		return
+	if is_enraged:
+		# Enrage: Cargas periódicas rápidas hacia el jugador para demoler el perímetro
+		enraged_charge_timer -= delta
+		if enraged_charge_timer <= 0.0:
+			_start_enraged_charge_cast()
+			return
+	else:
+		# Fase 1: Acumulación continua de furia / calor de armadura (carga garantizada aun sin disparos)
+		armor_heat = min(MAX_ARMOR_HEAT, armor_heat + delta * 18.0)
+		armor_heat_changed.emit(armor_heat, MAX_ARMOR_HEAT)
+		_update_armor_visuals()
+		if armor_heat >= MAX_ARMOR_HEAT:
+			_start_charge_cast()
+			return
 	
 	if attack_cooldown_timer > 0.0:
 		attack_cooldown_timer -= delta
@@ -251,6 +263,26 @@ func take_damage(amount: float) -> void:
 	if current_state == State.DEAD or current_state == State.INTRO:
 		return
 	
+	if is_enraged:
+		# FASE 2 ENRAGE: DAÑO DIRECTO A LA BARRA DE VIDA HEREDADA (DPS CHECK)
+		current_bar_health = max(0.0, current_bar_health - amount)
+		health_changed.emit(current_bar_health, BAR_MAX_HEALTH, health_bars_remaining)
+		
+		# Destello de impacto carmesí brillante
+		var tw = create_tween()
+		tw.tween_property(sprite, "modulate", Color(2.8, 1.8, 0.4, 1.0), 0.04)
+		tw.tween_property(sprite, "modulate", Color(1.3, 0.45, 0.45, 1.0), 0.07)
+		
+		if current_bar_health <= 0.0:
+			health_bars_remaining -= 1
+			health_changed.emit(0.0, BAR_MAX_HEALTH, health_bars_remaining)
+			if health_bars_remaining <= 0:
+				die()
+			else:
+				current_bar_health = BAR_MAX_HEALTH
+				health_changed.emit(current_bar_health, BAR_MAX_HEALTH, health_bars_remaining)
+		return
+	
 	if is_armored:
 		# La armadura absorbe el impacto y se sobrecalienta gradualmente
 		armor_heat = min(MAX_ARMOR_HEAT, armor_heat + amount * 0.28)
@@ -283,7 +315,9 @@ func take_damage(amount: float) -> void:
 func _update_armor_visuals() -> void:
 	if not sprite:
 		return
-	if is_armored:
+	if is_enraged:
+		sprite.modulate = Color(1.3, 0.45, 0.45, 1.0)
+	elif is_armored:
 		sprite.modulate = _get_heat_color()
 	else:
 		sprite.modulate = Color(1.0, 1.0, 1.0, 1.0)
@@ -368,6 +402,23 @@ func _update_debuff_visuals() -> void:
 # ==============================================================================
 # CASTEO DE EMBESTIDA (3 SEGUNDOS SIGUIENDO AL JUGADOR)
 # ==============================================================================
+func _start_enraged_charge_cast() -> void:
+	current_state = State.TELEGRAPH_CHARGE
+	velocity = Vector2.ZERO
+	charge_cast_timer = 1.8 # Telégrafo rápido en Enrage
+	state_changed.emit("¡CARGA SALVAJE DESTRUCTORA DE ROCAS!")
+	charge_cast_started.emit(1.8)
+	
+	AudioManager.play_sfx("ultra_roar", 0.0, 4.5)
+	
+	if telegraph_line:
+		telegraph_line.clear_points()
+		telegraph_line.add_point(Vector2.ZERO)
+		telegraph_line.add_point(Vector2.DOWN * 850.0)
+		telegraph_line.default_color = Color(1.0, 0.05, 0.05, 0.95)
+		telegraph_line.width = 28.0
+		telegraph_line.visible = true
+
 func _start_charge_cast() -> void:
 	current_state = State.TELEGRAPH_CHARGE
 	velocity = Vector2.ZERO
@@ -440,14 +491,17 @@ func _process_charging(delta: float) -> void:
 		if player.has_method("take_damage"):
 			player.take_damage(charge_damage)
 			player.velocity = charge_direction * 350.0
-		_end_charge_missed()
+		if is_enraged:
+			_end_enraged_charge_hit_wall(global_position)
+		else:
+			_end_charge_missed()
 		return
 	
 	var collision = move_and_collide(move_step)
 	if collision:
 		var collider = collision.get_collider()
 		
-		# 1. ¿CHOCÓ CONTRA UN PILAR? (SOLO LA CARGA PUEDE ROMPERLO)
+		# 1. ¿CHOCÓ CONTRA UN PILAR? (SOLO LA CARGA PUEDE ROMPERLO - FASE 1)
 		if collider is BossPillar:
 			var pillar = collider as BossPillar
 			var arena = get_parent()
@@ -461,16 +515,52 @@ func _process_charging(delta: float) -> void:
 			if p and p.has_method("take_damage"):
 				p.take_damage(charge_damage)
 				p.velocity = charge_direction * 350.0
-			_end_charge_missed()
+			if is_enraged:
+				_end_enraged_charge_hit_wall(collision.get_position())
+			else:
+				_end_charge_missed()
 			return
 		
-		# 3. Chocó contra la pared de la cueva
+		# 3. Chocó contra la pared de la cueva / borde perimetral
 		else:
-			_end_charge_missed()
+			if is_enraged:
+				_end_enraged_charge_hit_wall(collision.get_position())
+			else:
+				_end_charge_missed()
 			return
 	
+	# Detección de proximidad al perímetro en Enrage para romper rocas
+	if is_enraged and global_position.length() >= 420.0:
+		_end_enraged_charge_hit_wall(global_position)
+		return
+	
 	if charge_distance_travelled >= max_charge_distance:
-		_end_charge_missed()
+		if is_enraged:
+			_end_enraged_charge_hit_wall(global_position)
+		else:
+			_end_charge_missed()
+
+func _end_enraged_charge_hit_wall(impact_pos: Vector2) -> void:
+	if charge_particles:
+		charge_particles.emitting = false
+	
+	# Romper las rocas perimetrales en el impacto
+	var arena = get_parent()
+	if arena and arena.has_method("on_torrasque_smashed_wall"):
+		arena.on_torrasque_smashed_wall(impact_pos)
+	
+	AudioManager.play_sfx("pillar_smash", 0.05, 4.5)
+	enraged_charge_timer = randf_range(5.5, 7.5)
+	current_state = State.RECOVERING
+	
+	# Breve stagger de 0.5s tras estrellarse contra el muro
+	var tw = create_tween()
+	tw.tween_interval(0.5)
+	tw.tween_callback(func():
+		if current_state != State.DEAD:
+			_enter_chase()
+			state_changed.emit("¡PERSIGUIENDO CON FURIA!")
+	)
 
 func _end_charge_missed() -> void:
 	if charge_particles:
@@ -489,6 +579,11 @@ func _end_charge_missed() -> void:
 # ==============================================================================
 # ATURDIMIENTO (STUN) TRAS ROMPER PILAR
 # ==============================================================================
+func enter_final_phase1_stun() -> void:
+	is_final_phase1_stun = true
+	enter_stunned_state()
+	state_changed.emit("¡ÚLTIMO PILAR ROTO! ¡ATURDIMIENTO FINAL FASE 1!")
+
 func enter_stunned_state() -> void:
 	current_state = State.STUNNED
 	is_armored = false
@@ -522,9 +617,12 @@ func _process_stunned(delta: float) -> void:
 		# Animación continua de estrellitas girando a 25 FPS (40 ms por frame, 32 frames)
 		stun_stars_sprite.frame = int((STUN_DURATION - stun_timer) * 25.0) % 32
 	
-	# Si se agota el tiempo de stun sin vaciar la barra, se recupera
+	# Si se agota el tiempo de stun sin vaciar la barra, se recupera o transiciona
 	if stun_timer <= 0.0:
-		_recover_from_stun()
+		if is_final_phase1_stun:
+			_start_phase_2_transition_flow()
+		else:
+			_recover_from_stun()
 
 func _on_health_bar_depleted() -> void:
 	health_bars_remaining -= 1
@@ -535,7 +633,70 @@ func _on_health_bar_depleted() -> void:
 	else:
 		# Barra vaciada con éxito -> reiniciar barra para el siguiente ciclo
 		current_bar_health = BAR_MAX_HEALTH
-		_recover_from_stun()
+		if is_final_phase1_stun:
+			if stun_timer <= 0.0:
+				_start_phase_2_transition_flow()
+		else:
+			_recover_from_stun()
+
+func _start_phase_2_transition_flow() -> void:
+	if current_state == State.DEAD:
+		return
+	is_final_phase1_stun = false
+	if stun_indicator:
+		stun_indicator.visible = false
+	var arena = get_parent()
+	if arena and arena.has_method("start_phase_2_transition"):
+		arena.start_phase_2_transition()
+
+func enter_transition_stomp_and_leap(target_center: Vector2, on_landed: Callable) -> void:
+	current_state = State.INTRO
+	velocity = Vector2.ZERO
+	if telegraph_line:
+		telegraph_line.visible = false
+	if charge_particles:
+		charge_particles.emitting = false
+	if stun_indicator:
+		stun_indicator.visible = false
+	
+	# 1. Pisar el suelo con rugido sísmico
+	AudioManager.play_sfx("ultra_roar", 0.0, 5.0)
+	AudioManager.play_sfx("pillar_smash", 0.0, 4.5)
+	
+	var tw = create_tween()
+	tw.tween_property(self, "scale", Vector2(1.85, 1.15), 0.18).set_trans(Tween.TRANS_QUAD)
+	tw.tween_property(self, "scale", Vector2(1.5, 1.5), 0.18).set_trans(Tween.TRANS_QUAD)
+	tw.tween_interval(0.2)
+	
+	# 2. Saltar / correr rápidamente hacia el centro
+	tw.tween_callback(func():
+		var dir = (target_center - global_position).normalized()
+		if dir != Vector2.ZERO:
+			_update_direction(dir)
+		AudioManager.play_sfx("ultra_attack", 0.0, 4.0)
+	)
+	tw.tween_property(self, "global_position", target_center, 0.48).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	
+	# 3. Al aterrizar en el centro
+	tw.tween_callback(func():
+		AudioManager.play_sfx("pillar_smash", 0.0, 5.0)
+		_set_sprite_frame(facing_column)
+		if on_landed.is_valid():
+			on_landed.call()
+	)
+
+func enter_enrage() -> void:
+	if current_state == State.DEAD:
+		return
+	is_enraged = true
+	is_armored = false # Daño directo para DPS check
+	current_speed = 118.0
+	enraged_charge_timer = randf_range(5.5, 7.0)
+	if sprite:
+		sprite.modulate = Color(1.3, 0.45, 0.45, 1.0)
+	AudioManager.play_sfx("ultra_roar", 0.0, 5.5)
+	state_changed.emit("¡ENRAGE ACTIVADO! ¡DAÑO DIRECTO A LA CORAZA!")
+	_enter_chase()
 
 func _recover_from_stun() -> void:
 	if current_state == State.DEAD:

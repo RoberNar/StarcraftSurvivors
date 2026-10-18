@@ -74,6 +74,29 @@ func update_pillars_count(standing: int, total: int = 6) -> void:
 	if pillars_label:
 		pillars_label.text = "PILARES: %d / %d" % [standing, total]
 
+func set_phase_2_mode(breaches_count: int, total_rocks: int = 38) -> void:
+	if cave_balance_label:
+		cave_balance_label.text = "¡FASE 2: ENRAGE! ¡DPS CHECK!"
+		cave_balance_label.modulate = Color(1.0, 0.2, 0.2, 1.0)
+	if pillars_label:
+		pillars_label.text = "BRECHAS: %d / %d" % [breaches_count, total_rocks]
+		pillars_label.modulate = Color(1.0, 0.6, 0.2, 1.0)
+	if status_label:
+		status_label.text = "¡ENRAGE ACTIVADO! ¡DAÑO DIRECTO A LA CORAZA!"
+		status_label.modulate = Color(1.0, 0.3, 0.1, 1.0)
+	if armor_bar:
+		armor_bar.value = 0.0
+		armor_bar.modulate = Color(0.3, 1.0, 0.4, 0.6)
+	if armor_numeric_label:
+		armor_numeric_label.text = "¡CORAZA EXPUESTA! (100% VULNERABLE)"
+
+func update_breaches_count(breaches_count: int, total_rocks: int = 38) -> void:
+	if pillars_label:
+		pillars_label.text = "BRECHAS: %d / %d" % [breaches_count, total_rocks]
+		var tw = create_tween()
+		tw.tween_property(pillars_label, "modulate", Color(2.5, 0.3, 0.3, 1.0), 0.1)
+		tw.tween_property(pillars_label, "modulate", Color(1.0, 0.6, 0.2, 1.0), 0.25)
+
 func _on_boss_health_changed(cur_bar_hp: float, max_bar_hp: float, bars_left: int) -> void:
 	health_bar.max_value = max_bar_hp
 	health_bar.value = cur_bar_hp
