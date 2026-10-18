@@ -16,12 +16,18 @@ extends Node2D
 @onready var bottom_hp_label: Label = $CanvasLayer/ConsoleRect/HpLabel
 @onready var bottom_wireframe: TextureRect = $CanvasLayer/ConsoleRect/WireframeRect
 
-# Soporte de Armadura Marine CMC-300
+# Soporte de Armadura Marine CMC-300 y Traje Médica Terran
 @onready var armor_stand: Node2D = $ArmorStand
 @onready var armor_stand_sprite: Sprite2D = $ArmorStand/Sprite2D
 @onready var armor_stand_shadow: Sprite2D = $ArmorStand/Shadow
 @onready var armor_stand_hint: Label = $ArmorStand/HintLabel
 @onready var armor_stand_area: Area2D = $ArmorStand/Area2D
+
+@onready var armor_stand_medic: Node2D = $ArmorStandMedic
+@onready var armor_stand_medic_sprite: Sprite2D = $ArmorStandMedic/Sprite2D
+@onready var armor_stand_medic_shadow: Sprite2D = $ArmorStandMedic/Shadow
+@onready var armor_stand_medic_hint: Label = $ArmorStandMedic/HintLabel
+@onready var armor_stand_medic_area: Area2D = $ArmorStandMedic/Area2D
 
 # Comunicador Táctico de Radio Terran (Briefing Transmission Comm - Transmisiones de Radio)
 @onready var transmission_comm: TransmissionComm = $CanvasLayer/TransmissionComm
@@ -672,8 +678,10 @@ func _trigger_active_zone() -> void:
 	match active_zone:
 		"cmd_center":
 			_open_cmd_center()
-		"armor":
-			_toggle_armor_suit()
+		"armor", "armor_marine":
+			_choose_armor_suit("marine")
+		"armor_medic":
+			_choose_armor_suit("medic")
 		"barracks":
 			if StoryManager.is_barracks_built():
 				_open_barracks_select()
@@ -807,62 +815,56 @@ func _try_build_academy() -> void:
 		if player_node and player_node.has_method("show_bubble"):
 			player_node.show_bubble("¡Academia construida! Mejoras permanentes desbloqueadas.", 3.5)
 
-func _toggle_armor_suit() -> void:
-	if GameManager.has_suit_equipped:
-		return # Solo se puede equipar una vez al inicio
+func _choose_armor_suit(suit_id: String) -> void:
 	if ScreenFade.current_tween and ScreenFade.current_tween.is_valid():
 		return
-	ScreenFade.fade_out_in(0.35, 0.1, 0.35, Callable(self, "_on_armor_equip_midpoint"))
-
-func _on_armor_equip_midpoint() -> void:
-	GameManager.has_suit_equipped = true
-	SaveManager.set_story_stage("mission_1")
-	_update_armor_stand_state()
-	AudioManager.play_sfx("marine_ready")
-	if player_node and player_node.has_method("set_suit_equipped"):
-		player_node.set_suit_equipped(true)
-		player_node.show_bubble("Pesa más de lo que parece...", 2.5, "PROTAG_13")
+	
+	if not GameManager.has_suit_equipped:
+		ScreenFade.fade_out_in(0.35, 0.1, 0.35, func():
+			GameManager.has_suit_equipped = true
+			GameManager.selected_hero = suit_id
+			SaveManager.set_story_stage("mission_1")
+			if has_node("/root/SaveManager"):
+				SaveManager.save_data()
+			_update_armor_stand_state()
+			if suit_id == "medic":
+				AudioManager.play_sfx("medic_ready")
+			else:
+				AudioManager.play_sfx("marine_ready")
+			if player_node and player_node.has_method("set_suit_equipped"):
+				player_node.set_suit_equipped(true)
+				player_node.show_bubble("Pesa más de lo que parece...", 2.5, "PROTAG_13")
+		)
+	else:
+		if GameManager.selected_hero != suit_id:
+			ScreenFade.fade_out_in(0.3, 0.08, 0.3, func():
+				GameManager.selected_hero = suit_id
+				if has_node("/root/SaveManager"):
+					SaveManager.save_data()
+				_update_armor_stand_state()
+				if suit_id == "medic":
+					AudioManager.play_sfx("medic_ready")
+				else:
+					AudioManager.play_sfx("marine_ready")
+				if player_node and player_node.has_method("set_suit_equipped"):
+					player_node.set_suit_equipped(true)
+					var msg = "Equipado: Traje Médica Terran." if suit_id == "medic" else "Equipado: Armadura Marine CMC-300."
+					player_node.show_bubble(msg, 2.0)
+			)
 
 func _update_armor_stand_state() -> void:
 	if not armor_stand_sprite or not armor_stand_hint:
 		return
-	if GameManager.has_suit_equipped:
-		# La armadura desaparece del soporte al equiparse (sin opción de guardar)
-		armor_stand_sprite.visible = false
-		if armor_stand_shadow:
-			armor_stand_shadow.visible = false
-		armor_stand_hint.visible = false
-		armor_stand_hint.text = ""
-		if armor_stand_area:
-			armor_stand_area.monitoring = false
-		var is_medic = (GameManager.selected_hero == "medic")
-		if bottom_wireframe:
-			var wf_name = "wire_medic" if is_medic else "wire_marine"
-			var wf_m = SkinManager.get_sprite(wf_name)
-			if wf_m: bottom_wireframe.texture = wf_m
-		if bottom_portrait:
-			var port_path = "res://assets/skins/sd/portrait/medic_portrait.png" if is_medic else "res://assets/skins/sd/portrait/marine_portrait.png"
-			bottom_portrait.set_portrait(load(port_path))
-			bottom_portrait.trigger_talk(1.5)
-		if bottom_name_label:
-			bottom_name_label.text = "MÉDICA TERRAN" if is_medic else "INFANTERÍA TERRAN"
-		if bottom_rank_label:
-			bottom_rank_label.text = "Soporte Táctico" if is_medic else "Blindaje: CMC-300"
-		if bottom_weapon_label:
-			bottom_weapon_label.text = "Láser Médico Táctico" if is_medic else "Fusil Gauss C-14"
-		if bottom_armor_label:
-			bottom_armor_label.text = "Armadura: 0 (+1)"
-		if bottom_hp_bar:
-			bottom_hp_bar.set_health(40, 40)
-		if bottom_hp_label:
-			bottom_hp_label.text = "40 / 40"
-	else:
+	
+	if not GameManager.has_suit_equipped:
 		armor_stand_sprite.visible = true
-		armor_stand_sprite.modulate = Color(1.0, 1.0, 1.0, 1.0)
-		if armor_stand_shadow:
-			armor_stand_shadow.visible = true
-			armor_stand_shadow.modulate = Color(1.0, 1.0, 1.0, 1.0)
+		if armor_stand_shadow: armor_stand_shadow.visible = true
 		armor_stand_hint.text = "[E] EQUIPAR ARMADURA CMC-300"
+		if armor_stand_medic_sprite:
+			armor_stand_medic_sprite.visible = true
+			if armor_stand_medic_shadow: armor_stand_medic_shadow.visible = true
+			if armor_stand_medic_hint: armor_stand_medic_hint.text = "[E] EQUIPAR TRAJE MÉDICA TERRAN"
+		
 		if bottom_wireframe:
 			var wf_c = SkinManager.get_sprite("wire_civilian")
 			if wf_c: bottom_wireframe.texture = wf_c
@@ -880,6 +882,46 @@ func _update_armor_stand_state() -> void:
 			bottom_hp_bar.set_health(80, 80)
 		if bottom_hp_label:
 			bottom_hp_label.text = "80 / 80"
+		return
+	
+	var is_medic = (GameManager.selected_hero == "medic")
+	if is_medic:
+		armor_stand_sprite.visible = true
+		if armor_stand_shadow: armor_stand_shadow.visible = true
+		armor_stand_hint.text = "[E] CAMBIAR A MARINE CMC-300"
+		
+		if armor_stand_medic_sprite: armor_stand_medic_sprite.visible = false
+		if armor_stand_medic_shadow: armor_stand_medic_shadow.visible = false
+		if armor_stand_medic_hint: armor_stand_medic_hint.text = "[ TRAJE MÉDICA EQUIPADO ]"
+	else:
+		armor_stand_sprite.visible = false
+		if armor_stand_shadow: armor_stand_shadow.visible = false
+		armor_stand_hint.text = "[ ARMADURA CMC-300 EQUIPADA ]"
+		
+		if armor_stand_medic_sprite: armor_stand_medic_sprite.visible = true
+		if armor_stand_medic_shadow: armor_stand_medic_shadow.visible = true
+		if armor_stand_medic_hint: armor_stand_medic_hint.text = "[E] CAMBIAR A MÉDICA TERRAN"
+	
+	if bottom_wireframe:
+		var wf_name = "wire_medic" if is_medic else "wire_marine"
+		var wf_m = SkinManager.get_sprite(wf_name)
+		if wf_m: bottom_wireframe.texture = wf_m
+	if bottom_portrait:
+		var port_path = "res://assets/skins/sd/portrait/medic_portrait.png" if is_medic else "res://assets/skins/sd/portrait/marine_portrait.png"
+		bottom_portrait.set_portrait(load(port_path))
+		bottom_portrait.trigger_talk(1.5)
+	if bottom_name_label:
+		bottom_name_label.text = "MÉDICA TERRAN" if is_medic else "INFANTERÍA TERRAN"
+	if bottom_rank_label:
+		bottom_rank_label.text = "Soporte Táctico" if is_medic else "Blindaje: CMC-300"
+	if bottom_weapon_label:
+		bottom_weapon_label.text = "Láser Médico Táctico" if is_medic else "Fusil Gauss C-14"
+	if bottom_armor_label:
+		bottom_armor_label.text = "Armadura: 0 (+1)"
+	if bottom_hp_bar:
+		bottom_hp_bar.set_health(40, 40)
+	if bottom_hp_label:
+		bottom_hp_label.text = "40 / 40"
 
 func _connect_signals() -> void:
 	cmd_center_close_btn.pressed.connect(_close_all_modals)
@@ -955,13 +997,26 @@ func _connect_signals() -> void:
 	if armor_stand_area:
 		armor_stand_area.body_entered.connect(func(b):
 			if b.is_in_group("player"):
-				active_zone = "armor"
+				active_zone = "armor_marine"
+				_update_armor_stand_state()
 				if armor_stand_hint: armor_stand_hint.visible = true
 		)
 		armor_stand_area.body_exited.connect(func(b):
 			if b.is_in_group("player"):
-				if active_zone == "armor": active_zone = ""
+				if active_zone == "armor_marine": active_zone = ""
 				if armor_stand_hint: armor_stand_hint.visible = false
+		)
+	if armor_stand_medic_area:
+		armor_stand_medic_area.body_entered.connect(func(b):
+			if b.is_in_group("player"):
+				active_zone = "armor_medic"
+				_update_armor_stand_state()
+				if armor_stand_medic_hint: armor_stand_medic_hint.visible = true
+		)
+		armor_stand_medic_area.body_exited.connect(func(b):
+			if b.is_in_group("player"):
+				if active_zone == "armor_medic": active_zone = ""
+				if armor_stand_medic_hint: armor_stand_medic_hint.visible = false
 		)
 	
 	$Barracks/Area2D.body_entered.connect(func(b):

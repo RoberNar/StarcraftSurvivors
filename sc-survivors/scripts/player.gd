@@ -364,12 +364,8 @@ func _find_nearest_enemy() -> Node2D:
 func _fire_c14(target: Node2D) -> void:
 	var dir = (target.global_position - global_position).normalized()
 	_update_direction(dir)
-	if GameManager.selected_hero == "medic":
-		fire_anim_timer = 0.14
-		AudioManager.play_sfx("medic_heal", 0.08, -1.0)
-	else:
-		fire_anim_timer = 0.09
-		AudioManager.play_sfx("marine_fire", 0.08, -1.0)
+	fire_anim_timer = 0.14 if GameManager.selected_hero == "medic" else 0.09
+	AudioManager.play_sfx("marine_fire", 0.08, -1.0)
 	
 	var bullet_scene = load("res://scenes/bullet.tscn")
 	var count = max(1, multishot)

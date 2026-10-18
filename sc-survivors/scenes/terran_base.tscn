@@ -21,6 +21,8 @@
 [ext_resource type="Script" path="res://scripts/sc_health_bar.gd" id="19_hpbar"]
 [ext_resource type="PackedScene" path="res://scenes/transmission_comm.tscn" id="20_trans_comm"]
 [ext_resource type="PackedScene" path="res://scenes/face_to_face_dialog.tscn" id="21_face_dialog"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/sprites/medic.png" id="22_medic"]
+[ext_resource type="Texture2D" path="res://assets/skins/sd/sprites/medic_shadow.png" id="23_medic_shadow"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bound_h"]
 size = Vector2(2120, 100)
@@ -41,7 +43,7 @@ radius = 16.0
 radius = 80.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_armor_interact"]
-radius = 65.0
+radius = 35.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_barracks_interact"]
 radius = 125.0
@@ -490,7 +492,7 @@ texture_filter = 0
 texture = ExtResource("9_geyser")
 
 [node name="ArmorStand" type="Node2D" parent="."]
-position = Vector2(1080, 700)
+position = Vector2(1055, 700)
 
 [node name="Shadow" type="Sprite2D" parent="ArmorStand"]
 texture_filter = 0
@@ -524,6 +526,43 @@ theme_override_colors/font_color = Color(0.3, 0.85, 1, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
 theme_override_font_sizes/font_size = 11
 text = "[E] EQUIPAR ARMADURA CMC-300"
+horizontal_alignment = 1
+
+[node name="ArmorStandMedic" type="Node2D" parent="."]
+position = Vector2(1115, 700)
+
+[node name="Shadow" type="Sprite2D" parent="ArmorStandMedic"]
+texture_filter = 0
+position = Vector2(0, 4)
+texture = ExtResource("23_medic_shadow")
+hframes = 17
+vframes = 14
+frame = 8
+
+[node name="Sprite2D" type="Sprite2D" parent="ArmorStandMedic"]
+texture_filter = 0
+texture = ExtResource("22_medic")
+hframes = 17
+vframes = 14
+frame = 8
+
+[node name="Area2D" type="Area2D" parent="ArmorStandMedic"]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ArmorStandMedic/Area2D"]
+shape = SubResource("CircleShape2D_armor_interact")
+
+[node name="HintLabel" type="Label" parent="ArmorStandMedic"]
+visible = false
+offset_left = -110.0
+offset_top = 26.0
+offset_right = 110.0
+offset_bottom = 46.0
+theme_override_colors/font_color = Color(0.3, 0.85, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_font_sizes/font_size = 11
+text = "[E] EQUIPAR TRAJE MÉDICA TERRAN"
 horizontal_alignment = 1
 
 [node name="PlayerSpawn" type="Marker2D" parent="."]
